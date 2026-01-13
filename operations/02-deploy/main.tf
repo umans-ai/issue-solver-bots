@@ -59,6 +59,7 @@ locals {
   custom_app_runner_domains = [local.landing_domain, local.app_domain]
   offer_redirects = {
     envs = "/offers/envs"
+    wiki = "/offers/wiki"
   }
   offer_redirect_domains = {
     for subdomain, path in local.offer_redirects :
