@@ -175,12 +175,14 @@ export default function WikiLandingPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-             <Button size="lg" className="h-12 px-8 text-base" onClick={() => document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' })}>
-              Open a featured repo
-            </Button>
-            <Button variant="outline" size="lg" className="h-12 px-8 text-base" onClick={() => document.getElementById('request')?.scrollIntoView({ behavior: 'smooth' })}>
-              Request a repo
-            </Button>
+             <Link href="/register">
+                <Button size="lg" className="h-12 px-8 text-base">
+                  Try it on your repo
+                </Button>
+             </Link>
+             <Button variant="outline" size="lg" className="h-12 px-8 text-base" onClick={() => document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth' })}>
+                Browse featured repos
+             </Button>
           </div>
         </section>
 
@@ -276,7 +278,7 @@ export default function WikiLandingPage() {
                           <CardTitle className="text-base">Always up-to-date</CardTitle>
                        </CardHeader>
                        <CardContent className="text-sm text-muted-foreground">
-                          Regenerate docs automatically when the repo changes — or refresh on demand.
+                          Regenerate docs automatically when the repo changes. You can also refresh on demand.
                        </CardContent>
                     </Card>
                      <Card className="bg-card/50 backdrop-blur-sm border-border/50 transition-colors hover:bg-card/80">
@@ -378,14 +380,13 @@ export default function WikiLandingPage() {
 
         {/* --- Private Repos CTA --- */}
         <section className="py-24 px-6">
-           <div className="max-w-4xl mx-auto bg-gradient-to-br from-indigo-900/20 to-purple-900/20 border border-indigo-500/20 rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden">
-              <div className="relative z-10">
-                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 mb-6">
+           <div className="max-w-3xl mx-auto bg-card/40 backdrop-blur-sm border border-border/50 rounded-2xl p-8 sm:p-12 text-center">
+                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-500 mb-6">
                     <Lock className="w-6 h-6" />
                  </div>
                  <h2 className="text-3xl font-bold mb-4">Private repositories?</h2>
                  <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-                    Connect your private GitHub repositories and get a secure, team-only wiki in minutes. 
+                    Connect a private git repository and get a private, team-only docs space in minutes. 
                     No code leaves your control.
                  </p>
                  <Link href="/register">
@@ -393,19 +394,7 @@ export default function WikiLandingPage() {
                        Sign up to connect a repo
                     </Button>
                  </Link>
-              </div>
-              
-              {/* Decorative background glow */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
            </div>
-        </section>
-
-        {/* --- Footer CTA --- */}
-        <section className="py-20 text-center">
-           <h2 className="text-2xl font-bold mb-6">Want this for your team?</h2>
-           <a href="mailto:contact@umans.ai">
-              <Button variant="outline" size="lg">Talk to us</Button>
-           </a>
         </section>
 
       </main>
