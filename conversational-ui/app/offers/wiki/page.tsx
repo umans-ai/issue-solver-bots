@@ -18,12 +18,10 @@ import { cn } from '@/lib/utils';
 import { 
   Book, 
   Search, 
-  MessageSquare, 
   GitBranch, 
   Lock, 
   ArrowRight, 
   Star, 
-  CheckCircle2, 
   Github, 
   Sparkles,
   RefreshCw,
@@ -31,9 +29,11 @@ import {
   Workflow,
   Users,
   Lightbulb,
-  Zap
+  Zap,
+  Plus
 } from 'lucide-react';
 import { FaDiscord, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
+import { RequestRepoDialog } from './request-repo-dialog';
 
 // --- Types ---
 interface FeaturedRepo {
@@ -99,8 +99,7 @@ const FEATURED_REPOS: FeaturedRepo[] = [
 
 export default function WikiLandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [repoUrl, setRepoUrl] = useState('');
-  const [requestStatus, setRequestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -110,17 +109,15 @@ export default function WikiLandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleRequestSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!repoUrl.trim()) return;
-    
-    // Simulate API call
-    setRequestStatus('loading');
-    setTimeout(() => {
-      setRequestStatus('success');
-      setRepoUrl('');
-    }, 1000);
-  };
+  const filteredRepos = FEATURED_REPOS.filter((repo) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      repo.name.toLowerCase().includes(query) ||
+      repo.owner.toLowerCase().includes(query) ||
+      repo.description.toLowerCase().includes(query) ||
+      repo.language.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 flex flex-col">
@@ -189,50 +186,84 @@ export default function WikiLandingPage() {
         {/* --- Featured Repos Section --- */}
         <section id="featured" className="py-20 bg-muted/30">
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">Featured Repositories</h2>
-                <p className="text-muted-foreground mt-2">Explore auto-generated wikis for popular open source projects.</p>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold tracking-tight">Featured Repositories</h2>
+            </div>
+
+            {/* Search Input */}
+            <div className="mb-16 relative max-w-[720px] mx-auto group">
+              <div className="absolute inset-0 -inset-x-4 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative">
+                <Input 
+                  placeholder="Find a public repo" 
+                  className="pl-14 h-16 rounded-full bg-background/80 border-border/60 shadow-xl shadow-indigo-500/5 backdrop-blur-xl focus-visible:ring-4 focus-visible:ring-indigo-500/10 focus-visible:border-indigo-500/50 text-lg placeholder:text-muted-foreground/60 transition-all duration-300"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-muted-foreground/70 z-10">
+                  <Search className="h-6 w-6" />
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {FEATURED_REPOS.map((repo) => (
-                <Card key={`${repo.owner}/${repo.name}`} className="flex flex-col h-full hover:shadow-lg transition-shadow bg-card/50 backdrop-blur-sm border-border/50">
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                        <Github className="w-4 h-4" />
-                        <span>{repo.owner}</span>
+            {filteredRepos.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredRepos.map((repo) => (
+                  <Card key={`${repo.owner}/${repo.name}`} className="flex flex-col h-full hover:shadow-lg transition-shadow bg-card/50 backdrop-blur-sm border-border/50">
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                          <Github className="w-4 h-4" />
+                          <span>{repo.owner}</span>
+                        </div>
+                        <div className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground/60 bg-muted px-2 py-0.5 rounded">
+                          Updated {repo.lastIndexed}
+                        </div>
                       </div>
-                      <div className="text-[10px] uppercase tracking-wider font-medium text-muted-foreground/60 bg-muted px-2 py-0.5 rounded">
-                        Updated {repo.lastIndexed}
+                      <CardTitle className="text-xl">{repo.name}</CardTitle>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-500 ring-1 ring-inset ring-blue-500/20">
+                          {repo.language}
+                        </span>
+                        <span className="flex items-center text-xs text-muted-foreground">
+                          <Star className="w-3 h-3 mr-1" /> {repo.stars}
+                        </span>
                       </div>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                      <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                        {repo.description}
+                      </p>
+                    </CardContent>
+                    <CardFooter>
+                      <Button variant="secondary" className="w-full group" disabled>
+                        <span>Open Wiki</span>
+                        <ArrowRight className="w-4 h-4 ml-2 opacity-50 group-hover:opacity-100 transition-opacity" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="max-w-md mx-auto">
+                <Card className="bg-card/50 backdrop-blur-sm border-border/50 text-center p-6">
+                  <CardHeader>
+                    <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                      <Search className="w-6 h-6 text-muted-foreground" />
                     </div>
-                    <CardTitle className="text-xl">{repo.name}</CardTitle>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-500 ring-1 ring-inset ring-blue-500/20">
-                        {repo.language}
-                      </span>
-                      <span className="flex items-center text-xs text-muted-foreground">
-                        <Star className="w-3 h-3 mr-1" /> {repo.stars}
-                      </span>
-                    </div>
+                    <CardTitle>Repo not listed yet</CardTitle>
+                    <CardDescription>
+                      Send us the URL and we will add it to the public catalog.
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="flex-1">
-                    <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-                      {repo.description}
-                    </p>
+                  <CardContent>
+                    <RequestRepoDialog>
+                      <Button className="w-full">Request this repo</Button>
+                    </RequestRepoDialog>
                   </CardContent>
-                  <CardFooter>
-                    <Button variant="secondary" className="w-full group" disabled>
-                      <span>Open Wiki</span>
-                      <ArrowRight className="w-4 h-4 ml-2 opacity-50 group-hover:opacity-100 transition-opacity" />
-                    </Button>
-                  </CardFooter>
                 </Card>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -342,39 +373,6 @@ export default function WikiLandingPage() {
                   <p className="text-sm text-muted-foreground">Newcomers get context quickly. Reviewers get a shared reference with sources.</p>
                </div>
             </div>
-          </div>
-        </section>
-
-        {/* --- Request Repo Form --- */}
-        <section id="request" className="py-24 border-y border-border/50">
-          <div className="max-w-xl mx-auto px-6 text-center">
-            <h2 className="text-3xl font-bold mb-4">Request a repository</h2>
-            <p className="text-muted-foreground mb-8">
-              Want to see a wiki for a specific open source project? Let us know.
-            </p>
-            
-            <form onSubmit={handleRequestSubmit} className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Input 
-                  type="url" 
-                  placeholder="https://github.com/owner/repo" 
-                  className="h-11 bg-background"
-                  required
-                  value={repoUrl}
-                  onChange={(e) => setRepoUrl(e.target.value)}
-                  disabled={requestStatus === 'success' || requestStatus === 'loading'}
-                />
-                <Button type="submit" size="lg" className="h-11 min-w-[140px]" disabled={requestStatus === 'success' || requestStatus === 'loading'}>
-                  {requestStatus === 'loading' ? 'Requesting...' : requestStatus === 'success' ? 'Requested!' : 'Request Indexing'}
-                </Button>
-              </div>
-              {requestStatus === 'success' && (
-                <div className="flex items-center justify-center gap-2 text-green-500 text-sm font-medium animate-in fade-in slide-in-from-top-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Thanks! We've added this repo to our queue.</span>
-                </div>
-              )}
-            </form>
           </div>
         </section>
 
