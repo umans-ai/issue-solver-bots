@@ -484,19 +484,19 @@ async def test_generate_docs_should_import_existing_repo_markdown(
         version=repo_indexed.commit_sha,
     )
 
-    assert knowledge_repo.contains(kb_key, "README.md")
-    assert knowledge_repo.get_origin(kb_key, "README.md") == "repo"
-    assert knowledge_repo.get_metadata(kb_key, "README.md") == {
+    assert knowledge_repo.contains(kb_key, "repo-docs/README.md")
+    assert knowledge_repo.get_origin(kb_key, "repo-docs/README.md") == "repo"
+    assert knowledge_repo.get_metadata(kb_key, "repo-docs/README.md") == {
         "origin": "repo",
         "process_id": repo_indexed.process_id,
     }
-    assert knowledge_repo.contains(kb_key, "docs/runbook.md")
-    assert knowledge_repo.get_origin(kb_key, "docs/runbook.md") == "repo"
-    assert knowledge_repo.get_metadata(kb_key, "docs/runbook.md") == {
+    assert knowledge_repo.contains(kb_key, "repo-docs/docs/runbook.md")
+    assert knowledge_repo.get_origin(kb_key, "repo-docs/docs/runbook.md") == "repo"
+    assert knowledge_repo.get_metadata(kb_key, "repo-docs/docs/runbook.md") == {
         "origin": "repo",
         "process_id": repo_indexed.process_id,
     }
-    assert not knowledge_repo.contains(kb_key, "docs/notes.txt")
+    assert not knowledge_repo.contains(kb_key, "repo-docs/docs/notes.txt")
 
 
 @pytest.mark.asyncio
