@@ -118,8 +118,71 @@ async def test_generate_docs_should_request_each_prompt_individually(
 
 
 @pytest.mark.asyncio
-async def test_generate_docs_should_skip_when_no_prompts_defined(
+async def test_generate_docs_should_auto_define_wiki_starter_pack_on_first_index(
     event_store: EventStore,
+    time_under_control: ControllableClock,
+    knowledge_repo,
+    git_helper,
+    docs_agent,
+    id_generator,
+    worker_dependencies,
+):
+    # Given
+    run_id = "run-auto-wiki"
+    setup_process_id = "wiki-setup-process"
+    doc_gen_ids = [
+        "doc-gen-1",
+        "doc-gen-2",
+        "doc-gen-3",
+        "doc-gen-4",
+        "doc-gen-5",
+        "doc-gen-6",
+    ]
+    id_generator.new.side_effect = [run_id, setup_process_id, *doc_gen_ids]
+
+    repo_connected = BriceDeNice.got_his_first_repo_connected()
+    await event_store.append(
+        BriceDeNice.first_repo_integration_process_id(),
+        repo_connected,
+    )
+
+    kb_id = repo_connected.knowledge_base_id
+    repo_indexed = BriceDeNice.got_his_first_repo_indexed()
+
+    # When
+    await process_event_message(repo_indexed, dependencies=worker_dependencies)
+
+    # Then
+    # Check that DocumentationPromptsDefined was created
+    defined_events = await event_store.find(
+        {"knowledge_base_id": kb_id}, DocumentationPromptsDefined
+    )
+    assert len(defined_events) == 1
+    assert defined_events[0].user_id == repo_connected.user_id
+    assert defined_events[0].process_id == setup_process_id
+
+    # Verify all 6 Wiki Starter Pack prompts are present
+    expected_prompt_ids = {
+        "overview.md",
+        "architecture.md",
+        "repo_structure.md",
+        "tech_stack.md",
+        "onboarding_quickstart.md",
+        "glossary.md",
+    }
+    assert set(defined_events[0].docs_prompts.keys()) == expected_prompt_ids
+
+    # Check that DocumentationGenerationRequested events were emitted
+    requests = await event_store.find(
+        {"knowledge_base_id": kb_id}, DocumentationGenerationRequested
+    )
+    assert len(requests) == 6
+
+
+@pytest.mark.asyncio
+async def test_generate_docs_should_not_redefine_prompts_after_user_removed_them(
+    event_store: EventStore,
+    time_under_control: ControllableClock,
     knowledge_repo,
     git_helper,
     docs_agent,
@@ -136,17 +199,77 @@ async def test_generate_docs_should_skip_when_no_prompts_defined(
 
     kb_id = repo_connected.knowledge_base_id
 
+    # User previously defined prompts, then removed them all
+    from issue_solver.events.domain import DocumentationPromptsRemoved
+
+    await event_store.append(
+        BriceDeNice.doc_configuration_process_id(),
+        BriceDeNice.has_defined_documentation_prompts(),
+    )
+    time_under_control.set_from_iso_format("2025-01-02T12:00:00Z")
+    await event_store.append(
+        "removal-process",
+        DocumentationPromptsRemoved(
+            knowledge_base_id=kb_id,
+            user_id=repo_connected.user_id,
+            prompt_ids=set(BriceDeNice.defined_prompts_for_documentation().keys()),
+            process_id="removal-process",
+            occurred_at=time_under_control.now(),
+        ),
+    )
+
     repo_indexed = BriceDeNice.got_his_first_repo_indexed()
 
     # When
     await process_event_message(repo_indexed, dependencies=worker_dependencies)
 
     # Then
-    docs_agent.generate_documentation.assert_not_called()
+    # Should NOT auto-define because prompts were previously defined
+    defined_events = await event_store.find(
+        {"knowledge_base_id": kb_id}, DocumentationPromptsDefined
+    )
+    assert len(defined_events) == 1  # Only the original one from BriceDeNice
+
     requests = await event_store.find(
         {"knowledge_base_id": kb_id}, DocumentationGenerationRequested
     )
     assert requests == []
+
+
+@pytest.mark.asyncio
+async def test_generate_docs_should_skip_when_no_prompts_defined_legacy_behavior(
+    event_store: EventStore,
+    knowledge_repo,
+    git_helper,
+    docs_agent,
+    id_generator,
+    worker_dependencies,
+):
+    # This test is kept for backwards compatibility verification
+    # but the behavior has changed - now it auto-defines Wiki Starter Pack
+    # Given
+    run_id = "run-id"
+    setup_process_id = "setup-id"
+    id_generator.new.side_effect = [run_id, setup_process_id] + [f"gen-{i}" for i in range(10)]
+
+    repo_connected = BriceDeNice.got_his_first_repo_connected()
+    await event_store.append(
+        BriceDeNice.first_repo_integration_process_id(),
+        repo_connected,
+    )
+
+    kb_id = repo_connected.knowledge_base_id
+    repo_indexed = BriceDeNice.got_his_first_repo_indexed()
+
+    # When
+    await process_event_message(repo_indexed, dependencies=worker_dependencies)
+
+    # Then - Now auto-defines Wiki Starter Pack instead of skipping
+    requests = await event_store.find(
+        {"knowledge_base_id": kb_id}, DocumentationGenerationRequested
+    )
+    # Should have 6 requests for Wiki Starter Pack
+    assert len(requests) == 6
 
 
 @pytest.mark.asyncio
