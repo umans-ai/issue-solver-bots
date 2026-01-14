@@ -1,15 +1,19 @@
 import shutil
 from pathlib import Path
 
+from issue_solver.agents.docs_prompts import wiki_starter_prompts
 from issue_solver.agents.issue_resolving_agent import DocumentingAgent
 from issue_solver.events.code_repo_integration import fetch_repo_credentials
 from issue_solver.events.domain import (
+    CodeRepositoryConnected,
     CodeRepositoryIndexed,
     DocumentationGenerationRequested,
     DocumentationGenerationStarted,
     DocumentationGenerationCompleted,
     DocumentationGenerationFailed,
+    DocumentationPromptsDefined,
     Mode,
+    most_recent_event,
 )
 from issue_solver.worker.documenting.knowledge_repository import (
     KnowledgeBase,
@@ -49,6 +53,46 @@ async def generate_docs(
     auto_doc_setup = await load_auto_documentation_setup(
         dependencies.event_store, event.knowledge_base_id
     )
+
+    # Auto-define default Wiki Starter Pack if no prompts were ever defined
+    if not auto_doc_setup.docs_prompts:
+        # Check if prompts were ever defined before (even if later removed)
+        prompts_defined_events = await dependencies.event_store.find(
+            {"knowledge_base_id": event.knowledge_base_id},
+            DocumentationPromptsDefined,
+        )
+
+        # Only auto-define if there has never been a DocumentationPromptsDefined event
+        if not prompts_defined_events:
+            # Get user_id from CodeRepositoryConnected event
+            repo_connected_events = await dependencies.event_store.find(
+                {"knowledge_base_id": event.knowledge_base_id},
+                CodeRepositoryConnected,
+            )
+            repo_connected = most_recent_event(
+                repo_connected_events, CodeRepositoryConnected
+            )
+            user_id = repo_connected.user_id if repo_connected else "system"
+
+            default_prompts = wiki_starter_prompts()
+            docs_setup_process_id = dependencies.id_generator.new()
+
+            await dependencies.event_store.append(
+                docs_setup_process_id,
+                DocumentationPromptsDefined(
+                    knowledge_base_id=event.knowledge_base_id,
+                    user_id=user_id,
+                    docs_prompts=default_prompts,
+                    process_id=docs_setup_process_id,
+                    occurred_at=dependencies.clock.now(),
+                ),
+            )
+
+            # Reload setup after defining prompts
+            auto_doc_setup = await load_auto_documentation_setup(
+                dependencies.event_store, event.knowledge_base_id
+            )
+
     if not auto_doc_setup.docs_prompts:
         return
 
