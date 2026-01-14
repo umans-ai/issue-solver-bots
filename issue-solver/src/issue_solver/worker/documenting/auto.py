@@ -11,7 +11,6 @@ from issue_solver.events.domain import (
     DocumentationGenerationStarted,
     DocumentationGenerationCompleted,
     DocumentationGenerationFailed,
-    DocumentationPromptsDefined,
     Mode,
     most_recent_event,
 )
@@ -53,44 +52,26 @@ async def generate_docs(
     auto_doc_setup = await load_auto_documentation_setup(
         dependencies.event_store, event.knowledge_base_id
     )
-
-    # Auto-define default Wiki Starter Pack if no prompts were ever defined
-    if not auto_doc_setup.docs_prompts:
-        # Check if prompts were ever defined before (even if later removed)
-        prompts_defined_events = await dependencies.event_store.find(
+    if not auto_doc_setup.docs_prompts and not auto_doc_setup.has_ever_defined_prompts:
+        repo_connected_events = await dependencies.event_store.find(
             {"knowledge_base_id": event.knowledge_base_id},
-            DocumentationPromptsDefined,
+            CodeRepositoryConnected,
         )
-
-        # Only auto-define if there has never been a DocumentationPromptsDefined event
-        if not prompts_defined_events:
-            # Get user_id from CodeRepositoryConnected event
-            repo_connected_events = await dependencies.event_store.find(
-                {"knowledge_base_id": event.knowledge_base_id},
-                CodeRepositoryConnected,
-            )
-            repo_connected = most_recent_event(
-                repo_connected_events, CodeRepositoryConnected
-            )
-            user_id = repo_connected.user_id if repo_connected else "system"
-
-            default_prompts = wiki_starter_prompts()
-            docs_setup_process_id = dependencies.id_generator.new()
-
+        repo_connected = most_recent_event(
+            repo_connected_events, CodeRepositoryConnected
+        )
+        user_id = repo_connected.user_id if repo_connected else "system"
+        docs_setup_process_id = dependencies.id_generator.new()
+        default_events = auto_doc_setup.auto_define_defaults(
+            docs_prompts=wiki_starter_prompts(),
+            user_id=user_id,
+            process_id=docs_setup_process_id,
+            occurred_at=dependencies.clock.now(),
+        )
+        if default_events:
             await dependencies.event_store.append(
                 docs_setup_process_id,
-                DocumentationPromptsDefined(
-                    knowledge_base_id=event.knowledge_base_id,
-                    user_id=user_id,
-                    docs_prompts=default_prompts,
-                    process_id=docs_setup_process_id,
-                    occurred_at=dependencies.clock.now(),
-                ),
-            )
-
-            # Reload setup after defining prompts
-            auto_doc_setup = await load_auto_documentation_setup(
-                dependencies.event_store, event.knowledge_base_id
+                *default_events,
             )
 
     if not auto_doc_setup.docs_prompts:

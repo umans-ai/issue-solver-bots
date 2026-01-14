@@ -250,7 +250,9 @@ async def test_generate_docs_should_skip_when_no_prompts_defined_legacy_behavior
     # Given
     run_id = "run-id"
     setup_process_id = "setup-id"
-    id_generator.new.side_effect = [run_id, setup_process_id] + [f"gen-{i}" for i in range(10)]
+    id_generator.new.side_effect = [run_id, setup_process_id] + [
+        f"gen-{i}" for i in range(10)
+    ]
 
     repo_connected = BriceDeNice.got_his_first_repo_connected()
     await event_store.append(

@@ -41,6 +41,7 @@ class AutoDocumentationSetup:
     docs_prompts: dict[str, str]
     updated_at: datetime | None
     last_process_id: str | None
+    has_ever_defined_prompts: bool
 
     @classmethod
     def start(cls, knowledge_base_id: str) -> "AutoDocumentationSetup":
@@ -49,6 +50,7 @@ class AutoDocumentationSetup:
             docs_prompts={},
             updated_at=None,
             last_process_id=None,
+            has_ever_defined_prompts=False,
         )
 
     @classmethod
@@ -65,11 +67,15 @@ class AutoDocumentationSetup:
 
     def apply(self, event: AutoDocumentationEvent) -> "AutoDocumentationSetup":
         next_prompts = self._next_prompts_after(event)
+        has_ever_defined_prompts = self.has_ever_defined_prompts or isinstance(
+            event, DocumentationPromptsDefined
+        )
         return replace(
             self,
             docs_prompts=next_prompts,
             updated_at=event.occurred_at,
             last_process_id=event.process_id,
+            has_ever_defined_prompts=has_ever_defined_prompts,
         )
 
     def ensure_prompt_ids_can_be_removed(self, prompt_ids: set[str]) -> None:
@@ -101,6 +107,32 @@ class AutoDocumentationSetup:
 
     def prompt_matches(self, prompt_id: str, prompt_description: str) -> bool:
         return self.docs_prompts.get(prompt_id) == prompt_description
+
+    def auto_define_defaults(
+        self,
+        *,
+        docs_prompts: dict[str, str],
+        user_id: str,
+        process_id: str,
+        occurred_at: datetime,
+    ) -> list[DocumentationPromptsDefined]:
+        if self.docs_prompts or self.has_ever_defined_prompts:
+            return []
+        cleaned_prompts = {
+            key: value for key, value in docs_prompts.items() if value.strip()
+        }
+        event = DocumentationPromptsDefined(
+            knowledge_base_id=self.knowledge_base_id,
+            user_id=user_id,
+            docs_prompts=cleaned_prompts,
+            process_id=process_id,
+            occurred_at=occurred_at,
+        )
+        self.docs_prompts = cleaned_prompts
+        self.updated_at = occurred_at
+        self.last_process_id = process_id
+        self.has_ever_defined_prompts = True
+        return [event]
 
 
 async def load_auto_documentation_setup(
