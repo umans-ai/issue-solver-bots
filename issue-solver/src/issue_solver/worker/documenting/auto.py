@@ -5,14 +5,12 @@ from issue_solver.agents.docs_prompts import wiki_starter_prompts
 from issue_solver.agents.issue_resolving_agent import DocumentingAgent
 from issue_solver.events.code_repo_integration import fetch_repo_credentials
 from issue_solver.events.domain import (
-    CodeRepositoryConnected,
     CodeRepositoryIndexed,
     DocumentationGenerationRequested,
     DocumentationGenerationStarted,
     DocumentationGenerationCompleted,
     DocumentationGenerationFailed,
     Mode,
-    most_recent_event,
 )
 from issue_solver.worker.documenting.knowledge_repository import (
     KnowledgeBase,
@@ -53,18 +51,10 @@ async def generate_docs(
         dependencies.event_store, event.knowledge_base_id
     )
     if not auto_doc_setup.docs_prompts and not auto_doc_setup.has_ever_defined_prompts:
-        repo_connected_events = await dependencies.event_store.find(
-            {"knowledge_base_id": event.knowledge_base_id},
-            CodeRepositoryConnected,
-        )
-        repo_connected = most_recent_event(
-            repo_connected_events, CodeRepositoryConnected
-        )
-        user_id = repo_connected.user_id if repo_connected else "system"
         docs_setup_process_id = dependencies.id_generator.new()
         default_events = auto_doc_setup.auto_define_defaults(
             docs_prompts=wiki_starter_prompts(),
-            user_id=user_id,
+            user_id=repo_credentials.user_id,
             process_id=docs_setup_process_id,
             occurred_at=dependencies.clock.now(),
         )
