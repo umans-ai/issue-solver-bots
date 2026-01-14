@@ -14,6 +14,8 @@ You are Codebase Analyst, an autonomous assistant that explores a cloned source 
 - Produce one or more Markdown files under a single output directory; you may create subfolders to structure content.
 - The subfolder arborescence is the navigation index presented to the user. Design it intentionally.
 - When a target doc already exists in OUTPUT_DIR, treat it as the prior version and update it in place: keep stable sections/headings when still correct, refresh only what new evidence justifies.
+- Keep documentation visual and clarity-first: use the best diagram level for each doc, favor sequence diagrams for flows, and prefer readable layouts over exhaustive detail.
+- Prefer C4-style storytelling: include a Mermaid diagram using flowchart syntax to mimic C4 levels (system/context/container) since native C4 is poorly supported.
 
 ## Environment (fill at runtime)
 
@@ -63,59 +65,13 @@ No specific source files were identified for this document.
 
 
 def wiki_starter_prompts() -> dict[str, str]:
-    """Default Wiki Starter Pack prompts applied automatically on first index."""
     return {
-        "overview.md": """
-		Create a high-level overview for engineers first encountering this codebase.
-		- Summarize the project's purpose in 2-3 sentences.
-		- Identify key features or capabilities delivered by the system.
-		- Point out notable directories, packages, or modules and their responsibilities.
-		- Link to other documentation (like architecture.md or quickstart) if useful.
-		Keep it brief (1-2 pages) but grounded in actual code structure.
-		""",
-        "architecture.md": """
-		Describe the system architecture for engineers who need a mental model.
-		- Express intent: what each component is responsible for and why; make implicit assumptions explicit.
-		- Identify major components/services and how they communicate (APIs, queues, DBs) with references to source files.
-		- Explain primary data flows for a representative request/task.
-		- Note external integrations or dependencies and why they exist.
-		- Capture constraints or trade-offs mentioned in ADRs/docs (performance, scalability, security).
-		Prefer C4-style storytelling: include a Mermaid diagram using flowchart syntax to mimic C4 levels (system/context/container) since native C4 is poorly supported.
-		""",
-        "repo_structure.md": """
-		Document the repository structure and conventions.
-		- Outline the directory tree with purpose annotations for major folders.
-		- Identify where to find tests, configuration, build scripts, documentation, and source code.
-		- Call out non-obvious patterns (e.g., "tests mirror src structure," "configs use YAML").
-		- Mention build artifacts, generated files, or directories to ignore.
-		This helps newcomers navigate the repo confidently.
-		""",
-        "tech_stack.md": """
-		List the technologies, frameworks, and tools used in the project.
-		- Programming languages and versions (from package manifests or CI configs).
-		- Key libraries, frameworks, and their roles (web framework, ORM, testing, etc.).
-		- Infrastructure or deployment dependencies (Docker, Kubernetes, cloud services).
-		- Dev tools (linters, formatters, test runners, CI/CD).
-		Reference config files or lock files as evidence for versions and choices.
-		""",
-        "onboarding_quickstart.md": """
-		Build an onboarding quickstart for new contributors.
-		- List prerequisites (runtime versions, package managers, services) with exact install commands from repo docs or scripts.
-		- Document the fastest path to run the project locally end-to-end: clone, install dependencies, bootstrap data, run tests, and start services.
-		- Document the dev lifecycle: clone, install dependencies, bootstrap data, run tests, start services, lint/format, deploy locally.
-		- Highlight useful commands (make targets, scripts, package.json commands) and when to use them.
-		- Surface gotchas (environment variables, feature flags, required accounts) discovered in the repo.
-		- When it helps, include simple diagrams or flowcharts showing setup steps or service relationships.
-		Keep it succinct, copy-pastable, and cite file paths for each step.
-		""",
-        "glossary.md": """
-		Create a project-wide glossary aimed at newcomers.
-		- Use plain language definitions for domain terms, acronyms, and important file/service names.
-		- Reference the exact files or code paths where each term is defined or used.
-		- Highlight relationships (e.g., "X depends on Y") when the code shows coupling.
-		- Call out whether the term is internal-only or visible to customers.
-		Keep entries short (2-3 sentences) and sorted alphabetically so they can be skimmed quickly.
-		""",
+        "overview.md": "Introduce the repository, its purpose, and the problems it solves.",
+        "architecture.md": "Explain the system architecture and how main components interact.",
+        "repo_structure.md": "Describe the repository structure and how to navigate it.",
+        "tech_stack.md": "List the key technologies, frameworks, and dependencies used.",
+        "onboarding_quickstart.md": "Provide the fastest path to get a new contributor running locally.",
+        "glossary.md": "Define core domain terms and acronyms used across the codebase.",
     }
 
 
