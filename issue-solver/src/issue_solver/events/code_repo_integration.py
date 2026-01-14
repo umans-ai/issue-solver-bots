@@ -79,6 +79,7 @@ async def get_connected_repo_event(
 class RepoCredentials:
     url: str
     access_token: str | None
+    user_id: str
 
 
 async def get_repo_credentials(
@@ -97,6 +98,7 @@ async def get_repo_credentials(
     return RepoCredentials(
         url=code_repository_connected.url,
         access_token=access_token,
+        user_id=code_repository_connected.user_id,
     )
 
 
