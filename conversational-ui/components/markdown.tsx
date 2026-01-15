@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './code-block';
 import { MermaidDiagram } from './mermaid-diagram';
 
-const components: Partial<Components> = {
+export const markdownComponents: Partial<Components> = {
   code: ({ node, inline, className, children, ...props }: any) => {
     const match = /language-(\w+)/.exec(className || '');
     const language = match?.[1] || '';
@@ -119,7 +119,7 @@ const components: Partial<Components> = {
   },
 };
 
-const remarkPlugins = [remarkGfm];
+export const markdownRemarkPlugins = [remarkGfm];
 
 const NonMemoizedMarkdown = ({ children }: { children: string }) => {
   const defaultOrigin =
@@ -131,8 +131,8 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
       <Streamdown
         defaultOrigin={defaultOrigin}
         allowedLinkPrefixes={['*']}
-        remarkPlugins={remarkPlugins}
-        components={components}
+        remarkPlugins={markdownRemarkPlugins}
+        components={markdownComponents}
       >
         {children}
       </Streamdown>
