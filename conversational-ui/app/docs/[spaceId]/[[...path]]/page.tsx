@@ -89,6 +89,7 @@ type DocFolderNode = {
   label: string;
   children: DocFolderNode[];
   files: DocFileEntry[];
+  orderIndex?: number;
 };
 
 export default function DocsPage() {
@@ -453,6 +454,11 @@ export default function DocsPage() {
       segment
         .replace(/[-_]+/g, ' ')
         .replace(/\b\w/g, (char) => char.toUpperCase());
+    const orderMap = new Map(
+      fileList.map((entry, index) => [entry.path, index]),
+    );
+    const orderIndexFor = (path: string) =>
+      orderMap.get(path) ?? Number.POSITIVE_INFINITY;
 
     const root: DocFolderNode = {
       id: '',
@@ -501,12 +507,34 @@ export default function DocsPage() {
       });
     }
 
+    const assignOrderIndex = (node: DocFolderNode): number => {
+      let minOrder = Number.POSITIVE_INFINITY;
+      node.files.forEach((file) => {
+        const orderIndex = orderIndexFor(file.path);
+        if (orderIndex < minOrder) minOrder = orderIndex;
+      });
+      node.children.forEach((child) => {
+        const childMin = assignOrderIndex(child);
+        if (childMin < minOrder) minOrder = childMin;
+      });
+      node.orderIndex = minOrder;
+      return minOrder;
+    };
+
     const sortNode = (node: DocFolderNode) => {
-      node.children.sort((a, b) =>
-        a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }),
-      );
+      node.children.sort((a, b) => {
+        const aOrder = a.orderIndex ?? Number.POSITIVE_INFINITY;
+        const bOrder = b.orderIndex ?? Number.POSITIVE_INFINITY;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.label.localeCompare(b.label, undefined, {
+          sensitivity: 'base',
+        });
+      });
       node.children.forEach(sortNode);
       node.files.sort((a, b) => {
+        const aOrder = orderIndexFor(a.path);
+        const bOrder = orderIndexFor(b.path);
+        if (aOrder !== bOrder) return aOrder - bOrder;
         const aName = a.path.split('/').pop() ?? a.path;
         const bName = b.path.split('/').pop() ?? b.path;
         const aIsIndex = aName.toLowerCase() === 'index.md';
@@ -520,6 +548,7 @@ export default function DocsPage() {
       });
     };
 
+    assignOrderIndex(root);
     sortNode(root);
 
     return root;
