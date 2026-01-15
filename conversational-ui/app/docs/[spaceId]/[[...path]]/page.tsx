@@ -24,7 +24,7 @@ import {
   Wand2,
 } from 'lucide-react';
 import { SharedHeader } from '@/components/shared-header';
-import { Markdown } from '@/components/markdown';
+import { DocsMarkdown } from '@/components/docs-markdown';
 import {
   Select,
   SelectContent,
@@ -1650,7 +1650,7 @@ export default function DocsPage() {
                             <span>{approvalSummary || 'Approved'}</span>
                           </div>
                         )}
-                        <Markdown>{content}</Markdown>
+                        <DocsMarkdown>{content}</DocsMarkdown>
                       </div>
                     ) : (
                       <div className="space-y-4">
