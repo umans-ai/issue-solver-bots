@@ -3,7 +3,11 @@ import React, { memo } from 'react';
 import type { Components } from 'react-markdown';
 import { Streamdown } from 'streamdown';
 import { ChevronRight } from 'lucide-react';
-import { markdownComponents, markdownRemarkPlugins } from './markdown';
+import {
+  markdownComponents,
+  markdownRemarkPlugins,
+  markdownRehypePlugins,
+} from './markdown';
 
 type SourceItem = {
   path?: string;
@@ -181,6 +185,7 @@ const NonMemoizedDocsMarkdown = ({ children }: { children: string }) => {
         defaultOrigin={defaultOrigin}
         allowedLinkPrefixes={['*']}
         remarkPlugins={remarkPlugins}
+        rehypePlugins={markdownRehypePlugins}
         components={components}
       >
         {children}
