@@ -147,15 +147,15 @@ const SourcesBlock = ({
           <h2 className="m-0 text-sm font-semibold leading-none">{heading}</h2>
         </summary>
         <div className="px-3 pb-3">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2">
           {items.map((item, index) => {
             const pathLabel = item.path || item.raw;
             const linesLabel = item.lines;
             const extension = getFileExtension(pathLabel);
             const languageIcon = getLanguageIcon(extension);
             return (
-              <div key={`${pathLabel}-${index}`} className="flex flex-col gap-1">
-                <div className="inline-flex items-center gap-2 rounded-md border border-border/50 bg-background/60 px-2 py-1 text-[11px] font-medium text-foreground/80">
+              <div key={`${pathLabel}-${index}`} className="flex flex-col gap-0.5">
+                <div className="inline-flex max-w-full items-center gap-2 rounded-md border border-border/50 bg-background/60 px-2 py-0.5 text-[11px] font-medium text-foreground/80 w-fit">
                   {languageIcon ? (
                     <span className="relative flex h-3.5 w-3.5 items-center justify-center">
                       <img
@@ -188,7 +188,8 @@ const SourcesBlock = ({
                   ) : null}
                 </div>
                 {item.description ? (
-                  <div className="text-xs text-muted-foreground">
+                  <div className="ml-4 border-l border-border/50 pl-3 text-xs text-muted-foreground">
+                    <span className="text-muted-foreground/50">↳</span>{' '}
                     {item.description}
                   </div>
                 ) : null}
