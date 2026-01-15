@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
+import json
 
 
 @dataclass(frozen=True)
@@ -43,3 +44,13 @@ class KnowledgeRepository(ABC):
 
     def get_origin(self, base: KnowledgeBase, document_name: str) -> str | None:
         return self.get_metadata(base, document_name).get("origin")
+
+    def write_manifest(self, base: KnowledgeBase, docs_prompts: dict[str, str]) -> None:
+        pages = [
+            {
+                "path": key if key.lower().endswith(".md") else f"{key}.md",
+                "purpose": purpose,
+            }
+            for key, purpose in docs_prompts.items()
+        ]
+        self.add(base, ".umans/docs.json", json.dumps({"pages": pages}))

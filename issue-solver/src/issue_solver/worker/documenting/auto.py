@@ -1,4 +1,3 @@
-import json
 import shutil
 from pathlib import Path
 
@@ -68,11 +67,9 @@ async def generate_docs(
     if not auto_doc_setup.docs_prompts:
         return
 
-    _write_docs_manifest(
-        knowledge_repo=dependencies.knowledge_repository,
-        knowledge_base_id=event.knowledge_base_id,
-        code_version=code_version,
-        docs_prompts=auto_doc_setup.docs_prompts,
+    dependencies.knowledge_repository.write_manifest(
+        KnowledgeBase(event.knowledge_base_id, code_version),
+        auto_doc_setup.docs_prompts,
     )
 
     for prompt_id, prompt_description in auto_doc_setup.docs_prompts.items():
@@ -308,21 +305,3 @@ def load_existing_markdown_documents(
             content,
             metadata={"origin": "repo", "process_id": process_id},
         )
-
-
-def _write_docs_manifest(
-    *,
-    knowledge_repo: KnowledgeRepository,
-    knowledge_base_id: str,
-    code_version: str,
-    docs_prompts: dict[str, str],
-) -> None:
-    pages = []
-    for prompt_id, purpose in docs_prompts.items():
-        path = prompt_id if prompt_id.lower().endswith(".md") else f"{prompt_id}.md"
-        pages.append({"path": path, "purpose": purpose})
-    knowledge_repo.add(
-        KnowledgeBase(knowledge_base_id, code_version),
-        ".umans/docs.json",
-        json.dumps({"pages": pages}),
-    )
