@@ -1340,8 +1340,11 @@ export default function DocsPage() {
 
   const renderFolder = (node: DocFolderNode): ReactNode => {
     const label = node.label || node.name;
+    const isRepoDocs =
+      node.name.toLowerCase() === 'repo-docs' ||
+      label.toLowerCase() === 'repo docs';
     return (
-      <details key={node.id} className="group space-y-1" open>
+      <details key={node.id} className="group space-y-1" open={!isRepoDocs}>
         <summary className="flex cursor-pointer items-center justify-between px-3 py-1 text-sm font-semibold text-foreground list-none">
           <span>{label}</span>
           <ChevronDown
