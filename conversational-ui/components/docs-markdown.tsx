@@ -90,12 +90,16 @@ const extractSourcesSections = (markdown: string): MarkdownSegment[] => {
   while (i < lines.length) {
     const line = lines[i];
     const headingMatch = line.match(/^##\s+(.*)$/);
-    if (!headingMatch) {
+    const boldMatch = !headingMatch
+      ? line.match(/^\s*\*\*(.+?)\*\*\s*$/)
+      : null;
+    if (!headingMatch && !boldMatch) {
       buffer.push(line);
       i += 1;
       continue;
     }
-    const heading = headingMatch[1].trim().replace(/:$/, '');
+    const rawHeading = (headingMatch ? headingMatch[1] : boldMatch?.[1]) || '';
+    const heading = rawHeading.trim().replace(/:$/, '');
     if (!SOURCE_HEADINGS.has(normalizeHeading(heading))) {
       buffer.push(line);
       i += 1;
