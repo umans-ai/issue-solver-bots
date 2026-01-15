@@ -68,6 +68,39 @@ export async function GET(request: Request) {
     const indexFirst = files.includes('index.md')
       ? ['index.md', ...files.filter((f) => f !== 'index.md')]
       : files;
+    let orderedFiles = indexFirst;
+    try {
+      const orderKey = `${prefix}.umans/docs.json`;
+      const orderRes = await s3Client.send(
+        new GetObjectCommand({ Bucket: BUCKET_NAME, Key: orderKey }),
+      );
+      const orderBody = await streamToString(orderRes.Body);
+      const parsed = JSON.parse(orderBody);
+      const pages = Array.isArray(parsed?.pages) ? parsed.pages : [];
+      const order: string[] = pages
+        .map((page: { path?: unknown }) =>
+          typeof page?.path === 'string' ? page.path : null,
+        )
+        .filter((path: string | null): path is string => typeof path === 'string')
+        .map((path: string) =>
+          path.toLowerCase().endsWith('.md') ? path : `${path}.md`,
+        );
+      const seen = new Set<string>();
+      const ordered = order.filter((path: string) => {
+        if (seen.has(path)) return false;
+        if (!indexFirst.includes(path)) return false;
+        seen.add(path);
+        return true;
+      });
+      if (ordered.length > 0) {
+        orderedFiles = [
+          ...ordered,
+          ...indexFirst.filter((path) => !seen.has(path)),
+        ];
+      }
+    } catch (orderError) {
+      orderedFiles = indexFirst;
+    }
 
     let metadata: Record<string, { origin?: string; process_id?: string }> = {};
     // Try new metadata format first, then fall back to old origins format
@@ -104,7 +137,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({ files: indexFirst, metadata });
+    return NextResponse.json({ files: orderedFiles, metadata });
   } catch (error) {
     console.error('List docs error', error);
     return NextResponse.json({ error: 'Failed to list docs' }, { status: 500 });
