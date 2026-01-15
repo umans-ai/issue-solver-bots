@@ -6,11 +6,49 @@ import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './code-block';
 import { MermaidDiagram } from './mermaid-diagram';
 
+const markInlineCode = (node: any, parent: any) => {
+  if (!node || typeof node !== 'object') return;
+  if (node.type === 'element' && node.tagName === 'code') {
+    const isInline = parent?.tagName !== 'pre';
+    node.properties = {
+      ...(node.properties || {}),
+      'data-inline': isInline ? 'true' : 'false',
+    };
+  }
+  if (Array.isArray(node.children)) {
+    node.children.forEach((child: any) => markInlineCode(child, node));
+  }
+};
+
+const rehypeInlineCode = () => {
+  return (tree: any) => {
+    markInlineCode(tree, null);
+  };
+};
+
 export const markdownComponents: Partial<Components> = {
   code: ({ node, inline, className, children, ...props }: any) => {
-    const match = /language-(\w+)/.exec(className || '');
-    const language = match?.[1] || '';
     const codeContent = String(children).replace(/\n$/, '');
+    const position = node?.position;
+    const spansMultipleLines =
+      typeof position?.start?.line === 'number' &&
+      typeof position?.end?.line === 'number' &&
+      position.end.line > position.start.line;
+    const inlineProp = node?.properties?.['data-inline'];
+    const hasInlineProp = inlineProp !== undefined;
+    const inlineFromProp = inlineProp === 'true' || inlineProp === true;
+    const isInline =
+      inline === true ||
+      inlineFromProp ||
+      node?.type === 'inlineCode' ||
+      (!hasInlineProp &&
+        !className &&
+        !spansMultipleLines &&
+        !codeContent.includes('\n'));
+    const resolvedClassName =
+      !isInline && !className ? 'language-text' : className;
+    const match = /language-(\w+)/.exec(resolvedClassName || '');
+    const language = match?.[1] || '';
 
     // Handle Mermaid diagrams
     if (language === 'mermaid') {
@@ -21,7 +59,12 @@ export const markdownComponents: Partial<Components> = {
 
     // Handle regular code blocks
     return (
-      <CodeBlock node={node} inline={inline} className={className} {...props}>
+      <CodeBlock
+        node={node}
+        inline={isInline}
+        className={resolvedClassName}
+        {...props}
+      >
         {children}
       </CodeBlock>
     );
@@ -120,6 +163,7 @@ export const markdownComponents: Partial<Components> = {
 };
 
 export const markdownRemarkPlugins = [remarkGfm];
+export const markdownRehypePlugins = [rehypeInlineCode];
 
 const NonMemoizedMarkdown = ({ children }: { children: string }) => {
   const defaultOrigin =
@@ -132,6 +176,7 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
         defaultOrigin={defaultOrigin}
         allowedLinkPrefixes={['*']}
         remarkPlugins={markdownRemarkPlugins}
+        rehypePlugins={markdownRehypePlugins}
         components={markdownComponents}
       >
         {children}
