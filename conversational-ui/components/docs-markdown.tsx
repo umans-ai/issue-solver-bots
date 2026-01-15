@@ -73,62 +73,84 @@ const parseSourceItem = (rawText: string): SourceItem | null => {
   };
 };
 
-const extractSourcesSection = (markdown: string) => {
+type MarkdownSegment =
+  | { type: 'markdown'; content: string }
+  | { type: 'sources'; heading: string; items: SourceItem[] };
+
+const extractSourcesSections = (markdown: string): MarkdownSegment[] => {
   const lines = markdown.split(/\r?\n/);
-  let startIndex = -1;
-  let headingText = '';
-  for (let i = 0; i < lines.length; i += 1) {
-    const match = lines[i].match(/^##\s+(.*)$/);
-    if (!match) continue;
-    const heading = match[1].trim().replace(/:$/, '');
-    if (SOURCE_HEADINGS.has(normalizeHeading(heading))) {
-      startIndex = i;
-      headingText = heading;
-      break;
-    }
-  }
-  if (startIndex === -1) {
-    return { before: markdown, after: '', sources: null };
-  }
-  let endIndex = lines.length;
-  for (let i = startIndex + 1; i < lines.length; i += 1) {
-    if (/^#{1,6}\s+\S+/.test(lines[i])) {
-      endIndex = i;
-      break;
-    }
-  }
-  const blockLines = lines.slice(startIndex + 1, endIndex);
-  const items: SourceItem[] = [];
-  let current: string[] | null = null;
-  const flushCurrent = () => {
-    if (!current) return;
-    const raw = current.join(' ').replace(/\s+/g, ' ').trim();
-    const parsed = parseSourceItem(raw);
-    if (parsed) items.push(parsed);
-    current = null;
+  const segments: MarkdownSegment[] = [];
+  let buffer: string[] = [];
+  const flushBuffer = () => {
+    if (buffer.length === 0) return;
+    segments.push({ type: 'markdown', content: buffer.join('\n') });
+    buffer = [];
   };
-  for (const line of blockLines) {
-    const bulletMatch = line.match(/^\s*(?:[-*+]|\d+\.)\s+(.+)$/);
-    if (bulletMatch) {
-      flushCurrent();
-      current = [bulletMatch[1].trim()];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    const headingMatch = line.match(/^##\s+(.*)$/);
+    if (!headingMatch) {
+      buffer.push(line);
+      i += 1;
       continue;
     }
-    if (!current) continue;
-    if (line.trim() === '') continue;
-    current.push(line.trim());
+    const heading = headingMatch[1].trim().replace(/:$/, '');
+    if (!SOURCE_HEADINGS.has(normalizeHeading(heading))) {
+      buffer.push(line);
+      i += 1;
+      continue;
+    }
+    let j = i + 1;
+    while (j < lines.length && lines[j].trim() === '') j += 1;
+    if (j >= lines.length || !/^\s*(?:[-*+]|\d+\.)\s+/.test(lines[j])) {
+      buffer.push(line);
+      i += 1;
+      continue;
+    }
+    flushBuffer();
+    const blockLines: string[] = [];
+    let k = j;
+    while (k < lines.length) {
+      if (k !== j && /^#{1,6}\s+\S+/.test(lines[k])) break;
+      blockLines.push(lines[k]);
+      k += 1;
+    }
+    const items: SourceItem[] = [];
+    let current: string[] | null = null;
+    const flushCurrent = () => {
+      if (!current) return;
+      const raw = current.join(' ').replace(/\s+/g, ' ').trim();
+      const parsed = parseSourceItem(raw);
+      if (parsed) items.push(parsed);
+      current = null;
+    };
+    for (const blockLine of blockLines) {
+      const bulletMatch = blockLine.match(/^\s*(?:[-*+]|\d+\.)\s+(.+)$/);
+      if (bulletMatch) {
+        flushCurrent();
+        current = [bulletMatch[1].trim()];
+        continue;
+      }
+      if (!current) continue;
+      if (blockLine.trim() === '') continue;
+      current.push(blockLine.trim());
+    }
+    flushCurrent();
+    if (items.length === 0) {
+      buffer.push(line, ...blockLines);
+      i = k;
+      continue;
+    }
+    segments.push({
+      type: 'sources',
+      heading: heading || 'Sources',
+      items,
+    });
+    i = k;
   }
-  flushCurrent();
-  if (items.length === 0) {
-    return { before: markdown, after: '', sources: null };
-  }
-  const before = lines.slice(0, startIndex).join('\n').trimEnd();
-  const after = lines.slice(endIndex).join('\n').trimStart();
-  return {
-    before,
-    after,
-    sources: { heading: headingText || 'Sources', items },
-  };
+  flushBuffer();
+  return segments;
 };
 
 const SourcesBlock = ({
@@ -228,7 +250,7 @@ const NonMemoizedDocsMarkdown = ({ children }: { children: string }) => {
     typeof window === 'undefined'
       ? undefined
       : `${window.location.origin}${window.location.pathname}${window.location.search}`;
-  const { before, after, sources } = extractSourcesSection(children);
+  const segments = extractSourcesSections(children);
   const renderMarkdown = (content: string) =>
     content.trim() ? (
       <Streamdown
@@ -243,11 +265,22 @@ const NonMemoizedDocsMarkdown = ({ children }: { children: string }) => {
     ) : null;
   return (
     <div className="w-full overflow-hidden">
-      {sources ? renderMarkdown(before) : null}
-      {sources ? (
-        <SourcesBlock heading={sources.heading} items={sources.items} />
-      ) : null}
-      {sources ? renderMarkdown(after) : renderMarkdown(children)}
+      {segments.map((segment, index) => {
+        if (segment.type === 'sources') {
+          return (
+            <SourcesBlock
+              key={`sources-${index}`}
+              heading={segment.heading}
+              items={segment.items}
+            />
+          );
+        }
+        return (
+          <React.Fragment key={`md-${index}`}>
+            {renderMarkdown(segment.content)}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };
