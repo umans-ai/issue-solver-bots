@@ -23,6 +23,14 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: '/wiki',
+        destination: '/docs',
+      },
+      {
+        source: '/wiki/:path*',
+        destination: '/docs/:path*',
+      },
+      {
         source: '/ingest/static/:path*',
         destination: 'https://eu-assets.i.posthog.com/static/:path*',
       },
