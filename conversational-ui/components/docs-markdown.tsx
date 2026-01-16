@@ -17,6 +17,11 @@ type SourceItem = {
   raw: string;
 };
 
+type SourceGroup = {
+  title?: string;
+  items: SourceItem[];
+};
+
 const SOURCE_HEADINGS = new Set([
   'relevant source files',
   'source evidence',
@@ -73,9 +78,99 @@ const parseSourceItem = (rawText: string): SourceItem | null => {
   };
 };
 
+const isBulletLine = (line: string) =>
+  /^\s*(?:[-*+]|\d+\.)\s+/.test(line);
+
+const isGroupHeadingLine = (line: string) =>
+  /^###\s+\S+/.test(line) || /^\s*\*\*(.+?)\*\*\s*$/.test(line);
+
+const isContinuationLine = (line: string) =>
+  /^\s{2,}\S+/.test(line) || /^\t+\S+/.test(line);
+
+const isSourcesContentLine = (line: string) =>
+  line.trim() === '' ||
+  isBulletLine(line) ||
+  isGroupHeadingLine(line) ||
+  isContinuationLine(line);
+
+const parseSourceItems = (lines: string[]): SourceItem[] => {
+  const items: SourceItem[] = [];
+  let current: string[] | null = null;
+  const flushCurrent = () => {
+    if (!current) return;
+    const raw = current.join(' ').replace(/\s+/g, ' ').trim();
+    const parsed = parseSourceItem(raw);
+    if (parsed) items.push(parsed);
+    current = null;
+  };
+  for (const line of lines) {
+    const bulletMatch = line.match(/^\s*(?:[-*+]|\d+\.)\s+(.+)$/);
+    if (bulletMatch) {
+      flushCurrent();
+      current = [bulletMatch[1].trim()];
+      continue;
+    }
+    if (!current) continue;
+    if (line.trim() === '') continue;
+    current.push(line.trim());
+  }
+  flushCurrent();
+  return items;
+};
+
+const parseGroupedSources = (lines: string[]): SourceGroup[] | null => {
+  const groups: SourceGroup[] = [];
+  let sawGroupHeading = false;
+  let i = 0;
+  const getGroupHeading = (line: string): string | null => {
+    const h3Match = line.match(/^###\s+(.*)$/);
+    if (h3Match) return h3Match[1].trim().replace(/:$/, '');
+    const boldMatch = line.match(/^\s*\*\*(.+?)\*\*\s*$/);
+    if (boldMatch) return boldMatch[1].trim().replace(/:$/, '');
+    return null;
+  };
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.trim() === '') {
+      i += 1;
+      continue;
+    }
+    const groupHeading = getGroupHeading(line);
+    if (groupHeading) {
+      sawGroupHeading = true;
+      let j = i + 1;
+      while (j < lines.length && lines[j].trim() === '') j += 1;
+      if (j >= lines.length || !isBulletLine(lines[j])) {
+        return null;
+      }
+      const groupLines: string[] = [];
+      let k = j;
+      while (k < lines.length) {
+        const nextHeading = getGroupHeading(lines[k]);
+        if (nextHeading && k !== j) break;
+        groupLines.push(lines[k]);
+        k += 1;
+      }
+      const items = parseSourceItems(groupLines);
+      if (items.length === 0) return null;
+      groups.push({ title: groupHeading, items });
+      i = k;
+      continue;
+    }
+    if (!sawGroupHeading && isBulletLine(line)) {
+      const items = parseSourceItems(lines.slice(i));
+      if (items.length === 0) return null;
+      groups.push({ items });
+      return groups;
+    }
+    i += 1;
+  }
+  return groups.length > 0 ? groups : null;
+};
+
 type MarkdownSegment =
   | { type: 'markdown'; content: string }
-  | { type: 'sources'; heading: string; items: SourceItem[] };
+  | { type: 'sources'; heading: string; groups: SourceGroup[] };
 
 const extractSourcesSections = (markdown: string): MarkdownSegment[] => {
   const lines = markdown.split(/\r?\n/);
@@ -107,7 +202,7 @@ const extractSourcesSections = (markdown: string): MarkdownSegment[] => {
     }
     let j = i + 1;
     while (j < lines.length && lines[j].trim() === '') j += 1;
-    if (j >= lines.length || !/^\s*(?:[-*+]|\d+\.)\s+/.test(lines[j])) {
+    if (j >= lines.length) {
       buffer.push(line);
       i += 1;
       continue;
@@ -116,32 +211,13 @@ const extractSourcesSections = (markdown: string): MarkdownSegment[] => {
     const blockLines: string[] = [];
     let k = j;
     while (k < lines.length) {
-      if (k !== j && /^#{1,6}\s+\S+/.test(lines[k])) break;
+      if (k !== j && /^#{1,2}\s+\S+/.test(lines[k])) break;
+      if (!isSourcesContentLine(lines[k])) break;
       blockLines.push(lines[k]);
       k += 1;
     }
-    const items: SourceItem[] = [];
-    let current: string[] | null = null;
-    const flushCurrent = () => {
-      if (!current) return;
-      const raw = current.join(' ').replace(/\s+/g, ' ').trim();
-      const parsed = parseSourceItem(raw);
-      if (parsed) items.push(parsed);
-      current = null;
-    };
-    for (const blockLine of blockLines) {
-      const bulletMatch = blockLine.match(/^\s*(?:[-*+]|\d+\.)\s+(.+)$/);
-      if (bulletMatch) {
-        flushCurrent();
-        current = [bulletMatch[1].trim()];
-        continue;
-      }
-      if (!current) continue;
-      if (blockLine.trim() === '') continue;
-      current.push(blockLine.trim());
-    }
-    flushCurrent();
-    if (items.length === 0) {
+    const groups = parseGroupedSources(blockLines);
+    if (!groups) {
       buffer.push(line, ...blockLines);
       i = k;
       continue;
@@ -149,7 +225,7 @@ const extractSourcesSections = (markdown: string): MarkdownSegment[] => {
     segments.push({
       type: 'sources',
       heading: heading || 'Sources',
-      items,
+      groups,
     });
     i = k;
   }
@@ -159,12 +235,12 @@ const extractSourcesSections = (markdown: string): MarkdownSegment[] => {
 
 const SourcesBlock = ({
   heading,
-  items,
+  groups,
 }: {
   heading: string;
-  items: SourceItem[];
+  groups: SourceGroup[];
 }) => {
-  if (!items || items.length === 0) return null;
+  if (!groups || groups.length === 0) return null;
   return (
     <div className="my-4 rounded-lg border border-border/40 bg-muted/10">
       <details className="group">
@@ -173,55 +249,75 @@ const SourcesBlock = ({
           <h2 className="m-0 text-sm font-semibold leading-none">{heading}</h2>
         </summary>
         <div className="px-3 pb-3">
-          <div className="flex flex-col gap-2">
-          {items.map((item, index) => {
-            const pathLabel = item.path || item.raw;
-            const linesLabel = item.lines;
-            const extension = getFileExtension(pathLabel);
-            const languageIcon = getLanguageIcon(extension);
-            return (
-              <div key={`${pathLabel}-${index}`} className="flex flex-col gap-0.5">
-                <div className="inline-flex max-w-full items-center gap-2 rounded-md border border-border/50 bg-background/60 px-2 py-0.5 text-[11px] font-medium text-foreground/80 w-fit">
-                  {languageIcon ? (
-                    <span className="relative flex h-3.5 w-3.5 items-center justify-center">
-                      <img
-                        src={languageIcon}
-                        alt={`${extension} file`}
-                        className="h-3.5 w-3.5"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const fallback =
-                            target.parentElement?.querySelector('.fallback-icon');
-                          if (fallback) {
-                            (fallback as HTMLElement).style.display = 'flex';
-                          }
-                        }}
-                      />
-                      <span
-                        className="fallback-icon absolute inset-0 hidden items-center justify-center"
-                        style={{ display: 'none' }}
-                      >
-                        <CodeXml className="h-3 w-3 text-muted-foreground" />
-                      </span>
-                    </span>
-                  ) : (
-                    <CodeXml className="h-3 w-3 text-muted-foreground" />
-                  )}
-                  <span className="font-mono">{pathLabel}</span>
-                  {linesLabel ? (
-                    <span className="text-muted-foreground">{linesLabel}</span>
-                  ) : null}
-                </div>
-                {item.description ? (
-                  <div className="ml-4 border-l border-border/50 pl-3 text-xs text-muted-foreground">
-                    <span className="text-muted-foreground/50">↳</span>{' '}
-                    {item.description}
+          <div className="flex flex-col gap-3">
+            {groups.map((group, groupIndex) => (
+              <div key={`group-${groupIndex}`} className="flex flex-col gap-2">
+                {group.title ? (
+                  <div className="flex items-center gap-2 text-[11px] font-semibold text-muted-foreground/80">
+                    <span className="h-px w-4 bg-border/70" />
+                    <span>{group.title}</span>
                   </div>
                 ) : null}
+                <div className="flex flex-col gap-2">
+                  {group.items.map((item, index) => {
+                    const pathLabel = item.path || item.raw;
+                    const linesLabel = item.lines;
+                    const extension = getFileExtension(pathLabel);
+                    const languageIcon = getLanguageIcon(extension);
+                    return (
+                      <div
+                        key={`${groupIndex}-${pathLabel}-${index}`}
+                        className="flex flex-col gap-0.5"
+                      >
+                        <div className="inline-flex max-w-full items-center gap-2 rounded-md border border-border/50 bg-background/60 px-2 py-0.5 text-[11px] font-medium text-foreground/80 w-fit">
+                          {languageIcon ? (
+                            <span className="relative flex h-3.5 w-3.5 items-center justify-center">
+                              <img
+                                src={languageIcon}
+                                alt={`${extension} file`}
+                                className="h-3.5 w-3.5"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  const fallback =
+                                    target.parentElement?.querySelector(
+                                      '.fallback-icon',
+                                    );
+                                  if (fallback) {
+                                    (fallback as HTMLElement).style.display =
+                                      'flex';
+                                  }
+                                }}
+                              />
+                              <span
+                                className="fallback-icon absolute inset-0 hidden items-center justify-center"
+                                style={{ display: 'none' }}
+                              >
+                                <CodeXml className="h-3 w-3 text-muted-foreground" />
+                              </span>
+                            </span>
+                          ) : (
+                            <CodeXml className="h-3 w-3 text-muted-foreground" />
+                          )}
+                          <span className="font-mono">{pathLabel}</span>
+                          {linesLabel ? (
+                            <span className="text-muted-foreground">
+                              {linesLabel}
+                            </span>
+                          ) : null}
+                        </div>
+                        {item.description ? (
+                          <div className="ml-4 border-l border-border/50 pl-3 text-xs text-muted-foreground">
+                            <span className="text-muted-foreground/50">↳</span>{' '}
+                            {item.description}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            );
-          })}
+            ))}
           </div>
         </div>
       </details>
@@ -275,7 +371,7 @@ const NonMemoizedDocsMarkdown = ({ children }: { children: string }) => {
             <SourcesBlock
               key={`sources-${index}`}
               heading={segment.heading}
-              items={segment.items}
+              groups={segment.groups}
             />
           );
         }
