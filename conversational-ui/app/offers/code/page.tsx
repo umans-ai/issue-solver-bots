@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { IconUmansLogo } from '@/components/icons';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
-import { Check, ChevronLeft, ChevronRight, Copy } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { FaDiscord, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 
 const FOUNDING_TARGET = 250;
 const DEADLINE_LABEL = 'February 28, 2026';
@@ -57,23 +59,58 @@ const plans = {
 
 type BillingCycle = keyof typeof plans;
 
+const benchmarkRows = [
+  {
+    label: 'SWE-bench Multilingual',
+    description: 'Multi-language',
+    values: {
+      deepseek: 70.2,
+      sonnet: 68.0,
+      opus: 77.5,
+    },
+  },
+  {
+    label: 'Terminal Bench 2.0',
+    description: 'End-to-end',
+    values: {
+      deepseek: 46.4,
+      sonnet: 42.8,
+      opus: 57.8,
+    },
+  },
+  {
+    label: 'SWE-bench Verified',
+    description: 'Python-only',
+    values: {
+      deepseek: 73.1,
+      sonnet: 77.2,
+      opus: 80.9,
+    },
+  },
+];
+
+const benchmarkModels = [
+  {
+    key: 'deepseek',
+    label: 'umans-coder-v0',
+    bar: 'bg-[linear-gradient(90deg,rgba(250,117,170,0.95),rgba(192,132,252,0.55))] dark:bg-[linear-gradient(90deg,rgba(250,117,170,0.9),rgba(216,180,254,0.6))]',
+  },
+  {
+    key: 'sonnet',
+    label: 'Claude Sonnet 4.5',
+    bar: 'bg-[linear-gradient(90deg,rgba(251,146,60,0.9),rgba(253,186,116,0.55))] dark:bg-[linear-gradient(90deg,rgba(251,146,60,0.95),rgba(253,186,116,0.6))]',
+  },
+  {
+    key: 'opus',
+    label: 'Claude Opus 4.5',
+    bar: 'bg-[linear-gradient(90deg,rgba(249,115,22,0.95),rgba(251,146,60,0.55))] dark:bg-[linear-gradient(90deg,rgba(249,115,22,0.95),rgba(251,146,60,0.6))]',
+  },
+];
+
 export default function CodeLandingPage() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
-  const [copied, setCopied] = useState(false);
   const demosRef = useRef<HTMLDivElement>(null);
   const currentPlans = plans[billingCycle];
-
-  const handleCopyInstall = async () => {
-    try {
-      await navigator.clipboard.writeText(
-        'curl -fsSL https://umans.ai/install.sh | bash',
-      );
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopied(false);
-    }
-  };
 
   const scrollDemos = (direction: 'prev' | 'next') => {
     const el = demosRef.current;
@@ -120,9 +157,41 @@ export default function CodeLandingPage() {
               Blog
             </Link>
           </nav>
-          <Button asChild size="sm" className={primaryButtonClasses}>
-            <Link href="#pledge">Pledge</Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-3 text-black/50 md:flex dark:text-white/60">
+              <a
+                href="https://discord.gg/Q5hdNrk7Rw"
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-black dark:hover:text-white"
+                aria-label="Discord"
+              >
+                <FaDiscord className="h-4 w-4" />
+              </a>
+              <a
+                href="https://x.com/umans_ai"
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-black dark:hover:text-white"
+                aria-label="X"
+              >
+                <FaXTwitter className="h-4 w-4" />
+              </a>
+              <a
+                href="https://www.linkedin.com/company/umans-ai"
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-black dark:hover:text-white"
+                aria-label="LinkedIn"
+              >
+                <FaLinkedinIn className="h-4 w-4" />
+              </a>
+            </div>
+            <ThemeToggle variant="ghost" />
+            <Button asChild size="sm" className={primaryButtonClasses}>
+              <Link href="#pledge">Pledge</Link>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -155,49 +224,6 @@ export default function CodeLandingPage() {
                   See how we built it
                 </Link>
               </div>
-
-              <div className="mt-5 w-full max-w-xl">
-                <div className="flex items-center justify-between rounded-full border border-black/10 bg-black/5 px-4 py-2 text-sm text-black/80 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-white/80">
-                  <code className="font-mono">
-                    <span className="text-emerald-600 dark:text-emerald-200">
-                      curl
-                    </span>{' '}
-                    <span className="text-black/60 dark:text-white/60">
-                      -fsSL
-                    </span>{' '}
-                    <span className="text-sky-700 dark:text-sky-200">
-                      https://umans.ai/install.sh
-                    </span>{' '}
-                    <span className="text-black/40 dark:text-white/40">|</span>{' '}
-                    <span className="text-black/60 dark:text-white/60">
-                      bash
-                    </span>
-                  </code>
-                  <button
-                    type="button"
-                    onClick={handleCopyInstall}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-black/50 transition hover:bg-black/5 hover:text-black dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
-                    aria-label="Copy install command"
-                  >
-                    {copied ? (
-                      <Check className="h-4 w-4 text-emerald-500 dark:text-emerald-200" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-black/50 dark:text-white/50">
-                  Install the CLI and connect Claude Code in minutes.{' '}
-                  <Link
-                    href="/offers/code/docs"
-                    className="underline underline-offset-4"
-                  >
-                    Read the docs
-                  </Link>
-                  .
-                </p>
-              </div>
-
             </div>
           </div>
         </section>
@@ -254,6 +280,69 @@ export default function CodeLandingPage() {
                 <p className="mt-2 text-sm text-black/60 dark:text-white/60">
                   We invest in closing gaps without trading off coding quality.
                 </p>
+              </div>
+            </div>
+
+            <div className="mt-12">
+              <div className="max-w-3xl space-y-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.32em] text-black/40 dark:text-white/50">
+                  Experience parity
+                </p>
+                <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
+                  Benchmarks are a proxy for the same agentic experience you
+                  expect in Claude Code.
+                </p>
+                <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
+                  What you actually get is the Claude Code loop you already
+                  trust, tools, context, and long sessions, served by a stack
+                  we run and tune for reliability. We update the model when
+                  something clearly better appears.
+                </p>
+              </div>
+              <div className="mt-6 rounded-[28px] border border-black/10 bg-white/80 p-8 shadow-[0_20px_60px_-45px_rgba(15,23,42,0.25)] backdrop-blur dark:border-white/10 dark:bg-white/[0.04] dark:shadow-none">
+                <p className="mb-4 text-base font-semibold tracking-tight text-black/80 dark:text-white/80">
+                  Agentic coding benchmarks
+                </p>
+                <div className="space-y-7">
+                  {benchmarkRows.map((row) => (
+                    <div key={row.label}>
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium">
+                        <span>{row.label}</span>
+                        <span className="text-xs text-black/45 dark:text-white/45">
+                          {row.description}
+                        </span>
+                      </div>
+                      <div className="mt-4 space-y-3">
+                        {benchmarkModels.map((model) => {
+                          const value =
+                            row.values[model.key as keyof typeof row.values];
+                          return (
+                            <div
+                              key={model.key}
+                              className="flex items-center gap-3"
+                            >
+                              <span className="w-36 text-xs font-medium text-black/60 dark:text-white/60">
+                                {model.label}
+                              </span>
+                              <div className="relative h-2.5 flex-1 rounded-full bg-black/[0.06] dark:bg-white/[0.08]">
+                                <div
+                                  className={cn(
+                                    'h-2.5 rounded-full',
+                                    model.bar,
+                                  )}
+                                  style={{ width: `${value}%` }}
+                                />
+                              </div>
+                              <span className="w-12 text-xs font-semibold text-black/70 dark:text-white/70">
+                                {value}%
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
