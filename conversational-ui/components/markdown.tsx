@@ -79,21 +79,21 @@ export const markdownComponents: Partial<Components> = {
   },
   ol: ({ node, children, ...props }) => {
     return (
-      <ol className="list-decimal list-outside pl-[2.5em]" {...props}>
+      <ol className="list-decimal list-outside pl-[2.5em] my-2" {...props}>
         {children}
       </ol>
     );
   },
   li: ({ node, children, ...props }) => {
     return (
-      <li className="py-1" {...props}>
+      <li className="py-0.5 leading-snug" {...props}>
         {children}
       </li>
     );
   },
   ul: ({ node, children, ...props }) => {
     return (
-      <ul className="list-disc list-outside pl-[2.5em]" {...props}>
+      <ul className="list-disc list-outside pl-[2.5em] my-2" {...props}>
         {children}
       </ul>
     );
