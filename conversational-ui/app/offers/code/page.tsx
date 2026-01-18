@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { IconUmansLogo } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -30,29 +30,21 @@ const plans = {
   monthly: {
     max: {
       price: '$20',
-      cadence: '/mo',
-      subline: 'Claude Code-style rolling window and weekly usage envelope.',
-      billing: 'Billed monthly.',
+      subline: '50–200 Claude Code prompts per five-hour window.',
     },
     unlimited: {
       price: '$50',
-      cadence: '/mo',
       subline: 'Unlimited tokens with concurrency limits.',
-      billing: 'Billed monthly.',
     },
   },
   yearly: {
     max: {
       price: '$17',
-      cadence: '/mo',
-      subline: 'Claude Code-style rolling window and weekly usage envelope.',
-      billing: 'Billed $200 yearly.',
+      subline: '50–200 Claude Code prompts per five-hour window.',
     },
     unlimited: {
       price: '$42',
-      cadence: '/mo',
       subline: 'Unlimited tokens with concurrency limits.',
-      billing: 'Billed $500 yearly.',
     },
   },
 };
@@ -110,6 +102,8 @@ const benchmarkModels = [
 export default function CodeLandingPage() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const demosRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const currentPlans = plans[billingCycle];
 
   const scrollDemos = (direction: 'prev' | 'next') => {
@@ -126,6 +120,23 @@ export default function CodeLandingPage() {
     });
   };
 
+  useEffect(() => {
+    const el = demosRef.current;
+    if (!el) return;
+    const update = () => {
+      const maxScrollLeft = el.scrollWidth - el.clientWidth - 1;
+      setCanScrollLeft(el.scrollLeft > 12);
+      setCanScrollRight(el.scrollLeft < maxScrollLeft - 12);
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-[#f6f6f4] text-[#0b0d10] font-sans antialiased dark:bg-[#0b0d10] dark:text-white">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -138,7 +149,7 @@ export default function CodeLandingPage() {
       <header className="sticky top-0 z-40 border-b border-black/10 bg-white/70 backdrop-blur dark:border-white/10 dark:bg-[#0b0d10]/70">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link
-            href="/"
+            href="/offers/code"
             className="flex items-center gap-2 text-black/70 hover:text-black dark:text-white/80 dark:hover:text-white"
           >
             <IconUmansLogo className="h-5 w-auto" />
@@ -188,9 +199,9 @@ export default function CodeLandingPage() {
               </a>
             </div>
             <ThemeToggle variant="ghost" />
-            <Button asChild size="sm" className={primaryButtonClasses}>
-              <Link href="#pledge">Pledge</Link>
-            </Button>
+          <Button asChild size="sm" className={primaryButtonClasses}>
+            <Link href="#plans">Pledge</Link>
+          </Button>
           </div>
         </div>
       </header>
@@ -420,8 +431,18 @@ export default function CodeLandingPage() {
                     </div>
                   ))}
                 </div>
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[#f6f6f4] to-transparent dark:from-[#0b0d10]" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#f6f6f4] to-transparent dark:from-[#0b0d10]" />
+                <div
+                  className={cn(
+                    'pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[#f6f6f4] to-transparent transition-opacity dark:from-[#0b0d10]',
+                    canScrollRight ? 'opacity-100' : 'opacity-0',
+                  )}
+                />
+                <div
+                  className={cn(
+                    'pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[#f6f6f4] to-transparent transition-opacity dark:from-[#0b0d10]',
+                    canScrollLeft ? 'opacity-100' : 'opacity-0',
+                  )}
+                />
               </div>
             </div>
           </div>
@@ -444,6 +465,11 @@ export default function CodeLandingPage() {
                 cost. Founding 250 is the minimum to start with a stable,
                 reliable setup.
               </p>
+              <div>
+                <Button asChild size="lg" className={primaryButtonClasses}>
+                  <Link href="#plans">Pledge a Founding seat</Link>
+                </Button>
+              </div>
               <p className="text-sm text-black/60 dark:text-white/60">
                 Pledge now, charge only if we launch by {DEADLINE_LABEL}.
               </p>
@@ -515,57 +541,65 @@ export default function CodeLandingPage() {
 
             <div className="mt-10 grid gap-6 lg:grid-cols-3">
               <div className="flex h-full flex-col rounded-3xl border border-black/10 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-                <div className="flex items-baseline justify-between">
+                <div className="flex items-end justify-between gap-4">
                   <h3 className="text-lg font-semibold">Pro</h3>
-                  <div className="text-sm text-black/60 dark:text-white/60">
-                    <span className="text-base font-semibold text-black dark:text-white">
+                  <div className="flex items-end gap-2 text-right">
+                    <span className="text-2xl font-semibold text-black dark:text-white">
                       {currentPlans.max.price}
                     </span>
-                    {currentPlans.max.cadence}
+                    <div className="w-20 text-left text-xs leading-tight text-black/60 dark:text-white/60">
+                      <div>per month</div>
+                      <div>
+                        {billingCycle === 'monthly'
+                          ? 'billed monthly'
+                          : 'billed yearly'}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-black/70 dark:text-white/70">
                   {currentPlans.max.subline}
                 </p>
-                <p className="mt-2 text-xs text-black/50 dark:text-white/50">
-                  {currentPlans.max.billing}
-                </p>
                 <ul className="mt-6 space-y-3 text-sm text-black/70 dark:text-white/70">
-                  <li>Predictable capacity similar to Anthropic Max 5x.</li>
-                  <li>Designed for long sessions without token math.</li>
-                  <li>Account-level limits, not per device.</li>
+                  <li>Limits reset every five hours (rolling window).</li>
+                  <li>Large codebases and auto-accept reduce the prompt count.</li>
+                  <li>Parallel Claude Code instances hit limits sooner.</li>
                 </ul>
                 <div className="mt-auto pt-6">
                   <Button asChild className={primaryButtonClasses + ' w-full'}>
-                    <Link href="#pledge">Pledge this plan</Link>
+                    <Link href="#plans">Pledge this plan</Link>
                   </Button>
                 </div>
               </div>
 
               <div className="flex h-full flex-col rounded-3xl border border-black/15 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)] dark:border-white/20 dark:bg-white/10 dark:shadow-none">
-                <div className="flex items-baseline justify-between">
+                <div className="flex items-end justify-between gap-4">
                   <h3 className="text-lg font-semibold">Max</h3>
-                  <div className="text-sm text-black/60 dark:text-white/60">
-                    <span className="text-base font-semibold text-black dark:text-white">
+                  <div className="flex items-end gap-2 text-right">
+                    <span className="text-2xl font-semibold text-black dark:text-white">
                       {currentPlans.unlimited.price}
                     </span>
-                    {currentPlans.unlimited.cadence}
+                    <div className="w-20 text-left text-xs leading-tight text-black/60 dark:text-white/60">
+                      <div>per month</div>
+                      <div>
+                        {billingCycle === 'monthly'
+                          ? 'billed monthly'
+                          : 'billed yearly'}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-black/70 dark:text-white/70">
                   {currentPlans.unlimited.subline}
                 </p>
-                <p className="mt-2 text-xs text-black/50 dark:text-white/50">
-                  {currentPlans.unlimited.billing}
-                </p>
                 <ul className="mt-6 space-y-3 text-sm text-black/70 dark:text-white/70">
+                  <li>Unlimited tokens.</li>
                   <li>4 guaranteed parallel Claude Code sessions.</li>
                   <li>Extra burst capacity when available.</li>
-                  <li>Guardrails to keep latency stable for everyone.</li>
                 </ul>
                 <div className="mt-auto pt-6">
                   <Button asChild className={primaryButtonClasses + ' w-full'}>
-                    <Link href="#pledge">Pledge this plan</Link>
+                    <Link href="#plans">Pledge this plan</Link>
                   </Button>
                 </div>
               </div>
@@ -575,12 +609,11 @@ export default function CodeLandingPage() {
                   <h3 className="text-lg font-semibold">Enterprise</h3>
                 </div>
                 <p className="mt-2 text-sm text-black/70 dark:text-white/70">
-                  Self-hosted in your infrastructure with a managed update
-                  track.
+                Your code, data, and IP stay inside your infrastructure.
                 </p>
-                <ul className="mt-6 space-y-3 text-sm text-black/70 dark:text-white/70">
-                  <li>Deploy the serving stack inside your environment.</li>
-                  <li>Model upgrade windows and pinned versions.</li>
+                <ul className="mt-4 space-y-3 text-sm text-black/70 dark:text-white/70">
+                  <li>Self-hosted in your infrastructure with a managed update track.</li>
+                  <li>Model upgrades when we release better models.</li>
                   <li>Custom integration with your toolchain.</li>
                 </ul>
                 <div className="mt-auto pt-6">
@@ -595,37 +628,6 @@ export default function CodeLandingPage() {
                   </Link>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          id="pledge"
-          className="relative before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-black/20 before:to-transparent dark:before:via-white/20"
-        >
-          <div className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-20 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-2xl space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-black/40 dark:text-white/50">
-                Pledge
-              </p>
-              <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                Reserve a Founding seat.
-              </h2>
-              <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
-                You will enter payment details now, but you are only charged if
-                we reach 250 seats and launch by {DEADLINE_LABEL}. If we do not
-                reach the threshold by then, you will not be charged.
-              </p>
-            </div>
-            <div className="w-full max-w-md rounded-3xl border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
-              <p className="text-sm font-semibold">Pledge opens soon</p>
-              <p className="mt-2 text-sm text-black/60 dark:text-white/60">
-                Stripe checkout will be connected here. For now, choose a plan
-                to reserve a seat.
-              </p>
-              <Button asChild className={primaryButtonClasses + ' mt-6 w-full'}>
-                <Link href="#plans">Choose a plan</Link>
-              </Button>
             </div>
           </div>
         </section>
