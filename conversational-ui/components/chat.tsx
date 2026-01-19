@@ -4,7 +4,7 @@ import { DefaultChatTransport } from 'ai';
 import type { DataUIPart } from 'ai';
 import pRetry from 'p-retry';
 import { useChat } from '@ai-sdk/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useLocalStorage } from 'usehooks-ts';
 import { useRouter } from 'next/navigation';
@@ -56,6 +56,7 @@ export function Chat({
   const [knowledgeBaseIdState, setKnowledgeBaseIdState] = useState<
     string | null
   >(null);
+  const pendingMessageRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Safely get the knowledge base ID from localStorage
@@ -81,6 +82,29 @@ export function Chat({
       }
     } catch (e) {
       console.error('Error reading knowledge_base_id from localStorage:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (pendingMessageRef.current !== null) return;
+    try {
+      const raw = localStorage.getItem('pending_chat_message');
+      if (!raw) {
+        pendingMessageRef.current = '';
+        return;
+      }
+      let message = raw;
+      try {
+        const parsed = JSON.parse(raw);
+        message = typeof parsed === 'string' ? parsed : String(parsed);
+      } catch {
+        message = raw;
+      }
+      pendingMessageRef.current = message.trim();
+      localStorage.removeItem('pending_chat_message');
+    } catch (error) {
+      console.error('Error reading pending chat message:', error);
+      pendingMessageRef.current = '';
     }
   }, []);
 
@@ -227,6 +251,31 @@ export function Chat({
       toast.error('An error occured, please try again!');
     },
   });
+
+  useEffect(() => {
+    const pending = pendingMessageRef.current;
+    if (!pending) return;
+    let hasKb = false;
+    try {
+      hasKb = !!localStorage.getItem('knowledge_base_id');
+    } catch {
+      hasKb = false;
+    }
+    if (hasKb && !knowledgeBaseIdState) return;
+    pendingMessageRef.current = '';
+    sendMessage(
+      {
+        role: 'user',
+        parts: [
+          {
+            type: 'text',
+            text: pending,
+          },
+        ],
+      },
+      { body: { selectedChatModel: storedModelId || selectedChatModel } },
+    );
+  }, [knowledgeBaseIdState, sendMessage, selectedChatModel, storedModelId]);
 
   const handleStop = useCallback(() => {
     setResumeBlocked(true);

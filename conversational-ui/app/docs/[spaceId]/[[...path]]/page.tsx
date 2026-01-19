@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   useCallback,
   useEffect,
@@ -33,7 +34,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { CopyIcon, SearchIcon } from '@/components/icons';
+import { ArrowUpIcon, CopyIcon, SearchIcon } from '@/components/icons';
+import { ModelSelector } from '@/components/model-selector';
+import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import {
   Card,
   CardDescription,
@@ -44,6 +47,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { DocPromptsPanel } from '@/components/doc-prompts-panel';
 import {
   Sheet,
@@ -114,6 +118,7 @@ export default function DocsPage() {
   const [activeProcessId, setActiveProcessId] = useState<string | null>(null);
   const [activeOrigin, setActiveOrigin] = useState<string | null>(null);
   const [content, setContent] = useState<string>('');
+  const [chatDraft, setChatDraft] = useState('');
   const [contentStatus, setContentStatus] = useState<
     'idle' | 'loading' | 'ready' | 'missing'
   >('idle');
@@ -155,6 +160,29 @@ export default function DocsPage() {
     approved_by_name?: string;
     approved_at?: string;
   } | null>(null);
+  const handleChatCtaSubmit = useCallback(() => {
+    const trimmed = chatDraft.trim();
+    if (!trimmed) return;
+    try {
+      localStorage.setItem('pending_chat_message', JSON.stringify(trimmed));
+      if (kbId) {
+        localStorage.setItem('knowledge_base_id', JSON.stringify(kbId));
+      }
+    } catch (error) {
+      console.error('Failed to store chat draft:', error);
+    }
+    setChatDraft('');
+    router.push('/');
+  }, [chatDraft, kbId, router]);
+  const handleChatCtaKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        handleChatCtaSubmit();
+      }
+    },
+    [handleChatCtaSubmit],
+  );
   const promptIdForActiveDoc = useMemo(() => {
     if (!activePath) return null;
     const segments = activePath.split('/').filter(Boolean);
@@ -1264,6 +1292,7 @@ export default function DocsPage() {
   const showInlineLoader = contentStatus === 'loading' && !!content;
   const showContentActions = showContent && !!content;
   const isApproved = !!activeApproval?.approved_by_id;
+  const showChatCta = showContent && !!activePath;
 
   const displayedItems = hasSearchQuery
     ? results.map((r) => ({
@@ -1627,7 +1656,7 @@ export default function DocsPage() {
                   </div>
                 )}
                 <div
-                  className="mx-auto max-w-7xl px-2 sm:px-4 pt-4"
+                  className={`mx-auto max-w-7xl px-2 sm:px-4 pt-4 ${showChatCta ? 'pb-24' : ''}`}
                   ref={contentRef}
                 >
                   {showLoadingShell ? (
@@ -1721,6 +1750,40 @@ export default function DocsPage() {
           )}
         </div>
       </div>
+      {showChatCta && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none">
+          <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 pb-4">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)_minmax(0,220px)]">
+              <form className="pointer-events-auto flex gap-2 lg:col-start-2 lg:col-end-3">
+                <div className="relative w-full">
+                  <Textarea
+                    value={chatDraft}
+                    onChange={(event) => setChatDraft(event.target.value)}
+                    onKeyDown={handleChatCtaKeyDown}
+                    placeholder="Ask anything about this codebase"
+                    className="min-h-[24px] max-h-[160px] overflow-y-auto resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700"
+                  />
+                  <div className="absolute bottom-0 left-0 p-2 w-fit flex items-center gap-2">
+                    <ModelSelector
+                      selectedModelId={DEFAULT_CHAT_MODEL}
+                      className="!h-[28px] !px-2"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleChatCtaSubmit}
+                    disabled={!chatDraft.trim()}
+                    className="absolute bottom-2 right-2 rounded-full p-1.5 h-fit border dark:border-zinc-600"
+                    aria-label="Send"
+                  >
+                    <ArrowUpIcon size={12} />
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
       {isSearchOpen && (
         <div
           className="docs-search-overlay fixed inset-0 z-50 flex items-start justify-center bg-black/10 backdrop-blur-3xl backdrop-saturate-150 px-4 pt-20 dark:bg-black/40"
