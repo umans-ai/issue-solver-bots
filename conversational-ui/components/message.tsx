@@ -299,7 +299,9 @@ const PurePreviewMessage = ({
 
   // Check if the model supports reasoning (only OpenAI models)
   // Use the most up-to-date selection during streaming to avoid stale UI from previous model
-  const [storedModelId] = useLocalStorage('chat-model', selectedChatModel);
+  const [storedModelId] = useLocalStorage('chat-model', selectedChatModel, {
+    initializeWithValue: false,
+  });
   const effectiveModelId = isLoading ? storedModelId : selectedChatModel;
   const modelInfo = chatModels.find((model) => model.id === effectiveModelId);
   const supportsReasoning = modelInfo?.provider === 'openai';
