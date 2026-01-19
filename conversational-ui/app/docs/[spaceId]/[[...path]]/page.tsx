@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   ShieldOff,
   Sparkles,
+  Plug,
   Wand2,
 } from 'lucide-react';
 import { SharedHeader } from '@/components/shared-header';
@@ -105,6 +106,9 @@ export default function DocsPage() {
   const spaceId = rawSpaceId ? decodeURIComponent(rawSpaceId) : '';
   const sessionSpaceKbId = session?.user?.selectedSpace?.knowledgeBaseId || '';
   const kbId = spaceId || session?.user?.selectedSpace?.knowledgeBaseId;
+  const hasConnectedRepo = Boolean(
+    session?.user?.selectedSpace?.connectedRepoUrl,
+  );
   // commit sha is not currently typed on selectedSpace; leave undefined and rely on versions API
   const currentCommit = undefined as string | undefined;
 
@@ -153,6 +157,10 @@ export default function DocsPage() {
   );
   const [isAutoDocOpen, setIsAutoDocOpen] = useState(false);
   const openAutoDocSettings = useCallback(() => setIsAutoDocOpen(true), []);
+  const openRepoDialog = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new Event('open-repo-dialog'));
+  }, []);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [activeApproval, setActiveApproval] = useState<{
@@ -276,7 +284,12 @@ export default function DocsPage() {
   }, [pathParam]);
 
   useEffect(() => {
-    if (!sessionSpaceKbId) return;
+    if (!sessionSpaceKbId) {
+      if (spaceId) {
+        router.replace('/docs', { scroll: false });
+      }
+      return;
+    }
     if (spaceId === sessionSpaceKbId) return;
     const destination = `/docs/${encodeURIComponent(sessionSpaceKbId)}`;
     router.replace(destination, { scroll: false });
@@ -1460,31 +1473,53 @@ export default function DocsPage() {
       </SharedHeader>
       <div className="flex-1 overflow-auto">
         <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 py-6">
-          {!kbId ? (
-            <div className="border rounded-md p-6 text-center text-muted-foreground">
-              No knowledge base configured for this space.
-            </div>
-          ) : showEmptyState ? (
-            <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,260px)] lg:items-start">
-              <Card className="border-dashed border-muted">
-                <CardHeader className="flex flex-col items-center gap-2 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+          {!kbId || showEmptyState ? (
+            <div className="flex justify-center">
+              <div className="flex flex-col items-center text-center gap-3 border border-dashed border-muted rounded-2xl px-6 py-6 w-full max-w-2xl">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                  {hasConnectedRepo ? (
                     <FileText className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <CardTitle className="text-lg">No docs yet</CardTitle>
-                  <CardDescription className="max-w-md">
-                    Configure prompts now so the next sync knows which docs to
-                    write.
-                  </CardDescription>
-                  <Button
-                    type="button"
-                    className="mt-2"
-                    onClick={openAutoDocSettings}
-                  >
-                    Generate docs
-                  </Button>
-                </CardHeader>
-              </Card>
+                  ) : (
+                    <Plug className="h-6 w-6 text-muted-foreground" />
+                  )}
+                </div>
+                {hasConnectedRepo ? (
+                  <>
+                    <h2 className="text-lg font-semibold text-foreground">
+                      No docs yet
+                    </h2>
+                    <p className="text-sm text-muted-foreground max-w-sm">
+                      Configure prompts now so the next sync knows which docs to
+                      write.
+                    </p>
+                    <Button
+                      type="button"
+                      className="mt-2"
+                      onClick={openAutoDocSettings}
+                    >
+                      Generate docs
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-lg font-semibold text-foreground">
+                      Connect a repository
+                    </h2>
+                    <p className="text-sm text-muted-foreground max-w-sm">
+                      Connect a codebase to generate and browse documentation.
+                    </p>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="mt-2"
+                      onClick={openRepoDialog}
+                    >
+                      <Plug className="h-4 w-4" />
+                      Connect repository
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)_minmax(0,220px)] lg:items-start">
