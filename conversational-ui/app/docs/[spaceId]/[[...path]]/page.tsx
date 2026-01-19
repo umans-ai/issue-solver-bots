@@ -1406,6 +1406,28 @@ export default function DocsPage() {
   const showLoadingShell = versionsLoading || isIndexLoading;
   const showEmptyState = !showLoadingShell && (!commitSha || !hasDocs);
   const isContentLoading = contentStatus === 'loading';
+  const indexContent = (
+    <div className="docs-index max-h-[calc(100vh-10rem)] overflow-y-auto pr-1 pt-4 space-y-4">
+      {showLoadingShell ? (
+        <div className="space-y-3 px-3">
+          {[0, 1, 2, 3, 4].map((key) => (
+            <Skeleton key={key} className="h-4 w-full" />
+          ))}
+        </div>
+      ) : !hasDocs ? (
+        <div className="px-3 py-2 text-xs text-muted-foreground">
+          No files found.
+        </div>
+      ) : (
+        <>
+          {docTree.files.length > 0 && (
+            <div className="space-y-1">{docTree.files.map(renderFileEntry)}</div>
+          )}
+          {docTree.children.map(renderFolder)}
+        </>
+      )}
+    </div>
+  );
 
   return (
     <div className="flex flex-col min-w-0 h-dvh bg-background">
@@ -1523,29 +1545,19 @@ export default function DocsPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)_minmax(0,220px)] lg:items-start">
-              <aside className="lg:sticky lg:top-24 h-fit text-sm">
-                <div className="docs-index max-h-[calc(100vh-10rem)] overflow-y-auto pr-1 pt-4 space-y-4">
-                  {showLoadingShell ? (
-                    <div className="space-y-3 px-3">
-                      {[0, 1, 2, 3, 4].map((key) => (
-                        <Skeleton key={key} className="h-4 w-full" />
-                      ))}
-                    </div>
-                  ) : !hasDocs ? (
-                    <div className="px-3 py-2 text-xs text-muted-foreground">
-                      No files found.
-                    </div>
-                  ) : (
-                    <>
-                      {docTree.files.length > 0 && (
-                        <div className="space-y-1">
-                          {docTree.files.map(renderFileEntry)}
-                        </div>
-                      )}
-                      {docTree.children.map(renderFolder)}
-                    </>
-                  )}
-                </div>
+              <details className="group rounded-lg border border-border/70 bg-background/70 lg:hidden">
+                <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-sm font-semibold text-foreground list-none">
+                  <span>Contents</span>
+                  <ChevronDown
+                    aria-hidden="true"
+                    className="docs-index-caret h-4 w-4 text-muted-foreground/60 transition-transform duration-200 group-open:rotate-180"
+                  />
+                </summary>
+                <div className="px-1 pb-2">{indexContent}</div>
+              </details>
+
+              <aside className="hidden lg:block lg:sticky lg:top-24 h-fit text-sm">
+                {indexContent}
               </aside>
 
               <main className="min-w-0 relative">
