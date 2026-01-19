@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 
+import { DocsEmptyState } from '@/components/docs-empty-state';
 import { auth } from '../(auth)/auth';
 
 export default async function DocsRootPage() {
@@ -7,7 +8,7 @@ export default async function DocsRootPage() {
   const kbId = session?.user?.selectedSpace?.knowledgeBaseId;
 
   if (!kbId) {
-    redirect('/');
+    return <DocsEmptyState />;
   }
 
   redirect(`/docs/${encodeURIComponent(kbId)}`);
