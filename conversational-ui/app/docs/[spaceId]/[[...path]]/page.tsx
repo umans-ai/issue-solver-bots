@@ -1422,7 +1422,7 @@ export default function DocsPage() {
       >
         <div className="flex flex-1 items-center gap-3 px-2 md:px-4">
           <span className="text-lg lg:text-xl font-semibold text-foreground truncate">
-            Docs
+            Wiki &amp; Docs
           </span>
           <button
             type="button"
