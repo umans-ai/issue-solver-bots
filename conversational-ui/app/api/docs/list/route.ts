@@ -1,19 +1,6 @@
 import { NextResponse } from 'next/server';
-import {
-  GetObjectCommand,
-  ListObjectsV2Command,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import { listWikiFilesAndMetadata } from '@/lib/docs/wiki-store';
 import { auth } from '@/app/(auth)/auth';
-
-async function streamToString(stream: any): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const chunks: any[] = [];
-    stream.on('data', (chunk: any) => chunks.push(Buffer.from(chunk)));
-    stream.on('error', (err: any) => reject(err));
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-  });
-}
 
 export async function GET(request: Request) {
   try {
@@ -31,113 +18,12 @@ export async function GET(request: Request) {
         { status: 400 },
       );
 
-    const BUCKET_NAME = process.env.BLOB_BUCKET_NAME || '';
-    const s3Client = new S3Client({
-      region: process.env.BLOB_REGION || '',
-      endpoint: process.env.BLOB_ENDPOINT || '',
-      forcePathStyle: !!process.env.BLOB_ENDPOINT,
-      credentials: {
-        accessKeyId: process.env.BLOB_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.BLOB_READ_WRITE_TOKEN || '',
-      },
-    });
+    const { files, metadata } = await listWikiFilesAndMetadata(
+      kbId,
+      commitSha,
+    );
 
-    const prefix = `base/${kbId}/docs/${commitSha}/`;
-    let continuationToken: string | undefined = undefined;
-    const files: string[] = [];
-    do {
-      const listCmd: ListObjectsV2Command = new ListObjectsV2Command({
-        Bucket: BUCKET_NAME,
-        Prefix: prefix,
-        ContinuationToken: continuationToken,
-      });
-      const res = await s3Client.send(listCmd);
-      (res.Contents || []).forEach((obj) => {
-        const key = obj.Key || '';
-        if (key.endsWith('.md')) {
-          files.push(key.substring(prefix.length));
-        }
-      });
-      continuationToken = res.IsTruncated
-        ? res.NextContinuationToken
-        : undefined;
-    } while (continuationToken);
-
-    // Sort alphabetically, keep index.md first if present
-    files.sort((a, b) => a.localeCompare(b));
-    const indexFirst = files.includes('index.md')
-      ? ['index.md', ...files.filter((f) => f !== 'index.md')]
-      : files;
-    let orderedFiles = indexFirst;
-    try {
-      const orderKey = `${prefix}.umans/docs.json`;
-      const orderRes = await s3Client.send(
-        new GetObjectCommand({ Bucket: BUCKET_NAME, Key: orderKey }),
-      );
-      const orderBody = await streamToString(orderRes.Body);
-      const parsed = JSON.parse(orderBody);
-      const pages = Array.isArray(parsed?.pages) ? parsed.pages : [];
-      const order: string[] = pages
-        .map((page: { path?: unknown }) =>
-          typeof page?.path === 'string' ? page.path : null,
-        )
-        .filter((path: string | null): path is string => typeof path === 'string')
-        .map((path: string) =>
-          path.toLowerCase().endsWith('.md') ? path : `${path}.md`,
-        );
-      const seen = new Set<string>();
-      const ordered = order.filter((path: string) => {
-        if (seen.has(path)) return false;
-        if (!indexFirst.includes(path)) return false;
-        seen.add(path);
-        return true;
-      });
-      if (ordered.length > 0) {
-        orderedFiles = [
-          ...ordered,
-          ...indexFirst.filter((path) => !seen.has(path)),
-        ];
-      }
-    } catch (orderError) {
-      orderedFiles = indexFirst;
-    }
-
-    let metadata: Record<string, { origin?: string; process_id?: string }> = {};
-    // Try new metadata format first, then fall back to old origins format
-    try {
-      const metadataKey = `${prefix}__metadata__.json`;
-      const manifestRes = await s3Client.send(
-        new GetObjectCommand({ Bucket: BUCKET_NAME, Key: metadataKey }),
-      );
-      const manifestBody = await streamToString(manifestRes.Body);
-      const parsed = JSON.parse(manifestBody);
-      if (parsed && typeof parsed === 'object') {
-        metadata = parsed;
-      }
-    } catch (metadataError) {
-      // Fall back to old __origins__.json format for backward compatibility
-      try {
-        const originKey = `${prefix}__origins__.json`;
-        const manifestRes = await s3Client.send(
-          new GetObjectCommand({ Bucket: BUCKET_NAME, Key: originKey }),
-        );
-        const manifestBody = await streamToString(manifestRes.Body);
-        const parsed = JSON.parse(manifestBody);
-        if (parsed && typeof parsed === 'object') {
-          // Convert old format to new format
-          metadata = Object.fromEntries(
-            Object.entries(parsed).map(([path, origin]) => [
-              path,
-              { origin: origin as string },
-            ]),
-          );
-        }
-      } catch (originError) {
-        // No manifest yet; ignore
-      }
-    }
-
-    return NextResponse.json({ files: orderedFiles, metadata });
+    return NextResponse.json({ files, metadata });
   } catch (error) {
     console.error('List docs error', error);
     return NextResponse.json({ error: 'Failed to list docs' }, { status: 500 });
