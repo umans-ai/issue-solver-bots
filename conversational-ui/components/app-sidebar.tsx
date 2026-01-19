@@ -4,7 +4,7 @@ import type { User } from 'next-auth';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import { Activity, BookText, Plug } from 'lucide-react';
+import { Activity, BookOpen, Plug } from 'lucide-react';
 import Link from 'next/link';
 
 import { PlusIcon } from '@/components/icons';
@@ -309,8 +309,8 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/docs" className="w-full flex items-center gap-2">
-                    <BookText className="h-4 w-4" />
-                    <span>Docs</span>
+                    <BookOpen className="h-4 w-4" />
+                    <span>Wiki</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
