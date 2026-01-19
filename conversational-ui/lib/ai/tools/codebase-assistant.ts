@@ -3,6 +3,11 @@ import { tool, type UIMessageStreamWriter } from 'ai';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import type { Session } from 'next-auth';
 import type { ChatMessage } from '@/lib/types';
+import {
+  getWikiDocContent,
+  getWikiManifest,
+  listWikiVersions,
+} from '@/lib/docs/wiki-store';
 
 // Define the query type enum with detailed descriptions
 const QueryTypeEnum = z.enum(['codebase_summary', 'adr', 'glossary']);
@@ -40,24 +45,92 @@ export const codebaseAssistant = ({ session }: CodebaseAssistantProps) =>
       ),
     }),
     execute: async ({ query }) => {
-      // Get the user ID from the session
       const userId = session.user?.id || 'anonymous';
+      const kbId = session.user?.selectedSpace?.knowledgeBaseId;
 
-      const codebaseContent = await getCodebaseContent(query, userId);
+      const codebaseContent = await getCodebaseContent(query, userId, kbId);
       return codebaseContent || 'No response was generated. Please try again.';
     },
   });
 
-// This function reads the codebase content from the specified file in the S3 bucket
-export async function getCodebaseContent(
+const wikiQueryHints: Record<
+  z.infer<typeof QueryTypeEnum>,
+  string[]
+> = {
+  codebase_summary: [
+    'overview',
+    'summary',
+    'architecture',
+    'system',
+    'introduction',
+  ],
+  adr: ['adr', 'decision', 'architecture decision', 'record'],
+  glossary: ['glossary', 'terms', 'ubiquitous'],
+};
+
+const maxPagesByQuery: Record<z.infer<typeof QueryTypeEnum>, number> = {
+  codebase_summary: 2,
+  adr: 2,
+  glossary: 1,
+};
+
+async function getWikiContent(
   queryType: z.infer<typeof QueryTypeEnum>,
-  userId = 'anonymous',
+  kbId: string,
 ): Promise<string | null> {
-  // Initialize S3 client with custom endpoint if provided
+  const versions = await listWikiVersions(kbId);
+  const latest = versions.at(-1);
+  if (!latest) return null;
+  const manifest = await getWikiManifest(kbId, latest);
+  const pages = Array.isArray(manifest?.pages) ? manifest?.pages : [];
+  if (pages.length === 0) return null;
+
+  const keywords = wikiQueryHints[queryType];
+  const scored = pages.map((page) => {
+    const path = typeof page.path === 'string' ? page.path : '';
+    const purpose = typeof page.purpose === 'string' ? page.purpose : '';
+    const haystack = `${path} ${purpose}`.toLowerCase();
+    const score = keywords.reduce(
+      (total, keyword) => total + (haystack.includes(keyword) ? 1 : 0),
+      0,
+    );
+    return { path, purpose, score };
+  });
+  const matched = scored.filter((page) => page.score > 0);
+  const ordered = (matched.length > 0 ? matched : scored).sort(
+    (a, b) => b.score - a.score,
+  );
+  const selected = ordered
+    .filter((page) => page.path)
+    .slice(0, maxPagesByQuery[queryType]);
+
+  if (selected.length === 0) return null;
+
+  const sections: string[] = [];
+  for (const page of selected) {
+    const path = page.path.toLowerCase().endsWith('.md')
+      ? page.path
+      : `${page.path}.md`;
+    const content = await getWikiDocContent(kbId, latest, path);
+    if (!content) continue;
+    const header = `# ${path}`;
+    const purpose = page.purpose
+      ? `Purpose: ${page.purpose}`
+      : undefined;
+    sections.push([header, purpose, content].filter(Boolean).join('\n\n'));
+  }
+
+  if (sections.length === 0) return null;
+  return sections.join('\n\n---\n\n');
+}
+
+async function getLegacyCodebaseContent(
+  queryType: z.infer<typeof QueryTypeEnum>,
+  userId: string,
+): Promise<string | null> {
   const s3Client = new S3Client({
     region: process.env.BLOB_REGION || '',
     endpoint: process.env.BLOB_ENDPOINT || '',
-    // Use path-style addressing for non-AWS endpoints
     forcePathStyle: !!process.env.BLOB_ENDPOINT,
     credentials: {
       accessKeyId: process.env.BLOB_ACCESS_KEY_ID || '',
@@ -65,39 +138,35 @@ export async function getCodebaseContent(
     },
   });
 
-  const BUCKET_NAME = process.env.BLOB_BUCKET_NAME || '';
+  const bucketName = process.env.BLOB_BUCKET_NAME || '';
 
   try {
-    // Get the base file name based on the query type
     const baseFileName = queryTypeToFileBaseMap[queryType];
-
-    // Construct the full file key with user-specific space
-    // Each user has their own space in the format: spaces/{userId}/{filename}
     const fileKey = `spaces/${userId}/${baseFileName}`;
-
-    // Try to get the file from S3
-    try {
-      const command = new GetObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: fileKey,
-      });
-
-      const response = await s3Client.send(command);
-
-      // Convert the stream to a string
-      if (response.Body) {
-        return response.Body.transformToString();
-      }
-
-      console.error(`S3 response body is empty for ${fileKey}`);
-      return null;
-    } catch (s3Error) {
-      console.error(`Error fetching ${fileKey} from S3:`, s3Error);
-      // No fallback available, return null
-      return null;
+    const command = new GetObjectCommand({
+      Bucket: bucketName,
+      Key: fileKey,
+    });
+    const response = await s3Client.send(command);
+    if (response.Body) {
+      return response.Body.transformToString();
     }
+    console.error(`S3 response body is empty for ${fileKey}`);
+    return null;
   } catch (error) {
     console.error(`Error reading file for query type ${queryType}:`, error);
     return null;
   }
+}
+
+export async function getCodebaseContent(
+  queryType: z.infer<typeof QueryTypeEnum>,
+  userId = 'anonymous',
+  kbId?: string | null,
+): Promise<string | null> {
+  if (kbId) {
+    const wikiContent = await getWikiContent(queryType, kbId);
+    if (wikiContent) return wikiContent;
+  }
+  return getLegacyCodebaseContent(queryType, userId);
 }
