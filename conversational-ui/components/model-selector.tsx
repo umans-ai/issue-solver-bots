@@ -1,12 +1,6 @@
 'use client';
 
-import React, {
-  startTransition,
-  useEffect,
-  useMemo,
-  useOptimistic,
-  useState,
-} from 'react';
+import React, { startTransition, useEffect, useMemo, useState } from 'react';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
@@ -92,22 +86,39 @@ export function ModelSelector({
 }) {
   const [open, setOpen] = useState(false);
   const [otherOpen, setOtherOpen] = useState(false);
-  const [optimisticModelId, setOptimisticModelId] =
-    useOptimistic(selectedModelId);
+  const [displayModelId, setDisplayModelId] = useState(selectedModelId);
   const [storedModelId, setStoredModelId] = useLocalStorage(
     'chat-model',
     selectedModelId,
+    { initializeWithValue: false },
   );
 
   useEffect(() => {
-    if (storedModelId !== selectedModelId) {
-      setOptimisticModelId(storedModelId);
+    try {
+      const raw = window.localStorage.getItem('chat-model');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const next = typeof parsed === 'string' ? parsed : String(parsed);
+      if (next && next !== storedModelId) {
+        startTransition(() => {
+          setStoredModelId(next);
+        });
+      }
+    } catch (error) {
+      console.error('Error reading chat-model from localStorage:', error);
     }
-  }, [storedModelId, selectedModelId, setOptimisticModelId]);
+  }, [setStoredModelId, storedModelId]);
+
+  useEffect(() => {
+    const next = storedModelId || selectedModelId;
+    if (next !== displayModelId) {
+      setDisplayModelId(next);
+    }
+  }, [displayModelId, selectedModelId, storedModelId]);
 
   const selectedChatModel = useMemo(
-    () => chatModels.find((chatModel) => chatModel.id === optimisticModelId),
-    [optimisticModelId],
+    () => chatModels.find((chatModel) => chatModel.id === displayModelId),
+    [displayModelId],
   );
 
   return (
@@ -134,10 +145,7 @@ export function ModelSelector({
         className="min-w-[320px] bg-muted border-muted p-1"
       >
         {(() => {
-          const primaryIds = new Set([
-            'chat-model-large',
-            'coding-model-large',
-          ]);
+          const primaryIds = new Set(['chat-model-large', 'coding-model']);
           const primary = chatModels.filter((m) => primaryIds.has(m.id));
           const other = chatModels.filter((m) => !primaryIds.has(m.id));
 
@@ -157,12 +165,12 @@ export function ModelSelector({
               onSelect={() => {
                 setOpen(false);
                 startTransition(() => {
-                  setOptimisticModelId(m.id);
+                  setDisplayModelId(m.id);
                   setStoredModelId(m.id);
                 });
               }}
               className="gap-3 group/item flex flex-row justify-between items-center hover:bg-background"
-              data-active={m.id === optimisticModelId}
+              data-active={m.id === displayModelId}
             >
               <div className="flex items-center gap-2">
                 {(() => {

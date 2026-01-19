@@ -48,7 +48,9 @@ export function Chat({
   isReadonly: boolean;
   autoResume: boolean;
 }) {
-  const [storedModelId] = useLocalStorage('chat-model', selectedChatModel);
+  const [storedModelId] = useLocalStorage('chat-model', selectedChatModel, {
+    initializeWithValue: false,
+  });
   const router = useRouter();
   const { data: session } = useSession();
 
