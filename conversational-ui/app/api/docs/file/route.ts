@@ -1,15 +1,6 @@
 import { NextResponse } from 'next/server';
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { auth } from '@/app/(auth)/auth';
-
-function streamToString(stream: any): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const chunks: any[] = [];
-    stream.on('data', (chunk: any) => chunks.push(Buffer.from(chunk)));
-    stream.on('error', (err: any) => reject(err));
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-  });
-}
+import { getWikiDocContent } from '@/lib/docs/wiki-store';
 
 export async function GET(request: Request) {
   try {
@@ -30,21 +21,13 @@ export async function GET(request: Request) {
       );
     }
 
-    const BUCKET_NAME = process.env.BLOB_BUCKET_NAME || '';
-    const s3Client = new S3Client({
-      region: process.env.BLOB_REGION || '',
-      endpoint: process.env.BLOB_ENDPOINT || '',
-      forcePathStyle: !!process.env.BLOB_ENDPOINT,
-      credentials: {
-        accessKeyId: process.env.BLOB_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.BLOB_READ_WRITE_TOKEN || '',
-      },
-    });
-
-    const key = `base/${kbId}/docs/${commitSha}/${path}`;
-    const cmd = new GetObjectCommand({ Bucket: BUCKET_NAME, Key: key });
-    const res = await s3Client.send(cmd);
-    const bodyString = await streamToString(res.Body);
+    const bodyString = await getWikiDocContent(kbId, commitSha, path);
+    if (!bodyString) {
+      return NextResponse.json(
+        { error: 'Failed to fetch file' },
+        { status: 500 },
+      );
+    }
 
     // Extract first H1 as title
     const titleMatch = bodyString.match(/^#\s+(.+)$/m);
