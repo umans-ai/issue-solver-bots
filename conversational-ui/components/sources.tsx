@@ -35,8 +35,9 @@ const isWebUrl = (url: string): boolean => {
 // Get file extension from URL/path
 export const getFileExtension = (url: string): string => {
   const filename = url.split('/').pop() || '';
-  const lastDot = filename.lastIndexOf('.');
-  return lastDot !== -1 ? filename.slice(lastDot + 1).toLowerCase() : '';
+  const cleaned = filename.split('?')[0].split('#')[0];
+  const lastDot = cleaned.lastIndexOf('.');
+  return lastDot !== -1 ? cleaned.slice(lastDot + 1).toLowerCase() : '';
 };
 
 // Map file extensions to language icon URLs
@@ -132,8 +133,18 @@ export const getLanguageIcon = (extension: string): string | null => {
   return iconMap[extension] || null;
 };
 
+const isWikiSource = (source: Source): boolean => {
+  return source.id.startsWith('wiki:');
+};
+
 // Determine source type based on URL or provider metadata
-const getSourceType = (source: Source): 'web' | 'codebase' | 'github' => {
+const getSourceType = (
+  source: Source,
+): 'web' | 'codebase' | 'github' | 'wiki' => {
+  if (isWikiSource(source)) {
+    return 'wiki';
+  }
+
   // Check if it's a GitHub URL
   if (source.url.includes('github.com')) {
     return 'github';
@@ -176,6 +187,9 @@ export function Sources({ sources }: SourcesProps) {
   const githubSources = uniqueSources.filter(
     (source) => getSourceType(source) === 'github',
   );
+  const wikiSources = uniqueSources.filter(
+    (source) => getSourceType(source) === 'wiki',
+  );
 
   // Take only the first 3 sources for collapsed view
   const visibleSources = uniqueSources.slice(0, 3);
@@ -190,9 +204,13 @@ export function Sources({ sources }: SourcesProps) {
           {visibleSources.map((source, index) => {
             const sourceType = getSourceType(source);
             const extension =
-              sourceType === 'codebase' ? getFileExtension(source.url) : '';
+              sourceType === 'codebase' || sourceType === 'wiki'
+                ? getFileExtension(source.url)
+                : '';
             const languageIcon =
-              sourceType === 'codebase' ? getLanguageIcon(extension) : null;
+              sourceType === 'codebase' || sourceType === 'wiki'
+                ? getLanguageIcon(extension)
+                : null;
 
             return (
               <div key={source.id} className="flex items-center">
@@ -203,7 +221,9 @@ export function Sources({ sources }: SourcesProps) {
                   />
                 ) : sourceType === 'github' ? (
                   <GitIcon status="none" />
-                ) : sourceType === 'codebase' && languageIcon ? (
+                ) : (sourceType === 'codebase' ||
+                    sourceType === 'wiki') &&
+                  languageIcon ? (
                   <img
                     src={languageIcon}
                     alt={`${extension} file`}
@@ -219,12 +239,13 @@ export function Sources({ sources }: SourcesProps) {
                       }
                     }}
                   />
-                ) : sourceType === 'codebase' ? (
+                ) : sourceType === 'codebase' || sourceType === 'wiki' ? (
                   <div className="w-4 h-4 rounded-sm bg-primary/10 flex items-center justify-center fallback-icon">
                     <CodeXml className="w-2.5 h-2.5 text-primary" />
                   </div>
                 ) : null}
-                {sourceType === 'codebase' && languageIcon && (
+                {(sourceType === 'codebase' || sourceType === 'wiki') &&
+                  languageIcon && (
                   <div
                     className="w-4 h-4 rounded-sm bg-primary/10 flex items-center justify-center fallback-icon"
                     style={{ display: 'none' }}
@@ -251,11 +272,16 @@ export function Sources({ sources }: SourcesProps) {
                 {uniqueSources.length !== 1 ? 's' : ''}
                 {(webSources.length > 0 ||
                   codebaseSources.length > 0 ||
-                  githubSources.length > 0) &&
+                  githubSources.length > 0 ||
+                  wikiSources.length > 0) &&
                   ` (${[
                     webSources.length > 0 && `${webSources.length} web`,
                     githubSources.length > 0 &&
                       `${githubSources.length} github`,
+                    wikiSources.length > 0 &&
+                      `${wikiSources.length} ${
+                        wikiSources.length === 1 ? 'wiki page' : 'wiki pages'
+                      }`,
                     codebaseSources.length > 0 &&
                       `${codebaseSources.length} codebase`,
                   ]
@@ -349,11 +375,88 @@ export function Sources({ sources }: SourcesProps) {
           )}
 
           {/* Codebase Sources Section */}
+          {wikiSources.length > 0 && (
+            <div className="flex flex-col">
+              {(wikiSources.length > 1 ||
+                webSources.length > 0 ||
+                githubSources.length > 0 ||
+                codebaseSources.length > 0) && (
+                <div className="px-3 py-1 bg-muted/20 border-t border-border/50">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Wiki Sources
+                  </span>
+                </div>
+              )}
+              <div className="p-3">
+                <div className="flex flex-wrap gap-2">
+                  {wikiSources.map((source) => {
+                    const extension = getFileExtension(source.url);
+                    const languageIcon = getLanguageIcon(extension);
+
+                    return (
+                      <Tooltip key={source.id}>
+                        <TooltipTrigger asChild>
+                          <a
+                            href={source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex h-7 items-center justify-center rounded-md border border-primary/10 bg-primary/5 px-3 text-xs font-medium gap-1.5 hover:bg-primary/10 transition-colors"
+                          >
+                            {languageIcon ? (
+                              <div className="relative flex-shrink-0">
+                                <img
+                                  src={languageIcon}
+                                  alt={`${extension} file`}
+                                  className="w-3 h-3"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const fallbackDiv =
+                                      target.parentElement?.querySelector(
+                                        '.fallback-icon',
+                                      );
+                                    if (fallbackDiv) {
+                                      (
+                                        fallbackDiv as HTMLElement
+                                      ).style.display = 'flex';
+                                    }
+                                  }}
+                                />
+                                <div
+                                  className="w-3 h-3 flex items-center justify-center fallback-icon absolute top-0 left-0"
+                                  style={{ display: 'none' }}
+                                >
+                                  <CodeXml className="w-2 h-2 text-primary" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-3 h-3 flex items-center justify-center flex-shrink-0">
+                                <CodeXml className="w-2 h-2 text-primary" />
+                              </div>
+                            )}
+                            {source.title ||
+                              source.url.split('/').pop() ||
+                              'Unknown file'}
+                          </a>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-[300px]">
+                          <span className="text-xs truncate">{source.url}</span>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Codebase Sources Section */}
           {codebaseSources.length > 0 && (
             <div className="flex flex-col">
               {(codebaseSources.length > 1 ||
                 webSources.length > 0 ||
-                githubSources.length > 0) && (
+                githubSources.length > 0 ||
+                wikiSources.length > 0) && (
                 <div className="px-3 py-1 bg-muted/20 border-t border-border/50">
                   <span className="text-xs font-medium text-muted-foreground">
                     Codebase Sources
