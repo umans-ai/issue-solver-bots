@@ -12,10 +12,10 @@ import {
 } from 'react';
 import {
   Activity,
+  BookOpen,
   ChevronDown,
   Copy,
   Download,
-  FileText,
   MoreVertical,
   RotateCcw,
   Settings,
@@ -117,6 +117,8 @@ export default function DocsPage() {
   const [, setIndexMd] = useState<string>('');
   const [fileList, setFileList] = useState<DocListEntry[]>([]);
   const [isIndexLoading, setIsIndexLoading] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [titleMap, setTitleMap] = useState<Record<string, string>>({});
   const [activePath, setActivePathState] = useState<string | null>(null);
   const [activeProcessId, setActiveProcessId] = useState<string | null>(null);
@@ -168,6 +170,7 @@ export default function DocsPage() {
     approved_by_name?: string;
     approved_at?: string;
   } | null>(null);
+  const [emptyStepIndex, setEmptyStepIndex] = useState(0);
   const handleChatCtaSubmit = useCallback(() => {
     const trimmed = chatDraft.trim();
     if (!trimmed) return;
@@ -191,6 +194,11 @@ export default function DocsPage() {
     },
     [handleChatCtaSubmit],
   );
+  useEffect(() => {
+    setHasLoadedOnce(false);
+    setRefreshTick(0);
+    setEmptyStepIndex(0);
+  }, [kbId]);
   const promptIdForActiveDoc = useMemo(() => {
     if (!activePath) return null;
     const segments = activePath.split('/').filter(Boolean);
@@ -631,8 +639,9 @@ export default function DocsPage() {
         }
       } catch {}
       setVersionsLoading(false);
+      setHasLoadedOnce(true);
     })();
-  }, [kbId, normalizedVersionParam]);
+  }, [kbId, normalizedVersionParam, refreshTick]);
 
   // Load index.md and files list
   useEffect(() => {
@@ -719,7 +728,7 @@ export default function DocsPage() {
     return () => {
       cancelled = true;
     };
-  }, [kbId, commitSha]);
+  }, [kbId, commitSha, refreshTick]);
 
   // Update activeProcessId and activeOrigin when activePath changes
   useEffect(() => {
@@ -1403,9 +1412,31 @@ export default function DocsPage() {
   };
 
   const hasDocs = docTree.files.length > 0 || docTree.children.length > 0;
-  const showLoadingShell = versionsLoading || isIndexLoading;
-  const showEmptyState = !showLoadingShell && (!commitSha || !hasDocs);
+  const isAwaitingDocs = !commitSha || !hasDocs;
+  const isPolling = hasLoadedOnce && hasConnectedRepo && isAwaitingDocs;
+  const showLoadingShell = (versionsLoading || isIndexLoading) && !isPolling;
+  const showEmptyState = !showLoadingShell && isAwaitingDocs;
   const isContentLoading = contentStatus === 'loading';
+  const emptySteps = useMemo(() => {
+    if (!hasConnectedRepo) return [];
+    return [
+      { title: 'Indexing your repository' },
+      { title: 'Generating your wiki' },
+      { title: 'Polishing and linking' },
+    ];
+  }, [hasConnectedRepo]);
+
+  useEffect(() => {
+    if (!isPolling) return;
+    const interval = window.setInterval(() => {
+      setRefreshTick((prev) => prev + 1);
+    }, 6000);
+    return () => window.clearInterval(interval);
+  }, [isPolling]);
+
+  useEffect(() => {
+    setEmptyStepIndex(0);
+  }, [emptySteps]);
   const indexContent = (
     <div className="docs-index max-h-[calc(100vh-10rem)] overflow-y-auto pr-1 pt-4 space-y-4">
       {showLoadingShell ? (
@@ -1500,27 +1531,40 @@ export default function DocsPage() {
               <div className="flex flex-col items-center text-center gap-3 border border-dashed border-muted rounded-2xl px-6 py-6 w-full max-w-2xl">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                   {hasConnectedRepo ? (
-                    <FileText className="h-6 w-6 text-muted-foreground" />
+                    <BookOpen className="h-6 w-6 text-muted-foreground animate-pulse" />
                   ) : (
                     <Plug className="h-6 w-6 text-muted-foreground" />
                   )}
                 </div>
                 {hasConnectedRepo ? (
                   <>
-                    <h2 className="text-lg font-semibold text-foreground">
-                      No docs yet
-                    </h2>
-                    <p className="text-sm text-muted-foreground max-w-sm">
-                      Configure prompts now so the next sync knows which docs to
-                      write.
-                    </p>
-                    <Button
-                      type="button"
-                      className="mt-2"
-                      onClick={openAutoDocSettings}
-                    >
-                      Generate docs
-                    </Button>
+                    <div className="w-full max-w-md text-left space-y-4">
+                      <div className="docs-progress-track">
+                        <div className="docs-progress-bar" />
+                      </div>
+                      <div className="space-y-1">
+                        <h2 className="text-lg font-semibold text-foreground">
+                          Bringing your repo to life
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                          Hang tight. We are breathing life into your wiki with
+                          three quick steps, usually just a few minutes.
+                        </p>
+                      </div>
+                      <div className="relative pl-6">
+                        <span className="absolute left-2 top-1 bottom-1 w-px bg-muted-foreground/15" />
+                        <ul className="space-y-2 text-sm text-muted-foreground">
+                          {emptySteps.map((step) => (
+                            <li key={step.title} className="flex items-start gap-2">
+                              <span className="mt-1 text-muted-foreground/60">-</span>
+                              <span className="text-muted-foreground leading-6">
+                                {step.title}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -1967,6 +2011,9 @@ export default function DocsPage() {
         {`
         .doc-flash { animation: docFlash 1.2s ease-in-out 1; background-color: rgba(250, 229, 150, 0.9); }
         @keyframes docFlash { 0% { background-color: rgba(250,229,150,0.9); } 100% { background-color: transparent; } }
+        .docs-progress-track { position: relative; height: 6px; border-radius: 9999px; background: hsl(var(--muted) / 0.6); overflow: hidden; }
+        .docs-progress-bar { position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.45) 50%, transparent 100%); background-size: 200% 100%; background-position: 200% 0; animation: docsProgress 2.2s linear infinite; }
+        @keyframes docsProgress { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .docs-index details summary { list-style: none; border: none; outline: none; border-radius: 0; background: transparent; }
         .docs-index details summary:focus-visible,
         .docs-index details summary:focus { outline: none !important; border: none !important; box-shadow: none !important; background: transparent; }
