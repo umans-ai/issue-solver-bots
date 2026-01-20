@@ -24,7 +24,10 @@ type ManifestInfo = {
   pages: ManifestPage[];
 };
 
-export const codebaseAssistant = async ({ session }: CodebaseAssistantProps) => {
+export const codebaseAssistant = async ({
+  session,
+  dataStream,
+}: CodebaseAssistantProps) => {
   const kbId = session.user?.selectedSpace?.knowledgeBaseId;
   const manifestInfo = kbId ? await loadManifestInfo(kbId) : null;
   const manifestSummary = manifestInfo
@@ -75,6 +78,12 @@ export const codebaseAssistant = async ({ session }: CodebaseAssistantProps) => 
           docPath,
         );
         if (!content) continue;
+        dataStream.write({
+          type: 'source-url',
+          sourceId: `wiki:${kbId}:${manifestInfo.version}:${docPath}`,
+          url: buildWikiUrl(kbId, manifestInfo.version, docPath),
+          title: docPath,
+        });
         const header = `# ${docPath}`;
         const purpose = page.purpose ? `Purpose: ${page.purpose}` : undefined;
         sections.push([header, purpose, content].filter(Boolean).join('\n\n'));
@@ -113,6 +122,10 @@ function formatManifestSummary(pages: ManifestPage[]): string | null {
 
   if (lines.length === 0) return null;
   return lines.join('\n');
+}
+
+function buildWikiUrl(kbId: string, version: string, path: string): string {
+  return `/docs/${kbId}/${encodeURIComponent(path)}?v=${encodeURIComponent(version)}`;
 }
 
 function normalizeDocPath(path: string): string | null {
