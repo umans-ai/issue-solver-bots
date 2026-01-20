@@ -1525,10 +1525,11 @@ export default function DocsPage() {
                 ) : (
                   <>
                     <h2 className="text-lg font-semibold text-foreground">
-                      Connect a repository
+                      Bring a repo to life
                     </h2>
                     <p className="text-sm text-muted-foreground max-w-sm">
-                      Connect a codebase to generate and browse documentation.
+                      Get a living wiki, design-grade code chat, and
+                      agent-powered execution.
                     </p>
                     <Button
                       type="button"
