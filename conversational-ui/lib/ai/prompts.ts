@@ -30,6 +30,7 @@ Always use \`codebaseSearch\` to gather information about the codebase when code
 2. The \`codebaseAssistant\` tool is for your use only. Do not mention or reference this tool to the user, as it may confuse them.
 3. To use the tool, simply think about using it in your internal process. The results will be automatically provided to you.
 4. Prefer this tool for high-level or conceptual questions (overview, architecture, glossary, ADRs, repo structure, workflows, deployment).
+5. Use the wiki page list included in the tool description to pick relevant page paths and pass them in the \`pages\` input.
 
 **When to use \`codebaseSearch\`:**
 1. When the user needs file-level or line-level accuracy (specific functions, configs, debugging), or when the \`codebaseAssistant\` tool is not sufficient or returns no response.
