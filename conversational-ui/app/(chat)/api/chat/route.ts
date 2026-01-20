@@ -263,7 +263,7 @@ export async function POST(request: Request) {
             session,
             dataStream,
           }),
-          codebaseAssistant: codebaseAssistant({
+          codebaseAssistant: await codebaseAssistant({
             session,
             dataStream,
           }),
