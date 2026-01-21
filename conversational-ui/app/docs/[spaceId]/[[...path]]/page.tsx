@@ -694,30 +694,14 @@ export default function DocsPage() {
               approved_at: metadataMap[path]?.approved_at,
             })),
           );
-        }
-        // lazily resolve titles for index entries
-        const entries = await Promise.all(
-          files.map(async (f: string) => {
-            try {
-              const tr = await fetch(
-                `/api/docs/title?kbId=${encodeURIComponent(kbId)}&commitSha=${encodeURIComponent(commitSha)}&path=${encodeURIComponent(f)}`,
-                { cache: 'no-store' },
-              );
-              const tj = await tr.json();
-              return [f, tj?.title || f] as const;
-            } catch {
-              return [f, f] as const;
-            }
-          }),
-        );
-        if (!cancelled) {
-          const map: Record<string, string> = {};
-          for (const [k, v] of entries) map[k] = v;
-          setTitleMap(map);
+          const titles =
+            j.titles && typeof j.titles === 'object' ? j.titles : {};
+          setTitleMap(titles);
         }
       } catch {
         if (!cancelled) {
           setFileList([]);
+          setTitleMap({});
         }
       } finally {
         if (!cancelled) {
