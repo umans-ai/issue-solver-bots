@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { IconUmansLogo, LogoClaude } from '@/components/icons';
+import { IconUmansLogo } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -34,7 +34,7 @@ const plans = {
     },
     unlimited: {
       price: '$50',
-      subline: 'Unlimited tokens with concurrency limits.',
+      subline: 'Unlimited prompts.',
     },
   },
   yearly: {
@@ -44,7 +44,7 @@ const plans = {
     },
     unlimited: {
       price: '$42',
-      subline: 'Unlimited tokens with concurrency limits.',
+      subline: 'Unlimited prompts.',
     },
   },
 };
@@ -53,7 +53,6 @@ type BillingCycle = keyof typeof plans;
 
 export default function CodeLandingPage() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
-  const [comparisonPlan, setComparisonPlan] = useState<'pro' | 'max'>('max');
   const [parityTab, setParityTab] = useState<'onboarding' | 'triage' | 'refactor'>(
     'onboarding',
   );
@@ -682,74 +681,6 @@ export default function CodeLandingPage() {
               </p>
             </div>
 
-            <div className="mt-8">
-              <div className="flex flex-wrap items-center justify-end gap-4">
-                <div className="flex w-fit items-center rounded-full border border-black/10 bg-black/5 p-1 text-sm dark:border-white/10 dark:bg-white/5">
-                  <button
-                    type="button"
-                    onClick={() => setComparisonPlan('pro')}
-                    className={cn(
-                      'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                      comparisonPlan === 'pro'
-                        ? 'bg-[#0b0d10] text-white shadow-sm dark:bg-white dark:text-[#0b0d10]'
-                        : 'text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white',
-                    )}
-                  >
-                    Pro
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setComparisonPlan('max')}
-                    className={cn(
-                      'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                      comparisonPlan === 'max'
-                        ? 'bg-[#0b0d10] text-white shadow-sm dark:bg-white dark:text-[#0b0d10]'
-                        : 'text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white',
-                    )}
-                  >
-                    Max
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-6 overflow-hidden rounded-2xl border border-black/10 dark:border-white/10">
-                <div className="grid grid-cols-[1.1fr_1fr_1fr] text-xs font-semibold text-black/60 dark:text-white/60">
-                  <div className="px-5 py-3" />
-                  <div className="flex items-center gap-2 px-5 py-3">
-                    <LogoClaude className="text-[#f97316] dark:text-[#fb923c]" />
-                    <span className="text-xs font-semibold">Claude Code</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-5 py-3">
-                    <IconUmansLogo className="h-4 w-auto" />
-                    <span className="text-xs font-semibold">code</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-[1.1fr_1fr_1fr] border-b border-black/10 text-sm dark:border-white/10">
-                  <div className="px-5 py-4 text-black/60 dark:text-white/60">
-                    Prompt window size
-                  </div>
-                  <div className="px-5 py-4 text-black dark:text-white">
-                    {comparisonPlan === 'pro'
-                      ? '10 to 40 prompts'
-                      : '50 to 200 prompts'}
-                  </div>
-                  <div className="px-5 py-4 text-black dark:text-white">
-                    {comparisonPlan === 'pro' ? '200 prompts' : 'Unlimited'}
-                  </div>
-                </div>
-                <div className="grid grid-cols-[1.1fr_1fr_1fr] border-b border-black/10 text-sm dark:border-white/10">
-                  <div className="px-5 py-4 text-black/60 dark:text-white/60">
-                    Window
-                  </div>
-                  <div className="px-5 py-4 text-black dark:text-white">
-                    Every 5 hours
-                  </div>
-                  <div className="px-5 py-4 text-black dark:text-white">
-                    {comparisonPlan === 'pro' ? 'Every 5 hours' : 'No window'}
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -1135,13 +1066,12 @@ export default function CodeLandingPage() {
                     </div>
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-black/70 dark:text-white/70">
-                  {currentPlans.max.subline}
+                <p className="mt-3 text-[15px] font-semibold text-black/70 dark:text-white/70">
+                  Claude Max ($100)-equivalent limits.
                 </p>
                 <ul className="mt-6 space-y-3 text-sm text-black/70 dark:text-white/70">
+                  <li>50–200 Claude Code prompts per five-hour window.</li>
                   <li>Limits reset every five hours (rolling window).</li>
-                  <li>Large codebases and auto-accept reduce the prompt count.</li>
-                  <li>Parallel Claude Code instances hit limits sooner.</li>
                 </ul>
                 <div className="mt-auto pt-6">
                   <Button asChild className={primaryButtonClasses + ' w-full'}>
@@ -1167,11 +1097,11 @@ export default function CodeLandingPage() {
                     </div>
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-black/70 dark:text-white/70">
+                <p className="mt-3 text-[15px] font-semibold text-black/70 dark:text-white/70">
                   {currentPlans.unlimited.subline}
                 </p>
                 <ul className="mt-6 space-y-3 text-sm text-black/70 dark:text-white/70">
-                  <li>Unlimited tokens.</li>
+                  <li>No prompt window.</li>
                   <li>4 guaranteed parallel Claude Code sessions.</li>
                   <li>Extra burst capacity when available.</li>
                 </ul>
@@ -1186,8 +1116,8 @@ export default function CodeLandingPage() {
                 <div className="flex items-baseline justify-between">
                   <h3 className="text-lg font-semibold">Enterprise</h3>
                 </div>
-                <p className="mt-2 text-sm text-black/70 dark:text-white/70">
-                Your code, data, and IP stay inside your infrastructure.
+                <p className="mt-3 text-[15px] font-semibold text-black/70 dark:text-white/70">
+                  Your code, data, and IP stay inside your infrastructure.
                 </p>
                 <ul className="mt-4 space-y-3 text-sm text-black/70 dark:text-white/70">
                   <li>Self-hosted in your infrastructure with a managed update track.</li>
