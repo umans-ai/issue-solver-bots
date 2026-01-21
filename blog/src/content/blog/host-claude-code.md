@@ -28,7 +28,7 @@ DeepSeek V3.2 is currently one of the strongest open-weights options for this us
 |-----------|---------------|---------|--------------|-------------------|------------|------------------|---------|
 | [SWE-bench Verified](https://openai.com/index/introducing-swe-bench-verified/) | 73.1% | 73.8% | 74.0% | 77.2% | 78.0% | **80.9%** | 80.0% |
 | [SWE-bench Multilingual](https://www.swebench.com/multilingual.html) | 70.2% | 66.7% | 72.5% | 68% | 65.0% | **77.5%** | 72.0% |
-| [Terminal Bench 2.0](https://www.tbench.ai/news/announcement-2-0) | 46.4% | 41.0% | 47.9% | 50.0% | 54.2% | **57.8%** | 54.0% |
+| [Terminal Bench 2.0](https://www.tbench.ai/news/announcement-2-0) | 46.4% | 41.0% | 47.9% | 42.8% | 54.2% | **57.8%** | 54.0% |
 
 SWE-bench Verified is Python-only. SWE-bench Multilingual covers the full language range, where DeepSeek outperforms Claude Sonnet 4.5 and Gemini 3 Pro. Terminal Bench 2.0 measures end-to-end coding tasks in a terminal environment. All three benchmarks are closer to real agent work than isolated code completion tasks.
 

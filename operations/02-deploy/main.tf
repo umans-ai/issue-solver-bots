@@ -60,6 +60,7 @@ locals {
   offer_redirects = {
     envs = "/offers/envs"
     wiki = "/offers/wiki"
+    code = "/offers/code"
   }
   offer_redirect_domains = {
     for subdomain, path in local.offer_redirects :
