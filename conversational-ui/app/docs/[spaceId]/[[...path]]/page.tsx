@@ -117,6 +117,7 @@ export default function DocsPage() {
   const [, setIndexMd] = useState<string>('');
   const [fileList, setFileList] = useState<DocListEntry[]>([]);
   const [isIndexLoading, setIsIndexLoading] = useState(false);
+  const [docsLoaded, setDocsLoaded] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [titleMap, setTitleMap] = useState<Record<string, string>>({});
@@ -199,6 +200,9 @@ export default function DocsPage() {
     setRefreshTick(0);
     setEmptyStepIndex(0);
   }, [kbId]);
+  useEffect(() => {
+    setDocsLoaded(false);
+  }, [kbId, commitSha]);
   const promptIdForActiveDoc = useMemo(() => {
     if (!activePath) return null;
     const segments = activePath.split('/').filter(Boolean);
@@ -706,6 +710,7 @@ export default function DocsPage() {
       } finally {
         if (!cancelled) {
           setIsIndexLoading(false);
+          setDocsLoaded(true);
         }
       }
     })();
@@ -1396,10 +1401,14 @@ export default function DocsPage() {
   };
 
   const hasDocs = docTree.files.length > 0 || docTree.children.length > 0;
-  const isAwaitingDocs = !commitSha || !hasDocs;
-  const isPolling = hasLoadedOnce && hasConnectedRepo && isAwaitingDocs;
-  const showLoadingShell = (versionsLoading || isIndexLoading) && !isPolling;
-  const showEmptyState = !showLoadingShell && isAwaitingDocs;
+  const docsMissing = docsLoaded && !hasDocs;
+  const awaitingDocs = !commitSha || docsMissing;
+  const isPolling = hasLoadedOnce && hasConnectedRepo && awaitingDocs;
+  const showProgress =
+    hasConnectedRepo && (docsMissing || (!commitSha && !versionsLoading));
+  const showLoadingShell = (versionsLoading || isIndexLoading) && !showProgress;
+  const showEmptyState =
+    !showLoadingShell && (showProgress || !hasConnectedRepo);
   const isContentLoading = contentStatus === 'loading';
   const emptySteps = useMemo(() => {
     if (!hasConnectedRepo) return [];
