@@ -7,6 +7,9 @@ import { pledge, user } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const CHARGE_START_TIMESTAMP = Math.floor(
+  new Date('2026-03-01T00:00:00Z').getTime() / 1000,
+);
 
 export async function POST(req: Request) {
   const sig = (await headers()).get('stripe-signature');
@@ -59,6 +62,46 @@ export async function POST(req: Request) {
         const email =
           s.customer_details?.email || s.customer_email || undefined;
 
+        let scheduleId: string | undefined;
+        const priceId = s.metadata?.priceId as string | undefined;
+        if (stripeCustomerId && paymentMethodId && priceId && billingCycle) {
+          try {
+            const schedule = await stripe.subscriptionSchedules.create({
+              customer: stripeCustomerId,
+              start_date: CHARGE_START_TIMESTAMP,
+              end_behavior: 'release',
+              default_settings: {
+                default_payment_method: paymentMethodId,
+              },
+              phases: [
+                {
+                  items: [{ price: priceId, quantity: 1 }],
+                  duration: {
+                    interval: billingCycle === 'yearly' ? 'year' : 'month',
+                    interval_count: 1,
+                  },
+                  billing_cycle_anchor: 'phase_start',
+                  metadata: {
+                    plan: plan ?? '',
+                    cycle: billingCycle,
+                    priceId,
+                    source: 'umans-code-pledge',
+                  },
+                },
+              ],
+              metadata: {
+                plan: plan ?? '',
+                cycle: billingCycle,
+                priceId,
+                source: 'umans-code-pledge',
+              },
+            });
+            scheduleId = schedule.id;
+          } catch (err) {
+            console.error('Failed to create subscription schedule', err);
+          }
+        }
+
         if (plan && billingCycle) {
           await db
             .insert(pledge)
@@ -67,10 +110,12 @@ export async function POST(req: Request) {
               email,
               plan,
               billingCycle,
-              status: 'verified',
+              priceId: priceId ?? undefined,
+              status: scheduleId ? 'scheduled' : 'verified',
               stripeCustomerId: stripeCustomerId ?? undefined,
               paymentMethodId,
               setupIntentId,
+              stripeScheduleId: scheduleId,
               checkoutSessionId: s.id,
               updatedAt: new Date(),
             })
@@ -81,10 +126,12 @@ export async function POST(req: Request) {
                 email,
                 plan,
                 billingCycle,
-                status: 'verified',
+                priceId: priceId ?? undefined,
+                status: scheduleId ? 'scheduled' : 'verified',
                 stripeCustomerId: stripeCustomerId ?? undefined,
                 paymentMethodId,
                 setupIntentId,
+                stripeScheduleId: scheduleId,
                 updatedAt: new Date(),
               },
             });

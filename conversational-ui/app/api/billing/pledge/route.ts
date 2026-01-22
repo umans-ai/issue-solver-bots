@@ -1,9 +1,28 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
-import { type BillingCycle, getStripe } from '@/lib/stripe';
+import { type BillingCycle, getPriceId, getStripe } from '@/lib/stripe';
 import { getUser } from '@/lib/db/queries';
 
 type PledgePlanKey = 'code_pro' | 'code_max';
+const DEADLINE_LABEL = 'February 28, 2026';
+const PRICE_LABELS: Record<PledgePlanKey, Record<BillingCycle, string>> = {
+  code_pro: {
+    monthly: '$20/month',
+    yearly: '$200/year',
+  },
+  code_max: {
+    monthly: '$50/month',
+    yearly: '$500/year',
+  },
+};
+const PLAN_LABELS: Record<PledgePlanKey, string> = {
+  code_pro: 'Umans Code Pro',
+  code_max: 'Umans Code Max',
+};
+const PLAN_DETAILS: Record<PledgePlanKey, string> = {
+  code_pro: '200 prompts per 5 hours.',
+  code_max: 'Unlimited prompts and 4 guaranteed parallel sessions.',
+};
 
 export async function POST(req: Request) {
   const { plan, cycle }: { plan: PledgePlanKey; cycle: BillingCycle } =
@@ -33,18 +52,25 @@ export async function POST(req: Request) {
     stripeCustomerId = dbUser?.stripeCustomerId ?? undefined;
   }
 
+  const priceId = await getPriceId(plan, cycle);
   const metadata: Record<string, string> = {
     plan,
     cycle,
     source: 'umans-code-pledge',
+    priceId,
   };
   if (userId) {
     metadata.userId = userId;
   }
 
+  const planLabel = PLAN_LABELS[plan];
+  const priceLabel = PRICE_LABELS[plan][cycle];
+  const planDetail = PLAN_DETAILS[plan];
+
   const checkout = await stripe.checkout.sessions.create({
     mode: 'setup',
     payment_method_types: ['card'],
+    customer_creation: 'always',
     customer: stripeCustomerId || undefined,
     customer_email: stripeCustomerId ? undefined : email || undefined,
     success_url: `${baseUrl}/offers/code?pledge=success`,
@@ -53,6 +79,11 @@ export async function POST(req: Request) {
     metadata,
     setup_intent_data: {
       metadata,
+    },
+    custom_text: {
+      submit: {
+        message: `${planLabel} (${priceLabel}) · ${planDetail} You’ll only be charged if we launch by ${DEADLINE_LABEL}.`,
+      },
     },
   });
 
