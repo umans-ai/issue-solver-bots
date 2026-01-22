@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useActionState, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useActionState, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AuthForm } from '@/components/auth-form';
@@ -12,8 +12,10 @@ import { SubmitButton } from '@/components/submit-button';
 import { register } from '../actions';
 import { type RegisterActionState, RegisterStatus } from '../status';
 
-export default function Page() {
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams?.get('next');
 
   const [email, setEmail] = useState('');
   const [isSuccessful, setIsSuccessful] = useState(false);
@@ -30,7 +32,7 @@ export default function Page() {
       toast.error(state.error || 'An account with this email already exists.', {
         action: {
           label: 'Sign In',
-          onClick: () => router.push('/login'),
+          onClick: () => router.push(next ? `/login?next=${encodeURIComponent(next)}` : '/login'),
         },
       });
     } else if (state.status === RegisterStatus.FAILED) {
@@ -40,17 +42,24 @@ export default function Page() {
     } else if (state.status === RegisterStatus.SUCCESS) {
       toast.success('Account created successfully');
       setIsSuccessful(true);
-      router.refresh();
+      if (next) {
+        router.push(next);
+      } else {
+        router.refresh();
+      }
     } else if (state.status === RegisterStatus.VERIFICATION_SENT) {
       toast.success('Verification email sent! Please check your email.');
       setIsSuccessful(true);
-      // Store email for verification page
+      // Store email and redirect destination for verification page
       if (typeof window !== 'undefined') {
         localStorage.setItem('pendingVerificationEmail', email);
+        if (next) {
+          localStorage.setItem('pendingRedirectTo', next);
+        }
       }
       router.push('/verify-email');
     }
-  }, [state, router, email]);
+  }, [state, router, email, next]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);
@@ -74,7 +83,7 @@ export default function Page() {
           <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {'Already have an account? '}
             <Link
-              href="/login"
+              href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}
               className="font-semibold text-gray-800 hover:underline dark:text-zinc-200"
             >
               Sign in
@@ -84,5 +93,24 @@ export default function Page() {
         </AuthForm>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-dvh w-screen items-center justify-center bg-background">
+          <div className="flex flex-col items-center gap-4">
+            <IconUmansLogo className="h-16 w-auto" />
+            <p className="text-sm text-gray-500 dark:text-zinc-400">
+              Loading...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <RegisterContent />
+    </Suspense>
   );
 }

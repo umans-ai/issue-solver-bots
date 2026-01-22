@@ -38,13 +38,19 @@ function VerifyEmailContent() {
       if (response.ok) {
         setStatus('success');
         toast.success('Email verified successfully!');
-        // Clear stored email after successful verification
+        // Get redirect destination and clear stored data
+        let redirectTo = '/login';
         if (typeof window !== 'undefined') {
+          const pendingRedirect = localStorage.getItem('pendingRedirectTo');
+          if (pendingRedirect) {
+            redirectTo = `/login?next=${encodeURIComponent(pendingRedirect)}`;
+            localStorage.removeItem('pendingRedirectTo');
+          }
           localStorage.removeItem('pendingVerificationEmail');
         }
         // Redirect to login after 3 seconds
         setTimeout(() => {
-          router.push('/login');
+          router.push(redirectTo);
         }, 3000);
       } else {
         setStatus('error');
@@ -139,7 +145,16 @@ function VerifyEmailContent() {
                 redirected to the login page shortly.
               </p>
               <div className="mt-6">
-                <Button onClick={() => router.push('/login')}>
+                <Button onClick={() => {
+                  let redirectTo = '/login';
+                  if (typeof window !== 'undefined') {
+                    const pendingRedirect = localStorage.getItem('pendingRedirectTo');
+                    if (pendingRedirect) {
+                      redirectTo = `/login?next=${encodeURIComponent(pendingRedirect)}`;
+                    }
+                  }
+                  router.push(redirectTo);
+                }}>
                   Continue to Login
                 </Button>
               </div>

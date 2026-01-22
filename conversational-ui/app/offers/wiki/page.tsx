@@ -148,7 +148,7 @@ export default function WikiLandingPage() {
                 </a>
               </div>
               <ThemeToggle variant="ghost" />
-              <Link href="/login" className={buttonVariants({ variant: "default", size: "sm" })}>
+              <Link href="/login?next=/docs" className={buttonVariants({ variant: "default", size: "sm" })}>
                 Sign in
               </Link>
             </div>
@@ -172,7 +172,7 @@ export default function WikiLandingPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-             <Link href="/register">
+             <Link href="/register?next=/docs">
                 <Button size="lg" className="h-12 px-8 text-base">
                   Try it on your repo
                 </Button>
@@ -387,7 +387,7 @@ export default function WikiLandingPage() {
                     Connect a private git repository and get a private, team-only docs space in minutes. 
                     No code leaves your control.
                  </p>
-                 <Link href="/register">
+                 <Link href="/register?next=/docs">
                     <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white border-0">
                        Sign up to connect a repo
                     </Button>

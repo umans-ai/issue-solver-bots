@@ -30,7 +30,10 @@ export const authConfig = {
         if (!cookie && !hasPending) {
           // We cannot read cookies here easily; rely on client redirect after login.
         }
-        return Response.redirect(new URL('/', nextUrl as unknown as URL));
+        // Respect the 'next' param for post-auth redirect
+        const nextParam = nextUrl.searchParams.get('next');
+        const redirectTo = nextParam || '/';
+        return Response.redirect(new URL(redirectTo, nextUrl as unknown as URL));
       }
 
       if (
