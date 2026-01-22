@@ -11,7 +11,7 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
-export type PlanKey = 'solo' | 'pro';
+export type PlanKey = 'solo' | 'pro' | 'code_pro' | 'code_max';
 export type BillingCycle = 'monthly' | 'yearly';
 
 // Map plans to Stripe price lookup keys
@@ -23,6 +23,14 @@ const lookupKeyMap: Record<PlanKey, Record<BillingCycle, string>> = {
   pro: {
     monthly: 'pro_monthly',
     yearly: 'pro_yearly',
+  },
+  code_pro: {
+    monthly: 'code_pro_monthly',
+    yearly: 'code_pro_yearly',
+  },
+  code_max: {
+    monthly: 'code_max_monthly',
+    yearly: 'code_max_yearly',
   },
 };
 

@@ -47,6 +47,27 @@ export const user = pgTable('User', {
 
 export type User = InferSelectModel<typeof user>;
 
+export const pledge = pgTable('Pledge', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  userId: uuid('userId').references(() => user.id),
+  email: varchar('email', { length: 255 }),
+  plan: varchar('plan', { length: 32 }).notNull(),
+  billingCycle: varchar('billingCycle', { length: 16 }).notNull(),
+  status: varchar('status', { length: 32 }).notNull().default('pending'),
+  stripeCustomerId: varchar('stripeCustomerId', { length: 255 }),
+  paymentMethodId: varchar('paymentMethodId', { length: 255 }),
+  setupIntentId: varchar('setupIntentId', { length: 255 }),
+  checkoutSessionId: varchar('checkoutSessionId', { length: 255 }).notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+}, (table) => {
+  return {
+    uniqueCheckoutSession: uniqueIndex('unique_pledge_checkout_session').on(table.checkoutSessionId),
+  };
+});
+
+export type Pledge = InferSelectModel<typeof pledge>;
+
 export const spaceToUser = pgTable(
   'SpaceToUser',
   {

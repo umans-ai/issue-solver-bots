@@ -58,10 +58,33 @@ export default function CodeLandingPage() {
   const [parityTab, setParityTab] = useState<'onboarding' | 'triage' | 'refactor'>(
     'onboarding',
   );
+  const [pledgeLoading, setPledgeLoading] = useState<null | 'code_pro' | 'code_max'>(
+    null,
+  );
   const demosRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const currentPlans = plans[billingCycle];
+
+  const startPledge = async (plan: 'code_pro' | 'code_max') => {
+    try {
+      setPledgeLoading(plan);
+      const res = await fetch('/api/billing/pledge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, cycle: billingCycle }),
+      });
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url as string;
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to start pledge checkout', err);
+    } finally {
+      setPledgeLoading(null);
+    }
+  };
 
   const parityTabs = [
     {
@@ -1085,8 +1108,12 @@ export default function CodeLandingPage() {
                   <li>Limits reset every five hours (rolling window).</li>
                 </ul>
                 <div className="mt-auto pt-6">
-                  <Button asChild className={primaryButtonClasses + ' w-full'}>
-                    <Link href="#plans">Pledge this plan</Link>
+                  <Button
+                    className={primaryButtonClasses + ' w-full'}
+                    onClick={() => startPledge('code_pro')}
+                    disabled={pledgeLoading === 'code_pro'}
+                  >
+                    {pledgeLoading === 'code_pro' ? 'Opening Stripe…' : 'Pledge this plan'}
                   </Button>
                 </div>
               </div>
@@ -1117,8 +1144,12 @@ export default function CodeLandingPage() {
                   <li>Extra burst capacity when available.</li>
                 </ul>
                 <div className="mt-auto pt-6">
-                  <Button asChild className={primaryButtonClasses + ' w-full'}>
-                    <Link href="#plans">Pledge this plan</Link>
+                  <Button
+                    className={primaryButtonClasses + ' w-full'}
+                    onClick={() => startPledge('code_max')}
+                    disabled={pledgeLoading === 'code_max'}
+                  >
+                    {pledgeLoading === 'code_max' ? 'Opening Stripe…' : 'Pledge this plan'}
                   </Button>
                 </div>
               </div>

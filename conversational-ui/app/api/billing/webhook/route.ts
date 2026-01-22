@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { user } from '@/lib/db/schema';
+import { pledge, user } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -13,8 +13,8 @@ export async function POST(req: Request) {
   const body = await req.text();
 
   let event;
+  const stripe = getStripe();
   try {
-    const stripe = getStripe();
     event = stripe.webhooks.constructEvent(body, sig as string, webhookSecret);
   } catch (err: any) {
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
@@ -28,12 +28,71 @@ export async function POST(req: Request) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const s = event.data.object as any;
+      const mode = s.mode as string | undefined;
+      const plan = s.metadata?.plan as string | undefined;
+
+      if (mode === 'setup' || plan?.startsWith('code_')) {
+        const userId: string | undefined =
+          s.client_reference_id || s.metadata?.userId;
+        const billingCycle = s.metadata?.cycle as string | undefined;
+        const stripeCustomerId: string | undefined = s.customer as
+          | string
+          | undefined;
+        const setupIntentId =
+          typeof s.setup_intent === 'string'
+            ? s.setup_intent
+            : s.setup_intent?.id;
+
+        let paymentMethodId: string | undefined;
+        if (setupIntentId) {
+          const setupIntent = await stripe.setupIntents.retrieve(setupIntentId);
+          paymentMethodId =
+            typeof setupIntent.payment_method === 'string'
+              ? setupIntent.payment_method
+              : setupIntent.payment_method?.id;
+        }
+
+        const email =
+          s.customer_details?.email || s.customer_email || undefined;
+
+        if (plan && billingCycle) {
+          await db
+            .insert(pledge)
+            .values({
+              userId: userId ?? null,
+              email,
+              plan,
+              billingCycle,
+              status: 'verified',
+              stripeCustomerId: stripeCustomerId ?? undefined,
+              paymentMethodId,
+              setupIntentId,
+              checkoutSessionId: s.id,
+              updatedAt: new Date(),
+            })
+            .onConflictDoUpdate({
+              target: pledge.checkoutSessionId,
+              set: {
+                userId: userId ?? null,
+                email,
+                plan,
+                billingCycle,
+                status: 'verified',
+                stripeCustomerId: stripeCustomerId ?? undefined,
+                paymentMethodId,
+                setupIntentId,
+                updatedAt: new Date(),
+              },
+            });
+        }
+        break;
+      }
+
       const userId: string | undefined =
         s.client_reference_id || s.metadata?.userId;
       const stripeCustomerId: string | undefined = s.customer as
         | string
         | undefined;
-      const plan = s.metadata?.plan as string | undefined;
       if (userId) {
         await db
           .update(user)
