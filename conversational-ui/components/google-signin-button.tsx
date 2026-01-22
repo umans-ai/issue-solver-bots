@@ -2,11 +2,11 @@
 
 import { signIn } from 'next-auth/react';
 
-export function GoogleSigninButton() {
+export function GoogleSigninButton({ redirectTo = '/' }: { redirectTo?: string }) {
   return (
     <button
       type="button"
-      onClick={() => signIn('google', { redirectTo: '/' })}
+      onClick={() => signIn('google', { redirectTo })}
       className="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800 transition-colors"
     >
       <svg

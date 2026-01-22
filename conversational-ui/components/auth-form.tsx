@@ -10,6 +10,7 @@ export function AuthForm({
   children,
   defaultEmail = '',
   showTerms = false,
+  redirectTo = '/',
 }: {
   action: NonNullable<
     string | ((formData: FormData) => void | Promise<void>) | undefined
@@ -17,11 +18,12 @@ export function AuthForm({
   children: React.ReactNode;
   defaultEmail?: string;
   showTerms?: boolean;
+  redirectTo?: string;
 }) {
   return (
     <div className="flex flex-col gap-4 px-4 sm:px-16">
       {/* Google Sign-in Button */}
-      <GoogleSigninButton />
+      <GoogleSigninButton redirectTo={redirectTo} />
 
       {/* Divider */}
       <div className="relative flex items-center">
