@@ -1760,7 +1760,7 @@ export default function DocsPage() {
                         Try another version or pick a different doc.
                       </div>
                     ) : showContent ? (
-                      <div className="max-w-none prose prose-neutral dark:prose-invert">
+                      <div className="max-w-none prose prose-neutral dark:prose-invert docs-prose">
                         {isApproved && (
                           <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-100">
                             <ShieldCheck className="h-3.5 w-3.5" />
