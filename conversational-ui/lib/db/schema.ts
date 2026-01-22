@@ -59,6 +59,7 @@ export const pledge = pgTable('Pledge', {
   paymentMethodId: varchar('paymentMethodId', { length: 255 }),
   setupIntentId: varchar('setupIntentId', { length: 255 }),
   stripeScheduleId: varchar('stripeScheduleId', { length: 255 }),
+  stripeSubscriptionId: varchar('stripeSubscriptionId', { length: 255 }),
   checkoutSessionId: varchar('checkoutSessionId', { length: 255 }).notNull(),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   updatedAt: timestamp('updatedAt').notNull().defaultNow(),

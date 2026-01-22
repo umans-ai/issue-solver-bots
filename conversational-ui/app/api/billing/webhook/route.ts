@@ -7,10 +7,6 @@ import { pledge, user } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-const CHARGE_START_TIMESTAMP = Math.floor(
-  new Date('2026-03-01T00:00:00Z').getTime() / 1000,
-);
-
 export async function POST(req: Request) {
   const sig = (await headers()).get('stripe-signature');
   const body = await req.text();
@@ -34,7 +30,7 @@ export async function POST(req: Request) {
       const mode = s.mode as string | undefined;
       const plan = s.metadata?.plan as string | undefined;
 
-      if (mode === 'setup' || plan?.startsWith('code_')) {
+      if (plan?.startsWith('code_')) {
         const rawUserId: string | undefined =
           s.client_reference_id || s.metadata?.userId;
         const userId =
@@ -45,62 +41,15 @@ export async function POST(req: Request) {
         const stripeCustomerId: string | undefined = s.customer as
           | string
           | undefined;
-        const setupIntentId =
-          typeof s.setup_intent === 'string'
-            ? s.setup_intent
-            : s.setup_intent?.id;
-
-        let paymentMethodId: string | undefined;
-        if (setupIntentId) {
-          const setupIntent = await stripe.setupIntents.retrieve(setupIntentId);
-          paymentMethodId =
-            typeof setupIntent.payment_method === 'string'
-              ? setupIntent.payment_method
-              : setupIntent.payment_method?.id;
-        }
+        const subscriptionId =
+          typeof s.subscription === 'string'
+            ? s.subscription
+            : s.subscription?.id;
 
         const email =
           s.customer_details?.email || s.customer_email || undefined;
 
-        let scheduleId: string | undefined;
         const priceId = s.metadata?.priceId as string | undefined;
-        if (stripeCustomerId && paymentMethodId && priceId && billingCycle) {
-          try {
-            const schedule = await stripe.subscriptionSchedules.create({
-              customer: stripeCustomerId,
-              start_date: CHARGE_START_TIMESTAMP,
-              end_behavior: 'release',
-              default_settings: {
-                default_payment_method: paymentMethodId,
-              },
-              phases: [
-                {
-                  items: [{ price: priceId, quantity: 1 }],
-                  duration: {
-                    interval: billingCycle === 'yearly' ? 'year' : 'month',
-                    interval_count: 1,
-                  },
-                  billing_cycle_anchor: 'phase_start',
-                  metadata: {
-                    plan: plan ?? '',
-                    cycle: billingCycle,
-                    priceId,
-                    source: 'umans-code-pledge',
-                  },
-                },
-              ],
-              metadata: {
-                plan: plan ?? '',
-                cycle: billingCycle,
-                priceId,
-                source: 'umans-code-pledge',
-              },
-            });
-            scheduleId = schedule.id;
-          } catch (err) {
-            console.error('Failed to create subscription schedule', err);
-          }
-        }
 
         if (plan && billingCycle) {
           await db
@@ -111,11 +60,9 @@ export async function POST(req: Request) {
               plan,
               billingCycle,
               priceId: priceId ?? undefined,
-              status: scheduleId ? 'scheduled' : 'verified',
+              status: mode === 'subscription' ? 'trialing' : 'verified',
               stripeCustomerId: stripeCustomerId ?? undefined,
-              paymentMethodId,
-              setupIntentId,
-              stripeScheduleId: scheduleId,
+              stripeSubscriptionId: subscriptionId ?? undefined,
               checkoutSessionId: s.id,
               updatedAt: new Date(),
             })
@@ -127,11 +74,9 @@ export async function POST(req: Request) {
                 plan,
                 billingCycle,
                 priceId: priceId ?? undefined,
-                status: scheduleId ? 'scheduled' : 'verified',
+                status: mode === 'subscription' ? 'trialing' : 'verified',
                 stripeCustomerId: stripeCustomerId ?? undefined,
-                paymentMethodId,
-                setupIntentId,
-                stripeScheduleId: scheduleId,
+                stripeSubscriptionId: subscriptionId ?? undefined,
                 updatedAt: new Date(),
               },
             });
@@ -159,6 +104,10 @@ export async function POST(req: Request) {
     case 'customer.subscription.updated':
     case 'customer.subscription.created': {
       const sub = event.data.object as any;
+      const plan = sub.metadata?.plan as string | undefined;
+      if (plan?.startsWith('code_')) {
+        break;
+      }
       const stripeCustomerId = sub.customer as string;
       const status = sub.status as string;
       // We need to locate user by customer id
@@ -170,6 +119,10 @@ export async function POST(req: Request) {
     }
     case 'customer.subscription.deleted': {
       const sub = event.data.object as any;
+      const plan = sub.metadata?.plan as string | undefined;
+      if (plan?.startsWith('code_')) {
+        break;
+      }
       const stripeCustomerId = sub.customer as string;
       await db
         .update(user)

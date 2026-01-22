@@ -5,6 +5,9 @@ import { getUser } from '@/lib/db/queries';
 
 type PledgePlanKey = 'code_pro' | 'code_max';
 const DEADLINE_LABEL = 'February 28, 2026';
+const CHARGE_START_TIMESTAMP = Math.floor(
+  new Date('2026-03-01T00:00:00Z').getTime() / 1000,
+);
 const PRICE_LABELS: Record<PledgePlanKey, Record<BillingCycle, string>> = {
   code_pro: {
     monthly: '$20/month',
@@ -68,16 +71,22 @@ export async function POST(req: Request) {
   const planDetail = PLAN_DETAILS[plan];
 
   const checkout = await stripe.checkout.sessions.create({
-    mode: 'setup',
+    mode: 'subscription',
     payment_method_types: ['card'],
-    customer_creation: 'always',
     customer: stripeCustomerId || undefined,
     customer_email: stripeCustomerId ? undefined : email || undefined,
     success_url: `${baseUrl}/offers/code?pledge=success`,
     cancel_url: `${baseUrl}/offers/code?pledge=cancelled`,
     client_reference_id: userId || undefined,
     metadata,
-    setup_intent_data: {
+    line_items: [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ],
+    subscription_data: {
+      trial_end: CHARGE_START_TIMESTAMP,
       metadata,
     },
     custom_text: {
