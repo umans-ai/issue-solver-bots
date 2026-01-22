@@ -18,6 +18,8 @@ const pledgePercent = Math.min(
   Math.round((pledgeCount / FOUNDING_TARGET) * 100),
   100,
 );
+const pledgeCountDisplay = pledgeCount.toLocaleString('en-US');
+const foundingTargetDisplay = FOUNDING_TARGET.toLocaleString('en-US');
 
 const primaryButtonClasses =
   'rounded-full bg-[#0b0d10] text-white hover:bg-black/90 shadow-sm dark:bg-white dark:text-[#0b0d10] dark:hover:bg-white/90';
@@ -30,7 +32,7 @@ const plans = {
   monthly: {
     max: {
       price: '$20',
-      subline: '50–200 Claude Code prompts per five-hour window.',
+      subline: '200 Claude Code prompts per five-hour window.',
     },
     unlimited: {
       price: '$50',
@@ -40,7 +42,7 @@ const plans = {
   yearly: {
     max: {
       price: '$17',
-      subline: '50–200 Claude Code prompts per five-hour window.',
+      subline: '200 Claude Code prompts per five-hour window.',
     },
     unlimited: {
       price: '$42',
@@ -984,11 +986,20 @@ export default function CodeLandingPage() {
               </p>
             </div>
             <div className="w-full rounded-3xl border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
-              <div className="text-4xl font-semibold">{pledgeCount}</div>
+              <div className="text-4xl font-semibold" aria-live="polite">
+                {pledgeCountDisplay}
+              </div>
               <p className="mt-2 text-sm text-black/60 dark:text-white/60">
-                pledged seats out of {FOUNDING_TARGET}
+                pledged seats out of {foundingTargetDisplay}
               </p>
-              <div className="mt-6 h-1.5 w-full rounded-full bg-black/10 dark:bg-white/10">
+              <div
+                className="mt-6 h-1.5 w-full rounded-full bg-black/10 dark:bg-white/10"
+                role="progressbar"
+                aria-label="Founding pledge progress"
+                aria-valuenow={pledgePercent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
                 <div
                   className="h-1.5 rounded-full bg-black dark:bg-white"
                   style={{ width: `${pledgePercent}%` }}
@@ -1070,7 +1081,7 @@ export default function CodeLandingPage() {
                   Claude Max ($100)-equivalent limits.
                 </p>
                 <ul className="mt-6 space-y-3 text-sm text-black/70 dark:text-white/70">
-                  <li>50–200 Claude Code prompts per five-hour window.</li>
+                  <li>200 Claude Code prompts per five-hour window.</li>
                   <li>Limits reset every five hours (rolling window).</li>
                 </ul>
                 <div className="mt-auto pt-6">
