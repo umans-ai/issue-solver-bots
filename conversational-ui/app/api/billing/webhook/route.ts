@@ -32,8 +32,12 @@ export async function POST(req: Request) {
       const plan = s.metadata?.plan as string | undefined;
 
       if (mode === 'setup' || plan?.startsWith('code_')) {
-        const userId: string | undefined =
+        const rawUserId: string | undefined =
           s.client_reference_id || s.metadata?.userId;
+        const userId =
+          typeof rawUserId === 'string' && rawUserId.trim()
+            ? rawUserId
+            : undefined;
         const billingCycle = s.metadata?.cycle as string | undefined;
         const stripeCustomerId: string | undefined = s.customer as
           | string

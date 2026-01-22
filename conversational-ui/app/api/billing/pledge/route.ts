@@ -33,12 +33,14 @@ export async function POST(req: Request) {
     stripeCustomerId = dbUser?.stripeCustomerId ?? undefined;
   }
 
-  const metadata = {
-    userId: userId ?? '',
+  const metadata: Record<string, string> = {
     plan,
     cycle,
     source: 'umans-code-pledge',
   };
+  if (userId) {
+    metadata.userId = userId;
+  }
 
   const checkout = await stripe.checkout.sessions.create({
     mode: 'setup',
