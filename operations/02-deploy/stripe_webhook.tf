@@ -7,7 +7,8 @@ resource "stripe_webhook_endpoint" "conversational_ui" {
     "checkout.session.completed",
     "customer.subscription.created",
     "customer.subscription.updated",
-    "customer.subscription.deleted"
+    "customer.subscription.deleted",
+    "setup_intent.succeeded"
   ]
 }
 
