@@ -27,8 +27,20 @@ async function streamToString(stream: any): Promise<string> {
   });
 }
 
+export type WikiPageEntry = {
+  path?: string;
+  purpose?: string;
+};
+
+export type RepoDocsConfig = {
+  include?: string[];
+  exclude?: string[];
+};
+
 export type WikiPageManifest = {
-  pages: Array<{ path?: string; purpose?: string }>;
+  pages?: WikiPageEntry[];
+  wiki?: WikiPageEntry[];
+  'repo-docs'?: RepoDocsConfig;
 };
 
 export async function listWikiVersions(kbId: string): Promise<string[]> {
@@ -72,6 +84,13 @@ export async function listWikiVersions(kbId: string): Promise<string[]> {
     .map(([sha]) => sha);
 }
 
+export function getWikiPages(manifest: WikiPageManifest | null): WikiPageEntry[] {
+  if (!manifest) return [];
+  if (Array.isArray(manifest.wiki)) return manifest.wiki;
+  if (Array.isArray(manifest.pages)) return manifest.pages;
+  return [];
+}
+
 export async function getWikiManifest(
   kbId: string,
   commitSha: string,
@@ -86,8 +105,11 @@ export async function getWikiManifest(
     const body = await streamToString(res.Body);
     const parsed = JSON.parse(body);
     if (!parsed || typeof parsed !== 'object') return null;
-    const pages = Array.isArray(parsed.pages) ? parsed.pages : [];
-    return { pages };
+    return {
+      pages: Array.isArray(parsed.pages) ? parsed.pages : undefined,
+      wiki: Array.isArray(parsed.wiki) ? parsed.wiki : undefined,
+      'repo-docs': parsed['repo-docs'] ?? undefined,
+    };
   } catch (error) {
     return null;
   }
@@ -185,6 +207,7 @@ export async function listWikiFilesAndMetadata(
 ): Promise<{
   files: string[];
   metadata: Record<string, { origin?: string; process_id?: string }>;
+  manifest: WikiPageManifest | null;
 }> {
   const files = await listMarkdownFiles(kbId, commitSha);
   files.sort((a, b) => a.localeCompare(b));
@@ -192,10 +215,11 @@ export async function listWikiFilesAndMetadata(
     ? ['index.md', ...files.filter((f) => f !== 'index.md')]
     : files;
   let orderedFiles = indexFirst;
+  let manifest: WikiPageManifest | null = null;
   try {
-    const manifest = await getWikiManifest(kbId, commitSha);
-    const pages = Array.isArray(manifest?.pages) ? manifest?.pages : [];
-    const order: string[] = pages
+    manifest = await getWikiManifest(kbId, commitSha);
+    const wikiPages = getWikiPages(manifest);
+    const order: string[] = wikiPages
       .map((page) => (typeof page?.path === 'string' ? page.path : null))
       .filter((path): path is string => typeof path === 'string')
       .map((path) =>
@@ -216,5 +240,5 @@ export async function listWikiFilesAndMetadata(
   }
 
   const metadata = await loadDocsMetadata(kbId, commitSha);
-  return { files: orderedFiles, metadata };
+  return { files: orderedFiles, metadata, manifest };
 }
