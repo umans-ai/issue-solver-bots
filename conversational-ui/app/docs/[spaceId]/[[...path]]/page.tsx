@@ -69,6 +69,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { resolveLinkDestination } from '@/lib/docs-utils';
+import type { WikiPageManifest } from '@/lib/docs/wiki-store';
 
 type DocFileEntry = {
   path: string;
@@ -122,6 +123,7 @@ export default function DocsPage() {
   const [refreshTick, setRefreshTick] = useState(0);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [titleMap, setTitleMap] = useState<Record<string, string>>({});
+  const [manifest, setManifest] = useState<WikiPageManifest | null>(null);
   const [activePath, setActivePathState] = useState<string | null>(null);
   const [activeProcessId, setActiveProcessId] = useState<string | null>(null);
   const [activeOrigin, setActiveOrigin] = useState<string | null>(null);
@@ -503,7 +505,26 @@ export default function DocsPage() {
     [kbId, commitSha, activePath, toast],
   );
 
-  const docTree = useMemo(() => {
+  const wikiPaths = useMemo(() => {
+    if (!manifest) return new Set<string>();
+    const entries = Array.isArray(manifest.wiki)
+      ? manifest.wiki
+      : Array.isArray(manifest.pages)
+        ? manifest.pages
+        : [];
+    const paths = new Set<string>();
+    for (const entry of entries) {
+      if (typeof entry?.path === 'string') {
+        const normalized = entry.path.toLowerCase().endsWith('.md')
+          ? entry.path
+          : `${entry.path}.md`;
+        paths.add(normalized);
+      }
+    }
+    return paths;
+  }, [manifest]);
+
+  const docTrees = useMemo(() => {
     const formatSegment = (segment: string) =>
       segment
         .replace(/[-_]+/g, ' ')
@@ -514,13 +535,16 @@ export default function DocsPage() {
     const orderIndexFor = (path: string) =>
       orderMap.get(path) ?? Number.POSITIVE_INFINITY;
 
-    const root: DocFolderNode = {
+    const createRoot = (): DocFolderNode => ({
       id: '',
       name: '',
       label: '',
       children: [],
       files: [],
-    };
+    });
+
+    const wikiRoot = createRoot();
+    const otherRoot = createRoot();
 
     const ensureChild = (
       parent: DocFolderNode,
@@ -541,11 +565,17 @@ export default function DocsPage() {
       return child;
     };
 
+    const hasWikiEntries = wikiPaths.size > 0;
+
     for (const entry of fileList) {
       const { path, origin, process_id } = entry;
       const parts = path.split('/').filter(Boolean);
       if (parts.length === 0) continue;
-      let cursor = root;
+
+      const isWikiDoc = hasWikiEntries && wikiPaths.has(path);
+      const targetRoot = isWikiDoc ? wikiRoot : otherRoot;
+
+      let cursor = targetRoot;
       parts.forEach((segment, index) => {
         const isFile = index === parts.length - 1;
         if (isFile) {
@@ -602,11 +632,13 @@ export default function DocsPage() {
       });
     };
 
-    assignOrderIndex(root);
-    sortNode(root);
+    assignOrderIndex(wikiRoot);
+    sortNode(wikiRoot);
+    assignOrderIndex(otherRoot);
+    sortNode(otherRoot);
 
-    return root;
-  }, [fileList, titleMap]);
+    return { wiki: wikiRoot, other: otherRoot };
+  }, [fileList, titleMap, wikiPaths]);
 
   // Load versions on mount and pick commit based on URL query when possible
   useEffect(() => {
@@ -702,11 +734,15 @@ export default function DocsPage() {
           const titles =
             j.titles && typeof j.titles === 'object' ? j.titles : {};
           setTitleMap(titles);
+          const manifestData =
+            j.manifest && typeof j.manifest === 'object' ? j.manifest : null;
+          setManifest(manifestData);
         }
       } catch {
         if (!cancelled) {
           setFileList([]);
           setTitleMap({});
+          setManifest(null);
         }
       } finally {
         if (!cancelled) {
@@ -1416,7 +1452,11 @@ export default function DocsPage() {
     );
   };
 
-  const hasDocs = docTree.files.length > 0 || docTree.children.length > 0;
+  const hasWikiDocs =
+    docTrees.wiki.files.length > 0 || docTrees.wiki.children.length > 0;
+  const hasOtherDocs =
+    docTrees.other.files.length > 0 || docTrees.other.children.length > 0;
+  const hasDocs = hasWikiDocs || hasOtherDocs;
   const docsMissing = docsLoaded && !hasDocs;
   const awaitingDocs = !commitSha || docsMissing;
   const isPolling = hasLoadedOnce && hasConnectedRepo && awaitingDocs;
@@ -1460,10 +1500,28 @@ export default function DocsPage() {
         </div>
       ) : (
         <>
-          {docTree.files.length > 0 && (
-            <div className="space-y-1">{docTree.files.map(renderFileEntry)}</div>
+          {hasWikiDocs && (
+            <div className="space-y-1">
+              {hasOtherDocs && (
+                <div className="px-3 pt-1 pb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/80">
+                  Wiki
+                </div>
+              )}
+              {docTrees.wiki.files.map(renderFileEntry)}
+              {docTrees.wiki.children.map(renderFolder)}
+            </div>
           )}
-          {docTree.children.map(renderFolder)}
+          {hasOtherDocs && (
+            <div className="space-y-1">
+              {hasWikiDocs && (
+                <div className="px-3 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/80">
+                  Docs
+                </div>
+              )}
+              {docTrees.other.files.map(renderFileEntry)}
+              {docTrees.other.children.map(renderFolder)}
+            </div>
+          )}
         </>
       )}
     </div>
