@@ -1365,11 +1365,11 @@ export default function DocsPage() {
         snippet: r.snippet || r.path,
         occurrence: r.occurrence,
       }))
-    : fileList.slice(0, 10).map(({ path, origin }) => ({
+    : fileList.slice(0, 10).map(({ path }) => ({
         key: path,
         path,
         title: titleMap[path] || path,
-        snippet: origin === 'auto' ? 'Auto documentation' : path,
+        snippet: path,
         occurrence: undefined,
       }));
 
@@ -1403,11 +1403,6 @@ export default function DocsPage() {
     >
       <span className="text-sm leading-snug flex items-center gap-2">
         {entry.title}
-        {entry.origin === 'auto' && (
-          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-[1px] text-[10px] font-semibold uppercase tracking-wide text-primary">
-            Auto
-          </span>
-        )}
         {entry.approved_by_name && (
           <Tooltip>
             <TooltipTrigger asChild>
