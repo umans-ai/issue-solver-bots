@@ -62,7 +62,6 @@ export async function POST(req: Request) {
     payment_method_collection: 'always',
     customer: stripeCustomerId || undefined,
     customer_email: stripeCustomerId ? undefined : email || undefined,
-    customer_creation: 'always',
     success_url: `${baseUrl}/offers/code?pledge=success`,
     cancel_url: `${baseUrl}/offers/code?pledge=cancelled`,
     client_reference_id: userId || undefined,
