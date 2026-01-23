@@ -18,7 +18,9 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
-    "db:backfill-repo-urls": "npx tsx scripts/backfill-repo-urls.ts"
+    "db:backfill-repo-urls": "npx tsx scripts/backfill-repo-urls.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "pnpm": {
     "overrides": {
@@ -143,6 +145,7 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.3",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.18"
   }
 }
