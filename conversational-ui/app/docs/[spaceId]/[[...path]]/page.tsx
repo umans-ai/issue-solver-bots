@@ -1506,16 +1506,26 @@ export default function DocsPage() {
               {docTrees.wiki.children.map(renderFolder)}
             </div>
           )}
-          {hasOtherDocs && (
+          {hasOtherDocs && !hasWikiDocs && (
             <div className="space-y-1">
-              {hasWikiDocs && (
-                <div className="px-3 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/80">
-                  Docs
-                </div>
-              )}
               {docTrees.other.files.map(renderFileEntry)}
               {docTrees.other.children.map(renderFolder)}
             </div>
+          )}
+          {hasOtherDocs && hasWikiDocs && (
+            <details className="group space-y-1 pt-2">
+              <summary className="flex cursor-pointer items-center justify-between px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/80 list-none">
+                <span>Docs</span>
+                <ChevronDown
+                  aria-hidden="true"
+                  className="docs-index-caret h-3 w-3 text-muted-foreground/60 transition-transform duration-200 group-open:rotate-180"
+                />
+              </summary>
+              <div className="mt-1 space-y-1">
+                {docTrees.other.files.map(renderFileEntry)}
+                {docTrees.other.children.map(renderFolder)}
+              </div>
+            </details>
           )}
         </>
       )}
