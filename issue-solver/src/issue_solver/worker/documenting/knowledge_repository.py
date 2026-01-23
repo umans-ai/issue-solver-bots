@@ -46,11 +46,11 @@ class KnowledgeRepository(ABC):
         return self.get_metadata(base, document_name).get("origin")
 
     def write_manifest(self, base: KnowledgeBase, docs_prompts: dict[str, str]) -> None:
-        pages = [
+        wiki = [
             {
                 "path": key if key.lower().endswith(".md") else f"{key}.md",
                 "purpose": purpose,
             }
             for key, purpose in docs_prompts.items()
         ]
-        self.add(base, ".umans/docs.json", json.dumps({"pages": pages}))
+        self.add(base, ".umans/docs.json", json.dumps({"wiki": wiki}))
