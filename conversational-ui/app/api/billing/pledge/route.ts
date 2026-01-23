@@ -6,9 +6,6 @@ import {
   PLEDGE_CHARGE_START_TIMESTAMP,
   PLEDGE_CHARGE_START_LABEL,
   PLEDGE_DEADLINE_LABEL,
-  PLEDGE_PLAN_DETAILS,
-  PLEDGE_PLAN_LABELS,
-  PLEDGE_PRICE_LABELS,
 } from '@/lib/pledge';
 
 type PledgePlanKey = 'code_pro' | 'code_max';
@@ -52,10 +49,6 @@ export async function POST(req: Request) {
     metadata.userId = userId;
   }
 
-  const planLabel = PLEDGE_PLAN_LABELS[plan];
-  const priceLabel = PLEDGE_PRICE_LABELS[plan][cycle];
-  const planDetail = PLEDGE_PLAN_DETAILS[plan];
-
   const checkout = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
@@ -78,7 +71,11 @@ export async function POST(req: Request) {
     },
     custom_text: {
       submit: {
-        message: `${planLabel} (${priceLabel}) · ${planDetail} Billing starts ${PLEDGE_CHARGE_START_LABEL} if we launch by ${PLEDGE_DEADLINE_LABEL}.`,
+        message:
+          `Founding pledge — no charge today. You’ll be billed ${PLEDGE_CHARGE_START_LABEL} only if we launch by ${PLEDGE_DEADLINE_LABEL}.`,
+      },
+      after_submit: {
+        message: 'Founding access rolls out progressively as capacity opens.',
       },
     },
   });
