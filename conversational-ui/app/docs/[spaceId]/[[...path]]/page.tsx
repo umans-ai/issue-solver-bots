@@ -97,6 +97,43 @@ type DocFolderNode = {
   orderIndex?: number;
 };
 
+function resolveRelativePath(basePath: string, relativePath: string): string {
+  const normalizedHref = relativePath.replace(/^\.\//, '');
+
+  if (!normalizedHref.startsWith('../')) {
+    return normalizedHref.replace(/^\//, '');
+  }
+
+  const baseDirectory = basePath.includes('/')
+    ? basePath.substring(0, basePath.lastIndexOf('/'))
+    : '';
+
+  const baseParts = baseDirectory ? baseDirectory.split('/') : [];
+  const hrefParts = normalizedHref.split('/');
+
+  for (const part of hrefParts) {
+    if (part === '..') {
+      baseParts.pop();
+    } else if (part !== '.') {
+      baseParts.push(part);
+    }
+  }
+
+  return baseParts.join('/');
+}
+
+function buildRepoFileUrl(
+  repoUrl: string | undefined,
+  filePath: string,
+  commitSha?: string,
+): string | null {
+  if (!repoUrl) return null;
+
+  const normalizedRepoUrl = repoUrl.replace(/\.git$/, '').replace(/\/$/, '');
+  const ref = commitSha || 'HEAD';
+  return `${normalizedRepoUrl}/blob/${ref}/${filePath}`;
+}
+
 export default function DocsPage() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -911,16 +948,32 @@ export default function DocsPage() {
     }
   }, [content, activePath]);
 
-  // Provide a link click handler to Markdown so relative links work inside content and index
   const handleMarkdownLink = useCallback(
     (href: string) => {
-      const normalized = href.replace(/^\.\//, '').replace(/^\//, '');
-      prefetchDoc(normalized);
-      navigateToPath(normalized);
-      setResults([]);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const resolvedPath = resolveRelativePath(activePath || '', href);
+      const existsInDocs = fileList.some((f) => f.path === resolvedPath);
+
+      if (existsInDocs) {
+        prefetchDoc(resolvedPath);
+        navigateToPath(resolvedPath);
+        setResults([]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      const repoUrl = session?.user?.selectedSpace?.connectedRepoUrl ?? undefined;
+      const externalUrl = buildRepoFileUrl(repoUrl, resolvedPath, commitSha);
+
+      if (externalUrl) {
+        window.open(externalUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        prefetchDoc(resolvedPath);
+        navigateToPath(resolvedPath);
+        setResults([]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     },
-    [navigateToPath, prefetchDoc, setResults],
+    [activePath, fileList, navigateToPath, prefetchDoc, setResults, session, commitSha],
   );
 
   const handleCopyMarkdown = useCallback(async () => {
