@@ -29,7 +29,7 @@ export async function GET(request: Request) {
         { status: 400 },
       );
 
-    const { files, metadata } = await listWikiFilesAndMetadata(
+    const { files, metadata, manifest } = await listWikiFilesAndMetadata(
       kbId,
       commitSha,
     );
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     );
     const titles = Object.fromEntries(titleEntries);
 
-    return NextResponse.json({ files, metadata, titles });
+    return NextResponse.json({ files, metadata, titles, manifest });
   } catch (error) {
     console.error('List docs error', error);
     return NextResponse.json({ error: 'Failed to list docs' }, { status: 500 });
