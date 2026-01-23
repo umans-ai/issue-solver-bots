@@ -74,6 +74,14 @@ export default function CodeLandingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan, cycle: billingCycle }),
       });
+      if (res.status === 401) {
+        const data = await res.json().catch(() => null);
+        const loginUrl =
+          data?.loginUrl ||
+          `/login?next=${encodeURIComponent('/offers/code#plans')}`;
+        window.location.href = loginUrl;
+        return;
+      }
       const data = await res.json();
       if (data?.url) {
         window.location.href = data.url as string;

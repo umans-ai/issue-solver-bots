@@ -24,6 +24,16 @@ export async function POST(req: Request) {
   const session = await auth();
   const userId = session?.user?.id;
   const email = session?.user?.email;
+  if (!userId || !email) {
+    const loginUrl = `/login?next=${encodeURIComponent('/offers/code#plans')}`;
+    return NextResponse.json(
+      {
+        error: 'login_required',
+        loginUrl,
+      },
+      { status: 401 },
+    );
+  }
 
   const stripe = getStripe();
   const baseUrl =
