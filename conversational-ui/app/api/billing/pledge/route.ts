@@ -2,30 +2,16 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { type BillingCycle, getPriceId, getStripe } from '@/lib/stripe';
 import { getUser } from '@/lib/db/queries';
+import {
+  PLEDGE_CHARGE_START_TIMESTAMP,
+  PLEDGE_CHARGE_START_LABEL,
+  PLEDGE_DEADLINE_LABEL,
+  PLEDGE_PLAN_DETAILS,
+  PLEDGE_PLAN_LABELS,
+  PLEDGE_PRICE_LABELS,
+} from '@/lib/pledge';
 
 type PledgePlanKey = 'code_pro' | 'code_max';
-const DEADLINE_LABEL = 'February 28, 2026';
-const CHARGE_START_TIMESTAMP = Math.floor(
-  new Date('2026-03-01T00:00:00Z').getTime() / 1000,
-);
-const PRICE_LABELS: Record<PledgePlanKey, Record<BillingCycle, string>> = {
-  code_pro: {
-    monthly: '$20/month',
-    yearly: '$200/year',
-  },
-  code_max: {
-    monthly: '$50/month',
-    yearly: '$500/year',
-  },
-};
-const PLAN_LABELS: Record<PledgePlanKey, string> = {
-  code_pro: 'Umans Code Pro',
-  code_max: 'Umans Code Max',
-};
-const PLAN_DETAILS: Record<PledgePlanKey, string> = {
-  code_pro: '200 prompts per 5 hours.',
-  code_max: 'Unlimited prompts and 4 guaranteed parallel sessions.',
-};
 
 export async function POST(req: Request) {
   const { plan, cycle }: { plan: PledgePlanKey; cycle: BillingCycle } =
@@ -66,15 +52,17 @@ export async function POST(req: Request) {
     metadata.userId = userId;
   }
 
-  const planLabel = PLAN_LABELS[plan];
-  const priceLabel = PRICE_LABELS[plan][cycle];
-  const planDetail = PLAN_DETAILS[plan];
+  const planLabel = PLEDGE_PLAN_LABELS[plan];
+  const priceLabel = PLEDGE_PRICE_LABELS[plan][cycle];
+  const planDetail = PLEDGE_PLAN_DETAILS[plan];
 
   const checkout = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
+    payment_method_collection: 'always',
     customer: stripeCustomerId || undefined,
     customer_email: stripeCustomerId ? undefined : email || undefined,
+    customer_creation: 'always',
     success_url: `${baseUrl}/offers/code?pledge=success`,
     cancel_url: `${baseUrl}/offers/code?pledge=cancelled`,
     client_reference_id: userId || undefined,
@@ -86,12 +74,12 @@ export async function POST(req: Request) {
       },
     ],
     subscription_data: {
-      trial_end: CHARGE_START_TIMESTAMP,
+      trial_end: PLEDGE_CHARGE_START_TIMESTAMP,
       metadata,
     },
     custom_text: {
       submit: {
-        message: `${planLabel} (${priceLabel}) · ${planDetail} You’ll only be charged if we launch by ${DEADLINE_LABEL}.`,
+        message: `${planLabel} (${priceLabel}) · ${planDetail} Billing starts ${PLEDGE_CHARGE_START_LABEL} if we launch by ${PLEDGE_DEADLINE_LABEL}.`,
       },
     },
   });

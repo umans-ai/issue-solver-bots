@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
+import { PLEDGE_DEADLINE_TIMESTAMP } from '@/lib/pledge';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { pledge, user } from '@/lib/db/schema';
@@ -50,6 +51,27 @@ export async function POST(req: Request) {
           s.customer_details?.email || s.customer_email || undefined;
 
         const priceId = s.metadata?.priceId as string | undefined;
+        let subscriptionStatus: string | undefined;
+        let paymentMethodId: string | undefined;
+
+        if (mode === 'subscription') {
+          if (!subscriptionId) {
+            throw new Error('Missing subscription ID for pledge session');
+          }
+          const updatedSubscription = await stripe.subscriptions.update(
+            subscriptionId,
+            {
+              cancel_at: PLEDGE_DEADLINE_TIMESTAMP,
+              proration_behavior: 'none',
+            },
+          );
+          subscriptionStatus = updatedSubscription.status;
+          const defaultPaymentMethod = updatedSubscription.default_payment_method;
+          paymentMethodId =
+            typeof defaultPaymentMethod === 'string'
+              ? defaultPaymentMethod
+              : defaultPaymentMethod?.id;
+        }
 
         if (plan && billingCycle) {
           await db
@@ -60,8 +82,9 @@ export async function POST(req: Request) {
               plan,
               billingCycle,
               priceId: priceId ?? undefined,
-              status: mode === 'subscription' ? 'trialing' : 'verified',
+              status: subscriptionStatus || (mode === 'subscription' ? 'trialing' : 'verified'),
               stripeCustomerId: stripeCustomerId ?? undefined,
+              paymentMethodId,
               stripeSubscriptionId: subscriptionId ?? undefined,
               checkoutSessionId: s.id,
               updatedAt: new Date(),
@@ -74,8 +97,9 @@ export async function POST(req: Request) {
                 plan,
                 billingCycle,
                 priceId: priceId ?? undefined,
-                status: mode === 'subscription' ? 'trialing' : 'verified',
+                status: subscriptionStatus || (mode === 'subscription' ? 'trialing' : 'verified'),
                 stripeCustomerId: stripeCustomerId ?? undefined,
+                paymentMethodId,
                 stripeSubscriptionId: subscriptionId ?? undefined,
                 updatedAt: new Date(),
               },
@@ -106,6 +130,10 @@ export async function POST(req: Request) {
       const sub = event.data.object as any;
       const plan = sub.metadata?.plan as string | undefined;
       if (plan?.startsWith('code_')) {
+        await db
+          .update(pledge)
+          .set({ status: sub.status as string, updatedAt: new Date() })
+          .where(eq(pledge.stripeSubscriptionId, sub.id));
         break;
       }
       const stripeCustomerId = sub.customer as string;
@@ -121,6 +149,10 @@ export async function POST(req: Request) {
       const sub = event.data.object as any;
       const plan = sub.metadata?.plan as string | undefined;
       if (plan?.startsWith('code_')) {
+        await db
+          .update(pledge)
+          .set({ status: 'canceled', updatedAt: new Date() })
+          .where(eq(pledge.stripeSubscriptionId, sub.id));
         break;
       }
       const stripeCustomerId = sub.customer as string;
