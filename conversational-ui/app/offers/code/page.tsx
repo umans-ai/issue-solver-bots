@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { IconUmansLogo } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -54,6 +55,8 @@ const plans = {
 type BillingCycle = keyof typeof plans;
 
 export default function CodeLandingPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [parityTab, setParityTab] = useState<'onboarding' | 'triage' | 'refactor'>(
     'onboarding',
@@ -66,19 +69,25 @@ export default function CodeLandingPage() {
   const [canScrollRight, setCanScrollRight] = useState(false);
   const currentPlans = plans[billingCycle];
 
-  const startPledge = async (plan: 'code_pro' | 'code_max') => {
+  const startPledge = async (
+    plan: 'code_pro' | 'code_max',
+    cycleOverride?: BillingCycle,
+  ) => {
     try {
       setPledgeLoading(plan);
+      const resolvedCycle = cycleOverride ?? billingCycle;
       const res = await fetch('/api/billing/pledge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, cycle: billingCycle }),
+        body: JSON.stringify({ plan, cycle: resolvedCycle }),
       });
       if (res.status === 401) {
         const data = await res.json().catch(() => null);
         const loginUrl =
           data?.loginUrl ||
-          `/login?next=${encodeURIComponent('/offers/code#plans')}`;
+          `/login?next=${encodeURIComponent(
+            `/offers/code?pledgePlan=${plan}&pledgeCycle=${resolvedCycle}#plans`,
+          )}`;
         window.location.href = loginUrl;
         return;
       }
@@ -93,6 +102,25 @@ export default function CodeLandingPage() {
       setPledgeLoading(null);
     }
   };
+
+  const autoPledgeStarted = useRef(false);
+  useEffect(() => {
+    if (autoPledgeStarted.current) {
+      return;
+    }
+    const planParam = searchParams?.get('pledgePlan');
+    const cycleParam = searchParams?.get('pledgeCycle');
+    if (planParam !== 'code_pro' && planParam !== 'code_max') {
+      return;
+    }
+    const normalizedCycle: BillingCycle =
+      cycleParam === 'yearly' ? 'yearly' : 'monthly';
+    autoPledgeStarted.current = true;
+    setBillingCycle(normalizedCycle);
+    const cleanedUrl = '/offers/code#plans';
+    router.replace(cleanedUrl);
+    startPledge(planParam, normalizedCycle);
+  }, [searchParams, router]);
 
   const parityTabs = [
     {

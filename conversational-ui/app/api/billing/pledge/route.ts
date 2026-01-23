@@ -25,7 +25,8 @@ export async function POST(req: Request) {
   const userId = session?.user?.id;
   const email = session?.user?.email;
   if (!userId || !email) {
-    const loginUrl = `/login?next=${encodeURIComponent('/offers/code#plans')}`;
+    const returnTo = `/offers/code?pledgePlan=${plan}&pledgeCycle=${cycle}#plans`;
+    const loginUrl = `/login?next=${encodeURIComponent(returnTo)}`;
     return NextResponse.json(
       {
         error: 'login_required',
