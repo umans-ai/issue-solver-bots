@@ -1,7 +1,7 @@
 # Auto Documentation
 
 Status: Current (implemented)
-Last updated: 2026-01-10
+Last updated: 2026-01-23
 
 ## 1) Summary
 
@@ -125,6 +125,36 @@ Source envelope format:
   - `/chat/<chat_id>/message/<message_id>`
 - `source.meta`: optional key-value map (flattened as `source_meta_*`)
 
+### 5.1 Manifest Structure
+
+The manifest file at `.umans/docs.json` controls doc ordering and grouping:
+
+```typescript
+type WikiPageEntry = {
+  path?: string;    // e.g., "intro.md" or "getting-started"
+  purpose?: string; // optional description for generation context
+};
+
+type RepoDocsConfig = {
+  include?: string[]; // glob patterns for repo docs to include
+  exclude?: string[]; // glob patterns to exclude
+};
+
+type WikiPageManifest = {
+  pages?: WikiPageEntry[];    // backwards-compatible alias for wiki
+  wiki?: WikiPageEntry[];     // auto-generated wiki docs
+  'repo-docs'?: RepoDocsConfig; // inclusion/exclusion rules for repo docs
+};
+```
+
+Key behaviors:
+- `wiki` takes precedence over `pages` when both exist
+- `pages` is kept for backwards compatibility with existing manifests
+- `repo-docs` defines inclusion/exclusion patterns (not a list of paths)
+- Files listed in `wiki` are shown under a "Wiki" section in the UI
+- Files not in `wiki` are shown under a "Docs" section
+- When only one group exists, no section headers are shown
+
 ## 6) APIs
 
 - `GET /repositories/{knowledge_base_id}/auto-documentation`
@@ -148,6 +178,7 @@ Backend:
 
 Frontend:
 - `conversational-ui/app/docs/[spaceId]/[[...path]]/page.tsx`
+- `conversational-ui/lib/docs/wiki-store.ts` (manifest types and S3 reading)
 - `conversational-ui/components/doc-prompts-panel.tsx`
 - `conversational-ui/app/api/docs/*`
 - `conversational-ui/app/tasks/[processId]/page.tsx`
