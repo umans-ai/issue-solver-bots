@@ -1419,9 +1419,11 @@ export default function DocsPage() {
           </Tooltip>
         )}
       </span>
-      <span className="text-[11px] text-muted-foreground/70 leading-tight">
-        {entry.path}
-      </span>
+      {entry.origin !== 'auto' && (
+        <span className="text-[11px] text-muted-foreground/70 leading-tight">
+          {entry.path}
+        </span>
+      )}
     </button>
   );
 
