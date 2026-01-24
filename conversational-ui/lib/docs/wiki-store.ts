@@ -43,6 +43,14 @@ export type WikiPageManifest = {
   'repo-docs'?: RepoDocsConfig;
 };
 
+export const REPO_DOCS_PREFIX = 'repo-docs/';
+
+export function stripRepoDocsPrefix(path: string): string {
+  return path.startsWith(REPO_DOCS_PREFIX)
+    ? path.slice(REPO_DOCS_PREFIX.length)
+    : path;
+}
+
 export async function listWikiVersions(kbId: string): Promise<string[]> {
   if (!bucketName) {
     console.error('BLOB_BUCKET_NAME is not configured');
@@ -122,14 +130,28 @@ export async function getWikiDocContent(
 ): Promise<string | null> {
   if (!bucketName) return null;
   const s3Client = createS3Client();
-  const key = `base/${kbId}/docs/${commitSha}/${path}`;
+  const basePrefix = `base/${kbId}/docs/${commitSha}/`;
+
   try {
     const res = await s3Client.send(
-      new GetObjectCommand({ Bucket: bucketName, Key: key }),
+      new GetObjectCommand({ Bucket: bucketName, Key: `${basePrefix}${path}` }),
     );
     return await streamToString(res.Body);
-  } catch (error) {
-    console.error('Error fetching doc file:', error);
+  } catch {
+    if (!path.startsWith(REPO_DOCS_PREFIX)) {
+      try {
+        const res = await s3Client.send(
+          new GetObjectCommand({
+            Bucket: bucketName,
+            Key: `${basePrefix}${REPO_DOCS_PREFIX}${path}`,
+          }),
+        );
+        return await streamToString(res.Body);
+      } catch (error) {
+        console.error('Error fetching doc file:', error);
+        return null;
+      }
+    }
     return null;
   }
 }
@@ -239,6 +261,16 @@ export async function listWikiFilesAndMetadata(
     orderedFiles = indexFirst;
   }
 
-  const metadata = await loadDocsMetadata(kbId, commitSha);
-  return { files: orderedFiles, metadata, manifest };
+  const rawMetadata = await loadDocsMetadata(kbId, commitSha);
+
+  // Strip repo-docs/ prefix from paths for display
+  const displayFiles = orderedFiles.map(stripRepoDocsPrefix);
+
+  // Remap metadata keys to match display paths
+  const metadata: Record<string, { origin?: string; process_id?: string }> = {};
+  for (const [key, value] of Object.entries(rawMetadata)) {
+    metadata[stripRepoDocsPrefix(key)] = value;
+  }
+
+  return { files: displayFiles, metadata, manifest };
 }
