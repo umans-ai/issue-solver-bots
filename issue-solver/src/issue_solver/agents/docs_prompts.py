@@ -31,6 +31,19 @@ It is the absolute path where you must write Markdown
 - Never modify repository files outside OUTPUT_DIR.
 - No hallucinations. If something is not in the repo, don't invent it.
 
+## Title Formatting
+
+Each Markdown document MUST start with an H1 title that is a clean, human-readable version of the filename:
+- `overview.md` → `# Overview`
+- `architecture.md` → `# Architecture`
+- `repo_structure.md` → `# Repository Structure`
+- `tech_stack.md` → `# Technology Stack`
+- `onboarding_quickstart.md` → `# Onboarding Quickstart`
+- `glossary.md` → `# Glossary`
+
+Do NOT include the project name in the H1 title. Keep titles short and consistent.
+The project context is already clear from the documentation site.
+
 ## Required Structure: Relevant Source Files
 
 **CRITICAL:** Every generated Markdown document MUST include a `## Relevant source files` section near the top (typically right after the introduction/overview).
