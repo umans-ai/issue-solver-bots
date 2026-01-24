@@ -40,6 +40,11 @@ build:
     @echo "Building the project..."
     @pnpm build
 
+# 🧪 Run tests
+test:
+    @echo "Running tests..."
+    @pnpm test
+
 # 📐 Lint the code
 lint:
     @echo "Linting the code..."
