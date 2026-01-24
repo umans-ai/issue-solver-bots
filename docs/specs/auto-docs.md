@@ -1,7 +1,7 @@
 # Auto Documentation
 
 Status: Current (implemented)
-Last updated: 2026-01-23
+Last updated: 2026-01-24
 
 ## 1) Summary
 
@@ -110,9 +110,13 @@ flowchart TD
 
 - Docs are stored under:
   - `base/{knowledge_base_id}/docs/{commit_sha}/...`
+- Wiki docs (auto-generated) are stored flat: `overview.md`, `glossary.md`
+- Repo docs are stored under `repo-docs/` prefix: `repo-docs/README.md`, `repo-docs/api/auth.md`
+  - The prefix avoids filename collisions between wiki and repo docs
+  - The Next.js API strips the prefix before returning paths to the UI
 - Metadata is stored in `__metadata__.json` alongside docs.
 - Standard metadata:
-  - `origin: auto`
+  - `origin: auto` (for wiki docs) or `origin: repo` (for repo docs)
   - `process_id`
 - Optional source metadata (when provided):
   - `source_type`
@@ -155,6 +159,22 @@ Key behaviors:
 - Files not in `wiki` are shown under a "Docs" section
 - When only one group exists, no section headers are shown
 
+### 5.2 UI Display Conventions
+
+| Section | Expanded | File paths | Collapsible |
+|---------|----------|------------|-------------|
+| Wiki | Always | Hidden (title only) | No |
+| Docs | Collapsed by default | Shown | Yes |
+
+### 5.3 Title Formatting
+
+The doc agent enforces clean H1 titles matching the filename:
+- `overview.md` → `# Overview`
+- `architecture.md` → `# Architecture`
+- `tech_stack.md` → `# Technology Stack`
+
+Project names are not included in H1 titles.
+
 ## 6) APIs
 
 - `GET /repositories/{knowledge_base_id}/auto-documentation`
@@ -171,8 +191,10 @@ Key behaviors:
 ## 8) Key Code Paths (Reference)
 
 Backend:
+- `issue-solver/src/issue_solver/agents/docs_prompts.py` (agent system prompt and starter prompts)
 - `issue-solver/src/issue_solver/events/auto_documentation.py`
 - `issue-solver/src/issue_solver/worker/documenting/auto.py`
+- `issue-solver/src/issue_solver/worker/documenting/knowledge_repository.py` (manifest writing)
 - `issue-solver/src/issue_solver/worker/documenting/s3_knowledge_repository.py`
 - `issue-solver/src/issue_solver/webapi/routers/repository.py`
 
