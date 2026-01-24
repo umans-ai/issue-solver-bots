@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { IconUmansLogo } from '@/components/icons';
@@ -54,7 +54,7 @@ const plans = {
 
 type BillingCycle = keyof typeof plans;
 
-export default function CodeLandingPage() {
+function CodeLandingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
@@ -1241,5 +1241,13 @@ export default function CodeLandingPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+export default function CodeLandingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <CodeLandingPageContent />
+    </Suspense>
   );
 }
