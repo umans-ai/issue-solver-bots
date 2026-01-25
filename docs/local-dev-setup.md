@@ -40,9 +40,24 @@ WATCHPACK_POLLING=true WATCHPACK_POLLING_INTERVAL=200 \
 
 These steps keep all three long-running services alive with tailable logs while we keep working in the CLI. Adjust the polling interval or switch back to normal watchers if you are on a host without the EMFILE constraint.
 
+### Test account for Playwright/E2E testing
+
+For automated testing, use the seeded test account:
+
+```bash
+cd conversational-ui
+just seed-test
+```
+
+This creates or resets the test user:
+- **Email:** `playwright-test@umans.local`
+- **Password:** `test123`
+
+The account is pre-verified with a default space, ready for immediate login.
+
 ### Creating a throwaway UI account (no email service)
 
-Because the sandbox cannot receive email, we verified accounts manually:
+For manual testing when you need a fresh account, you can create one without email verification. Because the sandbox cannot receive email, we verified accounts manually:
 
 1. **Register through the UI** – browse to `http://localhost:3001/register`, submit an email/password (example: `codex.agent+ts1@example.com` / `CodexTest123!`). The app creates the user but marks it as unverified.
 2. **Grab the verification token from Postgres** – the `conversation-ui` stack exposes Postgres as `postgres-umansuidb`. Run:

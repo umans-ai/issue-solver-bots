@@ -30,6 +30,10 @@ migrate:
     @echo "Migrating the database..."
     @pnpm run db:migrate
 
+# 🌱 Seed test user for Playwright/E2E testing (playwright-test@umans.local / test123)
+seed-test:
+    @pnpm run db:seed-test
+
 # ▶️ Start the development server
 dev: install start-services migrate
     @echo "Starting the development server..."

@@ -19,6 +19,7 @@
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
     "db:backfill-repo-urls": "npx tsx scripts/backfill-repo-urls.ts",
+    "db:seed-test": "npx tsx lib/db/seed-test-user.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
