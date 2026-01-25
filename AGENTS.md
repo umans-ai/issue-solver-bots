@@ -6,6 +6,7 @@
 - Frontend (`conversational-ui`) uses `pnpm`; backend (`issue-solver`) uses `uv`. No npm/yarn/pip.
 - Tests should state behaviour (Given/When/Then) and live beside the code they describe.
 - Only follow `docs/local-dev-setup.md` when a task explicitly asks for full-stack/manual verification.
+- Keep specs in `docs/specs/` updated when implementing or changing features.
 
 ## Testing Style (all code)
 

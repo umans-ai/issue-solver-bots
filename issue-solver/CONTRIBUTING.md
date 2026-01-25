@@ -126,6 +126,27 @@ On retry, log `{order_id, attempt, backoff_ms, reason}` once; avoid per-loop “
 
 ## Repo-specific conventions
 
+### Export pure functions for testing
+When adding logic, prefer small pure functions that can be exported and tested independently. This makes unit testing straightforward and keeps side effects at the boundaries.
+
+**Why:** Pure functions are deterministic and easy to test without mocks or fixtures.
+
+**How:** Extract logic into pure functions; keep I/O and side effects in thin wrapper functions.
+
+**Example:**
+```python
+# Pure function - easy to test
+def compute_next_retry_delay(attempt: int, base_ms: int = 100) -> int:
+    return base_ms * (2 ** attempt)
+
+# Wrapper with side effect - tested via integration
+async def retry_with_backoff(fn, max_attempts: int):
+    for attempt in range(max_attempts):
+        delay = compute_next_retry_delay(attempt)
+        await asyncio.sleep(delay / 1000)
+        ...
+```
+
 ### Tests read like docs
 Use `# Given`, `# When`, `# Then` sections; lean on fixtures and personas (e.g., `BriceDeNice`) instead of ad-hoc setup.
 

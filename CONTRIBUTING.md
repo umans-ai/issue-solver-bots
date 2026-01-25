@@ -50,20 +50,23 @@ If you encounter any bugs, issues, or have suggestions for enhancements, please 
 
 ### Commit Message Guidelines
 
-We follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) for our commit messages. Here are some examples:
-- `feat: add new GitHub Actions template`
-- `fix: resolve issue with GitLab CI pipeline`
-- `docs: update README with new usage instructions`
+**Each commit should be a release candidate.** Keep commits atomic, focused, and independently deployable. Separate changes to different subsystems (`conversational-ui/`, `issue-solver/`) into distinct commits.
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) with emoji for our commit messages. Here are some examples:
+- `feat(auth): add OAuth2 support ✨`
+- `fix(api): resolve race condition in queue processing 🐛`
+- `docs(readme): update installation instructions 📝`
+- `refactor(worker): simplify event handling ♻️`
 
 Use the following types:
-- `feat`: A new feature
-- `fix`: A bug fix
-- `docs`: Documentation only changes
-- `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc)
-- `refactor`: A code change that neither fixes a bug nor adds a feature
-- `perf`: A code change that improves performance
-- `test`: Adding missing or correcting existing tests
-- `chore`: Changes to the build process or auxiliary tools and libraries
+- `feat`: A new feature ✨
+- `fix`: A bug fix 🐛
+- `docs`: Documentation only changes 📝
+- `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc) 💄
+- `refactor`: A code change that neither fixes a bug nor adds a feature ♻️
+- `perf`: A code change that improves performance ⚡️
+- `test`: Adding missing or correcting existing tests ✅
+- `chore`: Changes to the build process or auxiliary tools and libraries 🔧
 
 ### Templates
 
@@ -81,6 +84,16 @@ We follow the [Contributor Covenant Code of Conduct](https://www.contributor-cov
 ## License
 
 By contributing to issue-solver-bots, you agree that your contributions will be licensed under the MIT License.
+
+## Code Style
+
+### Step-down rule
+
+Organize code with higher-level functions first, calling into lower-level helpers below. This creates a natural reading flow from abstract to concrete.
+
+### No unnecessary comments
+
+Code should be self-explanatory. Avoid comments that restate what code does. Comments are only for explaining *why* something is done a certain way, not *what* it does. If you need a comment to explain what code does, refactor the code to be clearer.
 
 ## Project Guidelines
 
