@@ -22,7 +22,7 @@ export const myProvider = customProvider({
     'chat-model-gemini': google('gemini-3-pro-preview'),
     'coding-model-light': anthropicBeta('claude-haiku-4-5-20251001'),
     'coding-model': anthropicBeta('claude-sonnet-4-5-20250929'),
-    'coding-model-large': anthropicBeta('claude-opus-4-5-20250929'),
+    'coding-model-large': anthropicBeta('claude-opus-4-5-20251101'),
     'title-model': openai('gpt-4o-mini'),
     'artifact-model': openai('gpt-4o'),
   },
