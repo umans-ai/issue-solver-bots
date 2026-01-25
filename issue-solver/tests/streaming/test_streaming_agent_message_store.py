@@ -50,6 +50,7 @@ async def test_streaming_agent_message_store_should_append_and_publish(redis_cli
         "content": [{"text": "I understand the issue now. Let's fix it."}],
         "model": "claude-sonnet-4-5-20250929",
         "parent_tool_use_id": None,
+        "error": None,
     }
     expected_agent_message = AgentMessage(
         id=message_id,

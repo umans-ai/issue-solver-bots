@@ -155,6 +155,8 @@ async def test_webhook_notifying_agent_message_store_should_append_and_get_messa
             payload={
                 "content": "Hello, can you solve this issue about serialization?",
                 "parent_tool_use_id": None,
+                "uuid": None,
+                "tool_use_result": None,
             },
         )
     ]
@@ -167,6 +169,8 @@ async def test_webhook_notifying_agent_message_store_should_append_and_get_messa
                 "payload": {
                     "content": "Hello, can you solve this issue about serialization?",
                     "parent_tool_use_id": None,
+                    "uuid": None,
+                    "tool_use_result": None,
                 },
                 "model": {"ai_model": "claude-opus-4", "version": "20250514"},
                 "turn": 1,

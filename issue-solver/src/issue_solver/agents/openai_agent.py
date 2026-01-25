@@ -1,5 +1,5 @@
 import json
-from typing import assert_never
+from typing import assert_never, cast
 
 import openai
 from openai import OpenAI
@@ -138,7 +138,9 @@ class OpenAITurnOutput(TurnOutput[ChatCompletionMessageParam]):
         reasoning_message: ChatCompletionAssistantMessageParam = {
             "role": chat_completion_message.role,
             "tool_calls": [
-                convert_tool_call_param(one_tool_call)
+                convert_tool_call_param(
+                    cast(ChatCompletionMessageToolCall, one_tool_call)
+                )
                 for one_tool_call in chat_completion_message.tool_calls
             ]
             if chat_completion_message.tool_calls
