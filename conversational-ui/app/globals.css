@@ -435,6 +435,13 @@ form textarea::-webkit-scrollbar {
     border-right: none !important;
 }
 
+/* Keep billing nav transparent (avoid global nav panel styling) */
+nav[data-billing-nav] {
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    border-right: none !important;
+}
+
 .dark .docs-search-overlay {
     background-color: transparent !important;
     backdrop-filter: blur(5px);
@@ -631,6 +638,16 @@ form textarea::-webkit-scrollbar {
     background: hsla(240, 12%, 28%, 0.9) !important;
     border-left: 2px solid hsla(240, 16%, 52%, 0.8) !important;
     box-shadow: 0 2px 8px hsla(240, 12%, 11%, 0.2) !important;
+}
+
+/* Keep the Umans Code billing nav minimal and unstyled */
+[data-billing-nav] button,
+[data-billing-nav] button:hover,
+[data-billing-nav] button:active,
+[data-billing-nav] button:focus {
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 /* Style dropdown menu items - light mode */

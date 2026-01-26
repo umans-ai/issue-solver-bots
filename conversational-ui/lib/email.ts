@@ -232,6 +232,54 @@ export async function sendWelcomeEmail(to: string): Promise<void> {
   }
 }
 
+export async function sendPledgeConfirmationEmail(
+  to: string,
+  {
+    planLabel,
+    billingCycleLabel,
+    priceLabel,
+  }: {
+    planLabel: string;
+    billingCycleLabel: string;
+    priceLabel: string;
+  },
+): Promise<void> {
+  const billingUrl = `${getBaseUrl()}/billing`;
+
+  const content = `
+    <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
+      Your Founding pledge is confirmed. We’ve saved your plan details.
+    </p>
+
+    ${createInfoBox(
+      `
+        <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">Plan</p>
+        <p style="margin: 0; font-size: 14px;">${planLabel} · ${billingCycleLabel}</p>
+        <p style="margin: 8px 0 0 0; font-size: 14px;">${priceLabel}</p>
+      `,
+      'info',
+    )}
+
+    <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
+      Billing starts March 1, 2026. The launch window closes February 28, 2026.
+      You can cancel anytime before then from your billing dashboard.
+    </p>
+
+    ${createButton(billingUrl, 'Manage your pledge', 'primary')}
+  `;
+
+  try {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to,
+      subject: 'Your Founding pledge is confirmed',
+      html: createEmailTemplate('Founding pledge confirmed', content),
+    });
+  } catch (error) {
+    console.error('Failed to send pledge confirmation email:', error);
+  }
+}
+
 export async function sendSpaceInviteNotificationEmail(
   to: string,
   spaceName: string,

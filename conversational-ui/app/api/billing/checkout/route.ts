@@ -16,6 +16,9 @@ export async function POST(req: Request) {
   if (!plan || !cycle) {
     return NextResponse.json({ error: 'Missing plan/cycle' }, { status: 400 });
   }
+  if (plan !== 'solo' && plan !== 'pro') {
+    return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+  }
 
   // Require auth: if no user session, return 401 so client can redirect to login
   if (!session?.user?.id || !session.user.email) {

@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { IconUmansLogo } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -13,11 +14,10 @@ const FOUNDING_TARGET = 250;
 const DEADLINE_LABEL = 'February 28, 2026';
 
 const pledgeCountRaw = Number(process.env.NEXT_PUBLIC_FOUNDING_PLEDGES);
-const pledgeCount = Number.isFinite(pledgeCountRaw) ? pledgeCountRaw : 0;
-const pledgePercent = Math.min(
-  Math.round((pledgeCount / FOUNDING_TARGET) * 100),
-  100,
-);
+const pledgeCountFallback = Number.isFinite(pledgeCountRaw)
+  ? pledgeCountRaw
+  : 0;
+const foundingTargetDisplay = FOUNDING_TARGET.toLocaleString('en-US');
 
 const primaryButtonClasses =
   'rounded-full bg-[#0b0d10] text-white hover:bg-black/90 shadow-sm dark:bg-white dark:text-[#0b0d10] dark:hover:bg-white/90';
@@ -30,7 +30,7 @@ const plans = {
   monthly: {
     max: {
       price: '$20',
-      subline: '50–200 Claude Code prompts per five-hour window.',
+      subline: '200 Claude Code prompts per five-hour window.',
     },
     unlimited: {
       price: '$50',
@@ -40,7 +40,7 @@ const plans = {
   yearly: {
     max: {
       price: '$17',
-      subline: '50–200 Claude Code prompts per five-hour window.',
+      subline: '200 Claude Code prompts per five-hour window.',
     },
     unlimited: {
       price: '$42',
@@ -51,15 +51,112 @@ const plans = {
 
 type BillingCycle = keyof typeof plans;
 
-export default function CodeLandingPage() {
+function CodeLandingPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [parityTab, setParityTab] = useState<'onboarding' | 'triage' | 'refactor'>(
     'onboarding',
   );
+  const [pledgeLoading, setPledgeLoading] = useState<null | 'code_pro' | 'code_max'>(
+    null,
+  );
+  const [pledgeCount, setPledgeCount] = useState<number>(pledgeCountFallback);
   const demosRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const currentPlans = plans[billingCycle];
+
+  const pledgePercent = Math.min(
+    Math.round((pledgeCount / FOUNDING_TARGET) * 100),
+    100,
+  );
+  const pledgeCountDisplay = pledgeCount.toLocaleString('en-US');
+
+  const startPledge = async (
+    plan: 'code_pro' | 'code_max',
+    cycleOverride?: BillingCycle,
+  ) => {
+    try {
+      setPledgeLoading(plan);
+      const resolvedCycle = cycleOverride ?? billingCycle;
+      const res = await fetch('/api/billing/pledge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan,
+          cycle: resolvedCycle,
+          returnTo: `/billing?pledgePlan=${plan}&pledgeCycle=${resolvedCycle}`,
+          source: 'landing',
+        }),
+      });
+      if (res.status === 401) {
+        const data = await res.json().catch(() => null);
+        const loginUrl =
+          data?.loginUrl ||
+          `/login?next=${encodeURIComponent(
+          `/billing?pledgePlan=${plan}&pledgeCycle=${resolvedCycle}`,
+        )}`;
+        window.location.href = loginUrl;
+        return;
+      }
+      const data = await res.json();
+      if (data?.alreadyPledged && data?.redirectUrl) {
+        window.location.href = data.redirectUrl as string;
+        return;
+      }
+      if (data?.url) {
+        window.location.href = data.url as string;
+        return;
+      }
+    } catch (err) {
+      console.error('Failed to start pledge checkout', err);
+    } finally {
+      setPledgeLoading(null);
+    }
+  };
+
+  const autoPledgeStarted = useRef(false);
+  useEffect(() => {
+    if (autoPledgeStarted.current) {
+      return;
+    }
+    const planParam = searchParams?.get('pledgePlan');
+    const cycleParam = searchParams?.get('pledgeCycle');
+    if (planParam !== 'code_pro' && planParam !== 'code_max') {
+      return;
+    }
+    const normalizedCycle: BillingCycle =
+      cycleParam === 'yearly' ? 'yearly' : 'monthly';
+    autoPledgeStarted.current = true;
+    setBillingCycle(normalizedCycle);
+    const cleanedUrl = '/offers/code#plans';
+    router.replace(cleanedUrl);
+    startPledge(planParam, normalizedCycle);
+  }, [searchParams, router]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadCount = async () => {
+      try {
+        const res = await fetch('/api/billing/pledge/count', {
+          method: 'GET',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isMounted) return;
+        if (Number.isFinite(data?.count)) {
+          setPledgeCount(Number(data.count));
+        }
+      } catch (err) {
+        console.error('Failed to load pledge count', err);
+      }
+    };
+    loadCount();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const parityTabs = [
     {
@@ -984,11 +1081,20 @@ export default function CodeLandingPage() {
               </p>
             </div>
             <div className="w-full rounded-3xl border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
-              <div className="text-4xl font-semibold">{pledgeCount}</div>
+              <div className="text-4xl font-semibold" aria-live="polite">
+                {pledgeCountDisplay}
+              </div>
               <p className="mt-2 text-sm text-black/60 dark:text-white/60">
-                pledged seats out of {FOUNDING_TARGET}
+                pledged seats out of {foundingTargetDisplay}
               </p>
-              <div className="mt-6 h-1.5 w-full rounded-full bg-black/10 dark:bg-white/10">
+              <div
+                className="mt-6 h-1.5 w-full rounded-full bg-black/10 dark:bg-white/10"
+                role="progressbar"
+                aria-label="Founding pledge progress"
+                aria-valuenow={pledgePercent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
                 <div
                   className="h-1.5 rounded-full bg-black dark:bg-white"
                   style={{ width: `${pledgePercent}%` }}
@@ -1070,12 +1176,16 @@ export default function CodeLandingPage() {
                   Claude Max ($100)-equivalent limits.
                 </p>
                 <ul className="mt-6 space-y-3 text-sm text-black/70 dark:text-white/70">
-                  <li>50–200 Claude Code prompts per five-hour window.</li>
+                  <li>200 Claude Code prompts per five-hour window.</li>
                   <li>Limits reset every five hours (rolling window).</li>
                 </ul>
                 <div className="mt-auto pt-6">
-                  <Button asChild className={primaryButtonClasses + ' w-full'}>
-                    <Link href="#plans">Pledge this plan</Link>
+                  <Button
+                    className={primaryButtonClasses + ' w-full'}
+                    onClick={() => startPledge('code_pro')}
+                    disabled={pledgeLoading === 'code_pro'}
+                  >
+                    {pledgeLoading === 'code_pro' ? 'Opening Stripe…' : 'Pledge this plan'}
                   </Button>
                 </div>
               </div>
@@ -1106,8 +1216,12 @@ export default function CodeLandingPage() {
                   <li>Extra burst capacity when available.</li>
                 </ul>
                 <div className="mt-auto pt-6">
-                  <Button asChild className={primaryButtonClasses + ' w-full'}>
-                    <Link href="#plans">Pledge this plan</Link>
+                  <Button
+                    className={primaryButtonClasses + ' w-full'}
+                    onClick={() => startPledge('code_max')}
+                    disabled={pledgeLoading === 'code_max'}
+                  >
+                    {pledgeLoading === 'code_max' ? 'Opening Stripe…' : 'Pledge this plan'}
                   </Button>
                 </div>
               </div>
@@ -1163,5 +1277,13 @@ export default function CodeLandingPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+export default function CodeLandingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <CodeLandingPageContent />
+    </Suspense>
   );
 }
