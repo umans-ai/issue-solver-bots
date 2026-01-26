@@ -89,8 +89,9 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   const [loadingPlan, setLoadingPlan] = useState<PledgePlanKey | null>(null);
   const [cancelling, setCancelling] = useState(false);
 
-  const isActive =
-    pledge && pledge.status !== 'canceled' && pledge.status !== 'expired';
+  const isActive = Boolean(
+    pledge && pledge.status !== 'canceled' && pledge.status !== 'expired',
+  );
 
   const statusLabel = useMemo(() => {
     if (!pledge) return 'No active pledge';
@@ -98,6 +99,8 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
     if (pledge.status === 'expired') return 'Pledge expired';
     return 'Founding pledge active';
   }, [pledge]);
+
+  const activePledge = isActive && pledge ? pledge : null;
 
   useEffect(() => {
     const outcome = searchParams?.get('pledge');
@@ -190,19 +193,19 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
               {statusLabel}
             </p>
             <div>
-              {isActive ? (
+              {activePledge ? (
                 <>
                   <h2 className="text-2xl font-semibold text-white">
-                    {PLEDGE_PLAN_LABELS[pledge.plan]}
+                    {PLEDGE_PLAN_LABELS[activePledge.plan]}
                     <span className="text-white/60">
-                      {` · ${pledge.billingCycle === 'yearly' ? 'Yearly' : 'Monthly'}`}
+                      {` · ${activePledge.billingCycle === 'yearly' ? 'Yearly' : 'Monthly'}`}
                     </span>
                   </h2>
                   <p className="mt-2 text-sm text-white/60">
-                    {planPriceLine(pledge.plan, pledge.billingCycle)}
+                    {planPriceLine(activePledge.plan, activePledge.billingCycle)}
                   </p>
                   <p className="mt-2 text-sm text-white/70">
-                    {PLEDGE_PLAN_DETAILS[pledge.plan]}
+                    {PLEDGE_PLAN_DETAILS[activePledge.plan]}
                   </p>
                   <p className="mt-4 text-sm text-white/60">
                     Billing starts {PLEDGE_CHARGE_START_LABEL} — only if we
