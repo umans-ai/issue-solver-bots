@@ -14,12 +14,9 @@ const FOUNDING_TARGET = 250;
 const DEADLINE_LABEL = 'February 28, 2026';
 
 const pledgeCountRaw = Number(process.env.NEXT_PUBLIC_FOUNDING_PLEDGES);
-const pledgeCount = Number.isFinite(pledgeCountRaw) ? pledgeCountRaw : 0;
-const pledgePercent = Math.min(
-  Math.round((pledgeCount / FOUNDING_TARGET) * 100),
-  100,
-);
-const pledgeCountDisplay = pledgeCount.toLocaleString('en-US');
+const pledgeCountFallback = Number.isFinite(pledgeCountRaw)
+  ? pledgeCountRaw
+  : 0;
 const foundingTargetDisplay = FOUNDING_TARGET.toLocaleString('en-US');
 
 const primaryButtonClasses =
@@ -64,10 +61,17 @@ function CodeLandingPageContent() {
   const [pledgeLoading, setPledgeLoading] = useState<null | 'code_pro' | 'code_max'>(
     null,
   );
+  const [pledgeCount, setPledgeCount] = useState<number>(pledgeCountFallback);
   const demosRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const currentPlans = plans[billingCycle];
+
+  const pledgePercent = Math.min(
+    Math.round((pledgeCount / FOUNDING_TARGET) * 100),
+    100,
+  );
+  const pledgeCountDisplay = pledgeCount.toLocaleString('en-US');
 
   const startPledge = async (
     plan: 'code_pro' | 'code_max',
@@ -79,15 +83,19 @@ function CodeLandingPageContent() {
       const res = await fetch('/api/billing/pledge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, cycle: resolvedCycle }),
+        body: JSON.stringify({
+          plan,
+          cycle: resolvedCycle,
+          returnTo: `/billing?pledgePlan=${plan}&pledgeCycle=${resolvedCycle}`,
+        }),
       });
       if (res.status === 401) {
         const data = await res.json().catch(() => null);
         const loginUrl =
           data?.loginUrl ||
           `/login?next=${encodeURIComponent(
-            `/offers/code?pledgePlan=${plan}&pledgeCycle=${resolvedCycle}#plans`,
-          )}`;
+          `/billing?pledgePlan=${plan}&pledgeCycle=${resolvedCycle}`,
+        )}`;
         window.location.href = loginUrl;
         return;
       }
@@ -121,6 +129,29 @@ function CodeLandingPageContent() {
     router.replace(cleanedUrl);
     startPledge(planParam, normalizedCycle);
   }, [searchParams, router]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadCount = async () => {
+      try {
+        const res = await fetch('/api/billing/pledge/count', {
+          method: 'GET',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isMounted) return;
+        if (Number.isFinite(data?.count)) {
+          setPledgeCount(Number(data.count));
+        }
+      } catch (err) {
+        console.error('Failed to load pledge count', err);
+      }
+    };
+    loadCount();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const parityTabs = [
     {

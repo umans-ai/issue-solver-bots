@@ -1,7 +1,11 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
-import { PLEDGE_DEADLINE_TIMESTAMP } from '@/lib/pledge';
+import {
+  PLEDGE_DEADLINE_TIMESTAMP,
+  PLEDGE_PLAN_LABELS,
+  PLEDGE_PRICE_LABELS,
+} from '@/lib/pledge';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { pledge, user } from '@/lib/db/schema';
@@ -73,7 +77,14 @@ export async function POST(req: Request) {
               : defaultPaymentMethod?.id;
         }
 
+        let isNewPledge = false;
         if (plan && billingCycle) {
+          const [existingPledge] = await db
+            .select({ id: pledge.id })
+            .from(pledge)
+            .where(eq(pledge.checkoutSessionId, s.id))
+            .limit(1);
+          isNewPledge = !existingPledge;
           await db
             .insert(pledge)
             .values({
@@ -104,6 +115,28 @@ export async function POST(req: Request) {
                 updatedAt: new Date(),
               },
             });
+
+          if (isNewPledge && email) {
+            try {
+              const { sendPledgeConfirmationEmail } = await import('@/lib/email');
+              const planLabel =
+                PLEDGE_PLAN_LABELS[plan as keyof typeof PLEDGE_PLAN_LABELS] ||
+                'Umans Code';
+              const priceLabel =
+                PLEDGE_PRICE_LABELS[plan as keyof typeof PLEDGE_PRICE_LABELS]?.[
+                  billingCycle as 'monthly' | 'yearly'
+                ] || '';
+              const billingCycleLabel =
+                billingCycle === 'yearly' ? 'Yearly' : 'Monthly';
+              await sendPledgeConfirmationEmail(email, {
+                planLabel,
+                billingCycleLabel,
+                priceLabel,
+              });
+            } catch (emailError) {
+              console.error('Failed to send pledge confirmation email:', emailError);
+            }
+          }
         }
         break;
       }

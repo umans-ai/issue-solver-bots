@@ -1,7 +1,17 @@
 import 'server-only';
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { and, asc, desc, eq, gt, gte, inArray } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  gte,
+  inArray,
+  isNotNull,
+  sql,
+} from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -53,6 +63,27 @@ export async function getLatestPledgeForUser(userId: string) {
   } catch (error) {
     console.error('Failed to get pledge for user');
     throw error;
+  }
+}
+
+export async function getActivePledgeCount(): Promise<number> {
+  try {
+    const activeStatuses = ['trialing', 'active', 'past_due'] as const;
+    const [row] = await db
+      .select({
+        count: sql<number>`count(distinct ${pledge.stripeSubscriptionId})`,
+      })
+      .from(pledge)
+      .where(
+        and(
+          isNotNull(pledge.stripeSubscriptionId),
+          inArray(pledge.status, [...activeStatuses]),
+        ),
+      );
+    return Number(row?.count ?? 0);
+  } catch (error) {
+    console.error('Failed to get active pledge count');
+    return 0;
   }
 }
 
