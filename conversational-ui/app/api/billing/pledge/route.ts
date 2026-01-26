@@ -11,8 +11,15 @@ import {
 type PledgePlanKey = 'code_pro' | 'code_max';
 
 export async function POST(req: Request) {
-  const { plan, cycle }: { plan: PledgePlanKey; cycle: BillingCycle } =
-    await req.json();
+  const {
+    plan,
+    cycle,
+    returnTo,
+  }: {
+    plan: PledgePlanKey;
+    cycle: BillingCycle;
+    returnTo?: string;
+  } = await req.json();
 
   if (plan !== 'code_pro' && plan !== 'code_max') {
     return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
@@ -25,8 +32,12 @@ export async function POST(req: Request) {
   const userId = session?.user?.id;
   const email = session?.user?.email;
   if (!userId || !email) {
-    const returnTo = `/offers/code?pledgePlan=${plan}&pledgeCycle=${cycle}#plans`;
-    const loginUrl = `/login?next=${encodeURIComponent(returnTo)}`;
+    const fallbackReturnTo = `/offers/code?pledgePlan=${plan}&pledgeCycle=${cycle}#plans`;
+    const safeReturnTo =
+      typeof returnTo === 'string' && returnTo.startsWith('/')
+        ? returnTo
+        : fallbackReturnTo;
+    const loginUrl = `/login?next=${encodeURIComponent(safeReturnTo)}`;
     return NextResponse.json(
       {
         error: 'login_required',
@@ -66,8 +77,8 @@ export async function POST(req: Request) {
     payment_method_collection: 'always',
     customer: stripeCustomerId || undefined,
     customer_email: stripeCustomerId ? undefined : email || undefined,
-    success_url: `${baseUrl}/offers/code?pledge=success`,
-    cancel_url: `${baseUrl}/offers/code?pledge=cancelled`,
+    success_url: `${baseUrl}/billing?pledge=success`,
+    cancel_url: `${baseUrl}/billing?pledge=cancelled`,
     client_reference_id: userId || undefined,
     metadata,
     line_items: [
