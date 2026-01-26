@@ -4,3 +4,6 @@ __pycache__/
 venv/
 .env.local
 .claude
+
+# E2E development logs
+.e2e-logs/

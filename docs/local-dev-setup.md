@@ -77,6 +77,94 @@ For manual testing when you need a fresh account, you can create one without ema
 
 After logging in, click **New Chat**, type a message (e.g., `hi`), and send it via the round arrow button to confirm the end-to-end UI flow.
 
+## E2E Development (Cross-Project Testing)
+
+When testing features that span both `conversational-ui` and `issue-solver` (e.g., wiki generation where the worker writes and the UI reads), use the root-level E2E orchestration.
+
+### Quick Start
+
+```bash
+# From repository root
+just e2e-dev        # Start everything (shared S3, both apps, worker)
+just e2e-logs       # Tail all logs
+just e2e-stop       # Stop everything
+```
+
+### Available Recipes
+
+| Recipe | Description |
+|--------|-------------|
+| `just e2e-dev` | Start full environment (MinIO, LocalStack, databases, UI, API, worker) |
+| `just e2e-services` | Start only shared services (MinIO + LocalStack) |
+| `just e2e-databases` | Start only project databases (Postgres + Redis for each) |
+| `just e2e-logs` | Tail all logs |
+| `just e2e-logs-ui` | Tail UI logs only |
+| `just e2e-logs-api` | Tail API logs only |
+| `just e2e-logs-worker` | Tail worker logs only |
+| `just e2e-status` | Show what's running |
+| `just e2e-stop` | Stop all services |
+| `just e2e-clean` | Stop + remove logs |
+| `just e2e-destroy` | Stop + remove logs + delete data volumes |
+| `just e2e-seed-test` | Create test user for Playwright |
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Shared Services                          │
+│  ┌─────────────────────┐    ┌─────────────────────┐        │
+│  │   MinIO (S3)        │    │   LocalStack (SQS)  │        │
+│  │   Port: 9000        │    │   Port: 4566        │        │
+│  │   Console: 9001     │    │                     │        │
+│  └─────────────────────┘    └─────────────────────┘        │
+│            ▲                          ▲                     │
+│            │ read/write               │ events              │
+│            │                          │                     │
+├────────────┼──────────────────────────┼─────────────────────┤
+│            │                          │                     │
+│  ┌─────────┴───────────┐    ┌────────┴────────────┐        │
+│  │  conversational-ui  │    │    issue-solver     │        │
+│  │  Port: 3000         │    │    API: 8000        │        │
+│  │  Postgres: 5432     │    │    Postgres: 55432  │        │
+│  │  Redis: 6379        │    │    Redis: 63799     │        │
+│  └─────────────────────┘    │    Worker           │        │
+│                             └─────────────────────┘        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Shared S3 bucket:** `conversational-ui-blob`
+- Worker writes wiki content: `base/{kbId}/docs/{sha}/...`
+- UI reads wiki content from the same location
+
+### When to Use E2E Mode
+
+**Use E2E mode for:**
+- Testing wiki/auto-doc generation end-to-end (worker writes → UI reads)
+- Testing any feature involving cross-project S3 access
+- Verifying integration between conversational-ui and issue-solver
+
+**Use project-specific `just dev` for:**
+- Unit tests or isolated feature development
+- UI-only or backend-only changes
+- Quick iteration
+
+### Logs Location
+
+All logs are stored in `.e2e-logs/` at the repository root:
+- `.e2e-logs/ui.log` — conversational-ui output
+- `.e2e-logs/api.log` — issue-solver API output
+- `.e2e-logs/worker.log` — issue-solver worker output
+
+### Test Account
+
+For Playwright/E2E testing, seed the test user:
+
+```bash
+just e2e-seed-test
+```
+
+Credentials: `playwright-test@umans.local` / `test123`
+
 ## Preview testing playbook (app.pr-XXX.umans.ai)
 
 When a PR deploys to the preview stack, we can exercise it without re-doing auth every time:

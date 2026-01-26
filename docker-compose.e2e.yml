@@ -1,0 +1,91 @@
+# E2E Testing Infrastructure
+#
+# Shared services for end-to-end testing across conversational-ui and issue-solver.
+# This provides a single S3 (MinIO) that both projects can read/write to.
+#
+# Usage: just e2e-services (from root)
+#
+# Each project keeps its own Postgres and Redis (no conflicts due to different ports).
+
+services:
+  # Shared S3-compatible storage (MinIO)
+  # - conversational-ui reads wiki content from here
+  # - issue-solver worker writes wiki content here
+  e2e-minio:
+    image: minio/minio:latest
+    container_name: e2e-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # S3 API endpoint
+      - "9001:9001"   # Web Console (http://localhost:9001)
+    volumes:
+      - e2e_minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Initialize MinIO bucket
+  e2e-minio-init:
+    image: minio/mc:latest
+    container_name: e2e-minio-init
+    depends_on:
+      e2e-minio:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO to be ready...' &&
+      until mc alias set local http://e2e-minio:9000 minioadmin minioadmin; do sleep 2; done &&
+      echo 'Creating bucket: conversational-ui-blob' &&
+      mc mb local/conversational-ui-blob --ignore-existing &&
+      mc anonymous set public local/conversational-ui-blob &&
+      echo '✅ MinIO bucket ready!'
+      "
+    restart: "no"
+
+  # Shared LocalStack for SQS (issue-solver needs this for event queue)
+  e2e-localstack:
+    image: localstack/localstack:latest
+    container_name: e2e-localstack
+    environment:
+      - SERVICES=sqs
+      - DEBUG=0
+      - AWS_DEFAULT_REGION=eu-west-3
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    ports:
+      - "4566:4566"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Initialize SQS queue
+  e2e-localstack-init:
+    image: amazon/aws-cli:latest
+    container_name: e2e-localstack-init
+    depends_on:
+      e2e-localstack:
+        condition: service_started
+    environment:
+      - AWS_DEFAULT_REGION=eu-west-3
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_ENDPOINT_URL=http://e2e-localstack:4566
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for LocalStack to be ready...' &&
+      sleep 5 &&
+      echo 'Creating SQS queue: process-queue' &&
+      aws --endpoint-url=http://e2e-localstack:4566 sqs create-queue --queue-name process-queue &&
+      echo '✅ SQS queue ready!'
+      "
+    restart: "no"
+
+volumes:
+  e2e_minio_data:

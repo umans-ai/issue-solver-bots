@@ -70,6 +70,7 @@
 - UI: `cd conversational-ui && just build`. Skip `just lint` unless assigned to the lint-fix task.
 - Backend: `cd issue-solver && just l c f t` (tests currently take ~2 minutes).
 - Full-stack: only when requested—follow `docs/local-dev-setup.md` to run services via `nohup`, capture logs, and exercise `/register` + manual verification.
+- E2E (cross-project): for features spanning both projects (wiki, auto-docs), use `just e2e-dev` from the repo root. See @docs/local-dev-setup.md for details.
 
 ## Security & Secrets
 
