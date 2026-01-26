@@ -4,14 +4,7 @@ import {
   listWikiFilesAndMetadata,
 } from '@/lib/docs/wiki-store';
 import { auth } from '@/app/(auth)/auth';
-
-function extractTitle(content: string, fallback: string): string {
-  const match = content.match(/^#\s+(.+)$/m);
-  if (match) {
-    return match[1].trim();
-  }
-  return fallback;
-}
+import { extractTitle } from '@/lib/docs/title-utils';
 
 export async function GET(request: Request) {
   try {
