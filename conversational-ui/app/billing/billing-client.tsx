@@ -13,17 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import {
   PLEDGE_CHARGE_START_LABEL,
@@ -87,12 +76,9 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
     pledge?.billingCycle === 'yearly' ? 'yearly' : 'monthly',
   );
   const [loadingPlan, setLoadingPlan] = useState<PledgePlanKey | null>(null);
-  const [cancelling, setCancelling] = useState(false);
   const [activeTab, setActiveTab] = useState<
     'get-started' | 'api-keys' | 'billing'
   >('get-started');
-  const [showAlreadyPledgedMessage, setShowAlreadyPledgedMessage] =
-    useState(false);
 
   const isActive = Boolean(
     pledge && pledge.status !== 'canceled' && pledge.status !== 'expired',
@@ -130,13 +116,8 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
       setActiveTab(tab);
     }
     const alreadyPledged = searchParams?.get('alreadyPledged');
-    const changePlan = searchParams?.get('changePlan');
     if (alreadyPledged) {
-      setShowAlreadyPledgedMessage(true);
-      setActiveTab('billing');
-    }
-    if (changePlan) {
-      setDialogOpen(true);
+      toast.message('You already have an active pledge.');
       setActiveTab('billing');
     }
   }, [searchParams]);
@@ -173,24 +154,6 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
     } finally {
       setLoadingPlan(null);
       setDialogOpen(false);
-    }
-  };
-
-  const cancelPledge = async () => {
-    try {
-      setCancelling(true);
-      const res = await fetch('/api/billing/pledge/cancel', { method: 'POST' });
-      if (!res.ok) {
-        toast.error('Unable to cancel pledge. Please try again.');
-        return;
-      }
-      toast.success('Pledge canceled.');
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
-      toast.error('Unable to cancel pledge. Please try again.');
-    } finally {
-      setCancelling(false);
     }
   };
 
@@ -310,159 +273,105 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
-                      >
-                        {isActive ? 'Change plan' : 'Choose a plan'}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl border-white/10 bg-[#0b0d10] text-white">
-                      <DialogHeader className="space-y-2">
-                        <DialogTitle className="text-2xl">
-                          Choose your plan
-                        </DialogTitle>
-                      </DialogHeader>
-                      {showAlreadyPledgedMessage ? (
-                        <div className="mt-2 text-sm text-white/60">
-                          You already have an active Founding pledge. If you
-                          want to switch plans, choose one below.
-                        </div>
-                      ) : null}
-                      <div className="mt-4 flex w-fit items-center rounded-full border border-white/10 bg-white/5 p-1 text-sm">
-                        <button
-                          type="button"
-                          onClick={() => setBillingCycle('monthly')}
-                          className={cn(
-                            'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                            billingCycle === 'monthly'
-                              ? 'bg-white text-[#0b0d10] shadow-sm'
-                              : 'text-white/60 hover:text-white',
-                          )}
-                        >
-                          Monthly
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setBillingCycle('yearly')}
-                          className={cn(
-                            'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                            billingCycle === 'yearly'
-                              ? 'bg-white text-[#0b0d10] shadow-sm'
-                              : 'text-white/60 hover:text-white',
-                          )}
-                        >
-                          Yearly
-                        </button>
-                      </div>
-                      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                        {(Object.keys(planOptions) as PledgePlanKey[]).map(
-                          (plan) => {
-                            const option = planOptions[plan];
-                            const price =
-                              billingCycle === 'yearly'
-                                ? option.yearlyPrice
-                                : option.monthlyPrice;
-                            const isPlanActive = isActive && pledge?.plan === plan;
-                            return (
-                              <div
-                                key={plan}
-                                className={cn(
-                                  'flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-6',
-                                  isPlanActive
-                                    ? 'border-white/40 bg-white/10'
-                                    : 'hover:border-white/30',
-                                )}
-                              >
-                                <div className="flex items-start justify-between gap-4">
-                                  <div>
-                                    <h3 className="text-lg font-semibold">
-                                      {option.label}
-                                    </h3>
-                                    {isPlanActive ? (
-                                      <span className="mt-2 inline-flex rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white/70">
-                                        Active
-                                      </span>
-                                    ) : null}
-                                  </div>
-                                  <div className="flex items-end gap-2 text-right">
-                                    <span className="text-2xl font-semibold text-white">
-                                      {price}
-                                    </span>
-                                    <div className="w-20 text-left text-xs leading-tight text-white/60">
-                                      <div>per month</div>
-                                      <div>{billingLabel(billingCycle)}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                                <p className="mt-3 text-sm font-medium text-white/70">
-                                  {option.description}
-                                </p>
-                                <ul className="mt-4 space-y-2 text-sm text-white/60">
-                                  {option.bullets.map((bullet) => (
-                                    <li key={bullet}>{bullet}</li>
-                                  ))}
-                                </ul>
-                                <div className="mt-auto pt-6">
-                                  <Button
-                                    className={cn(
-                                      'w-full rounded-full',
-                                      isPlanActive
-                                        ? 'border border-white/20 bg-transparent text-white/70 hover:bg-white/5'
-                                        : 'bg-white text-[#0b0d10] hover:bg-white/90',
-                                    )}
-                                    onClick={() => startPledge(plan, billingCycle)}
-                                    disabled={loadingPlan === plan || isPlanActive}
-                                  >
-                                    {isPlanActive
-                                      ? 'Active plan'
-                                      : loadingPlan === plan
-                                        ? 'Opening Stripe…'
-                                        : 'Select plan'}
-                                  </Button>
-                                </div>
-                              </div>
-                            );
-                          },
-                        )}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-
-                  {isActive ? (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                  {!isActive ? (
+                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                      <DialogTrigger asChild>
                         <Button
                           variant="outline"
                           className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
-                          disabled={cancelling}
                         >
-                          {cancelling ? 'Canceling…' : 'Cancel pledge'}
+                          Choose a plan
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="border-white/10 bg-[#0b0d10] text-white">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Cancel your pledge?</AlertDialogTitle>
-                          <AlertDialogDescription className="text-white/60">
-                            Your founding seat will be released immediately. You
-                            won&apos;t be billed unless you pledge again.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="rounded-full border-white/20 bg-transparent text-white hover:bg-white/10">
-                            Keep pledge
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            className="rounded-full bg-white text-[#0b0d10] hover:bg-white/90"
-                            onClick={cancelPledge}
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl border-white/10 bg-[#0b0d10] text-white">
+                        <DialogHeader className="space-y-2">
+                          <DialogTitle className="text-2xl">
+                            Choose your plan
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4 flex w-fit items-center rounded-full border border-white/10 bg-white/5 p-1 text-sm">
+                          <button
+                            type="button"
+                            onClick={() => setBillingCycle('monthly')}
+                            className={cn(
+                              'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                              billingCycle === 'monthly'
+                                ? 'bg-white text-[#0b0d10] shadow-sm'
+                                : 'text-white/60 hover:text-white',
+                            )}
                           >
-                            Cancel pledge
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            Monthly
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBillingCycle('yearly')}
+                            className={cn(
+                              'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                              billingCycle === 'yearly'
+                                ? 'bg-white text-[#0b0d10] shadow-sm'
+                                : 'text-white/60 hover:text-white',
+                            )}
+                          >
+                            Yearly
+                          </button>
+                        </div>
+                        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                          {(Object.keys(planOptions) as PledgePlanKey[]).map(
+                            (plan) => {
+                              const option = planOptions[plan];
+                              const price =
+                                billingCycle === 'yearly'
+                                  ? option.yearlyPrice
+                                  : option.monthlyPrice;
+                              return (
+                                <div
+                                  key={plan}
+                                  className="flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-6 hover:border-white/30"
+                                >
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                      <h3 className="text-lg font-semibold">
+                                        {option.label}
+                                      </h3>
+                                    </div>
+                                    <div className="flex items-end gap-2 text-right">
+                                      <span className="text-2xl font-semibold text-white">
+                                        {price}
+                                      </span>
+                                      <div className="w-20 text-left text-xs leading-tight text-white/60">
+                                        <div>per month</div>
+                                        <div>{billingLabel(billingCycle)}</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <p className="mt-3 text-sm font-medium text-white/70">
+                                    {option.description}
+                                  </p>
+                                  <ul className="mt-4 space-y-2 text-sm text-white/60">
+                                    {option.bullets.map((bullet) => (
+                                      <li key={bullet}>{bullet}</li>
+                                    ))}
+                                  </ul>
+                                  <div className="mt-auto pt-6">
+                                    <Button
+                                      className="w-full rounded-full bg-white text-[#0b0d10] hover:bg-white/90"
+                                      onClick={() =>
+                                        startPledge(plan, billingCycle)
+                                      }
+                                      disabled={loadingPlan === plan}
+                                    >
+                                      {loadingPlan === plan
+                                        ? 'Opening Stripe…'
+                                        : 'Select plan'}
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            },
+                          )}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   ) : null}
                 </div>
               </div>

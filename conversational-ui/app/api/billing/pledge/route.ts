@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     if (hasActivePledge) {
       return NextResponse.json({
         alreadyPledged: true,
-        redirectUrl: `${baseUrl}/billing?alreadyPledged=1&changePlan=1&tab=billing`,
+        redirectUrl: `${baseUrl}/billing?alreadyPledged=1&tab=billing`,
       });
     }
   }

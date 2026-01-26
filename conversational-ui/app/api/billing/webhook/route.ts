@@ -1,11 +1,7 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
-import {
-  PLEDGE_DEADLINE_TIMESTAMP,
-  PLEDGE_PLAN_LABELS,
-  PLEDGE_PRICE_LABELS,
-} from '@/lib/pledge';
+import { PLEDGE_PLAN_LABELS, PLEDGE_PRICE_LABELS } from '@/lib/pledge';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { pledge, user } from '@/lib/db/schema';
@@ -62,15 +58,11 @@ export async function POST(req: Request) {
           if (!subscriptionId) {
             throw new Error('Missing subscription ID for pledge session');
           }
-          const updatedSubscription = await stripe.subscriptions.update(
+          const subscription = await stripe.subscriptions.retrieve(
             subscriptionId,
-            {
-              cancel_at: PLEDGE_DEADLINE_TIMESTAMP,
-              proration_behavior: 'none',
-            },
           );
-          subscriptionStatus = updatedSubscription.status;
-          const defaultPaymentMethod = updatedSubscription.default_payment_method;
+          subscriptionStatus = subscription.status;
+          const defaultPaymentMethod = subscription.default_payment_method;
           paymentMethodId =
             typeof defaultPaymentMethod === 'string'
               ? defaultPaymentMethod
