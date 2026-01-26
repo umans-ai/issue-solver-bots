@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
@@ -97,13 +97,6 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   const isActive = Boolean(
     pledge && pledge.status !== 'canceled' && pledge.status !== 'expired',
   );
-
-  const statusLabel = useMemo(() => {
-    if (!pledge) return 'No active pledge';
-    if (pledge.status === 'canceled') return 'Pledge canceled';
-    if (pledge.status === 'expired') return 'Pledge expired';
-    return 'Founding pledge active';
-  }, [pledge]);
 
   const activePledge = isActive && pledge ? pledge : null;
 
@@ -202,115 +195,84 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-white">
-          Plan &amp; billing
-        </h1>
-        <p className="mt-3 text-sm text-white/60">
-          Manage your pledge, keys, and billing details.
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-8 lg:flex-row">
-        <aside className="w-full lg:w-56">
-          <nav className="flex flex-row gap-2 lg:flex-col">
-            {[
-              { id: 'get-started', label: 'Get Started' },
-              { id: 'api-keys', label: 'API keys' },
-              { id: 'billing', label: 'Billing' },
-            ].map((item) => (
+    <div className="grid gap-12 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-16">
+      <aside className="w-full lg:pt-1">
+        <nav data-billing-nav className="flex flex-col gap-1 text-[13px]">
+          {[
+            { id: 'get-started', label: 'Get Started' },
+            { id: 'api-keys', label: 'API keys' },
+            { id: 'billing', label: 'Billing' },
+          ].map((item) => {
+            const isActiveTab = activeTab === item.id;
+            return (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setActiveTab(item.id as typeof activeTab)}
                 className={cn(
-                  'w-full rounded-full px-4 py-2 text-left text-sm font-medium transition',
-                  activeTab === item.id
-                    ? 'bg-white text-[#0b0d10]'
-                    : 'text-white/60 hover:bg-white/10 hover:text-white',
+                  'flex w-full items-center rounded-md px-3 py-2 text-left font-medium transition focus-visible:outline-none',
+                  isActiveTab
+                    ? 'bg-white/5 text-white'
+                    : 'text-white/55 hover:bg-white/5 hover:text-white',
                 )}
               >
                 {item.label}
               </button>
-            ))}
-          </nav>
-        </aside>
+            );
+          })}
+        </nav>
+      </aside>
 
-        <section className="flex-1 space-y-6">
-          {activeTab === 'get-started' ? (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-semibold text-white">Get Started</h2>
-              {activePledge ? (
-                <div className="space-y-2 text-sm text-white/70">
-                  <p>Welcome to Umans Code. Your Founding seat is reserved.</p>
-                  <p>
-                    We are preparing your access now and will open accounts on
-                    March 1, 2026.
-                  </p>
-                  <p>We will email you as soon as your endpoint is ready.</p>
-                </div>
-              ) : (
-                <div className="space-y-3 text-sm text-white/70">
-                  <p>Your pledge is no longer active.</p>
-                  <p>If you still want a Founding seat, choose a plan below.</p>
-                  <Button
-                    variant="outline"
-                    className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
-                    onClick={() => {
-                      setActiveTab('billing');
-                      setDialogOpen(true);
-                    }}
-                  >
-                    Choose a plan
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : null}
-
-          {activeTab === 'api-keys' ? (
-            <div className="space-y-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h2 className="text-2xl font-semibold text-white">API keys</h2>
-                  <p className="mt-2 text-sm text-white/60">
-                    Keys will be available on March 1, 2026. We will email you
-                    when access opens.
-                  </p>
-                </div>
+      <section className="w-full max-w-2xl space-y-8">
+        {activeTab === 'get-started' ? (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-white">Get Started</h2>
+            {activePledge ? (
+              <div className="space-y-4 text-base leading-relaxed text-white/70">
+                <p className="font-semibold text-white/90">
+                  Welcome to Umans Code. Your Founding seat is reserved.
+                </p>
+                <p>
+                  We are preparing your access now and will open accounts on
+                  March 1, 2026.
+                </p>
+                <p>We will email you as soon as your endpoint is ready.</p>
+              </div>
+            ) : (
+              <div className="space-y-4 text-base text-white/70">
+                <p>Your pledge is no longer active.</p>
+                <p>If you still want a Founding seat, choose a plan below.</p>
                 <Button
                   variant="outline"
-                  disabled
-                  className="rounded-full border-white/20 text-white/60"
+                  className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                  onClick={() => {
+                    setActiveTab('billing');
+                    setDialogOpen(true);
+                  }}
                 >
-                  Create new secret key
+                  Choose a plan
                 </Button>
               </div>
+            )}
+          </div>
+        ) : null}
 
-              <div className="rounded-2xl border border-white/10">
-                <div className="grid grid-cols-[2fr_1fr_2fr_1fr_1fr_1fr] gap-4 border-b border-white/10 px-6 py-3 text-xs uppercase tracking-[0.2em] text-white/40">
-                  <span>Name</span>
-                  <span>Status</span>
-                  <span>Secret key</span>
-                  <span>Created</span>
-                  <span>Last used</span>
-                  <span>Permissions</span>
-                </div>
-                <div className="px-6 py-6 text-sm text-white/50">
-                  No keys yet.
-                </div>
-              </div>
+        {activeTab === 'api-keys' ? (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-semibold text-white">API keys</h2>
+              <p className="mt-3 text-base leading-relaxed text-white/70">
+                Keys will be available on March 1, 2026. We will email you when
+                access opens.
+              </p>
             </div>
-          ) : null}
+          </div>
+        ) : null}
 
-          {activeTab === 'billing' ? (
-            <div className="space-y-6">
-              <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+        {activeTab === 'billing' ? (
+          <div className="space-y-6">
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
-                    {statusLabel}
-                  </p>
                   <div>
                     {activePledge ? (
                       <>
@@ -505,27 +467,26 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-t border-white/10 pt-6">
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Manage billing</h2>
-                  <p className="mt-2 text-sm text-white/60">
-                    Update your payment method or review invoices in Stripe.
-                  </p>
-                </div>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
-                >
-                  <Link href={portalUrl} target="_blank" rel="noreferrer">
-                    Manage billing
-                  </Link>
-                </Button>
+            <div className="flex flex-col gap-4 border-t border-white/10 pt-6 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Manage billing</h2>
+                <p className="mt-2 text-sm text-white/60">
+                  Update your payment method or review invoices in Stripe.
+                </p>
               </div>
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+              >
+                <Link href={portalUrl} target="_blank" rel="noreferrer">
+                  Manage billing
+                </Link>
+              </Button>
             </div>
-          ) : null}
-        </section>
-      </div>
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 }
