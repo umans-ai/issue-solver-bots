@@ -175,18 +175,15 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.32em] text-white/50">
-          Billing
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-          Founding pledge
+        <h1 className="text-3xl font-semibold tracking-tight text-white">
+          Plan &amp; billing
         </h1>
         <p className="mt-3 text-sm text-white/60">
-          Manage your plan, payment details, and cancellation preferences.
+          Founding pledge management (pre-launch).
         </p>
       </div>
 
-      <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
+      <section className="border-b border-white/10 pb-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
@@ -231,10 +228,10 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                   variant="outline"
                   className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
                 >
-                  {isActive ? 'Adjust plan' : 'Choose a plan'}
+                  {isActive ? 'Change plan' : 'Choose a plan'}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl border-white/10 bg-[#0b0d10] text-white">
+              <DialogContent className="max-w-4xl border-white/10 bg-[#0b0d10] text-white">
                 <DialogHeader className="space-y-2">
                   <DialogTitle className="text-2xl">
                     Choose your plan
@@ -266,27 +263,35 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                     Yearly
                   </button>
                 </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <div className="mt-6 grid gap-6 lg:grid-cols-2">
                   {(Object.keys(planOptions) as PledgePlanKey[]).map((plan) => {
                     const option = planOptions[plan];
                     const price =
                       billingCycle === 'yearly'
                         ? option.yearlyPrice
                         : option.monthlyPrice;
+                    const isPlanActive = isActive && pledge?.plan === plan;
                     return (
                       <div
                         key={plan}
                         className={cn(
-                          'flex h-full flex-col rounded-2xl border border-white/10 bg-white/5 p-5',
-                          pledge?.plan === plan && isActive
+                          'flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-6',
+                          isPlanActive
                             ? 'border-white/40 bg-white/10'
                             : 'hover:border-white/30',
                         )}
                       >
-                        <div className="flex items-end justify-between gap-4">
-                          <h3 className="text-lg font-semibold">
-                            {option.label}
-                          </h3>
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <h3 className="text-lg font-semibold">
+                              {option.label}
+                            </h3>
+                            {isPlanActive ? (
+                              <span className="mt-2 inline-flex rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white/70">
+                                Active
+                              </span>
+                            ) : null}
+                          </div>
                           <div className="flex items-end gap-2 text-right">
                             <span className="text-2xl font-semibold text-white">
                               {price}
@@ -307,13 +312,20 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                         </ul>
                         <div className="mt-auto pt-6">
                           <Button
-                            className="w-full rounded-full bg-white text-[#0b0d10] hover:bg-white/90"
+                            className={cn(
+                              'w-full rounded-full',
+                              isPlanActive
+                                ? 'border border-white/20 bg-transparent text-white/70 hover:bg-white/5'
+                                : 'bg-white text-[#0b0d10] hover:bg-white/90',
+                            )}
                             onClick={() => startPledge(plan, billingCycle)}
-                            disabled={loadingPlan === plan}
+                            disabled={loadingPlan === plan || isPlanActive}
                           >
-                            {loadingPlan === plan
-                              ? 'Opening Stripe…'
-                              : 'Select plan'}
+                            {isPlanActive
+                              ? 'Active plan'
+                              : loadingPlan === plan
+                                ? 'Opening Stripe…'
+                                : 'Select plan'}
                           </Button>
                         </div>
                       </div>
@@ -360,26 +372,22 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-white">
-              Payment & invoices
-            </h2>
-            <p className="mt-2 text-sm text-white/60">
-              Update your payment method or review invoices in Stripe.
-            </p>
-          </div>
-          <Button
-            asChild
-            variant="outline"
-            className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
-          >
-            <Link href={portalUrl} target="_blank" rel="noreferrer">
-              Open Stripe billing
-            </Link>
-          </Button>
+      <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Manage billing</h2>
+          <p className="mt-2 text-sm text-white/60">
+            Update your payment method or review invoices in Stripe.
+          </p>
         </div>
+        <Button
+          asChild
+          variant="outline"
+          className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+        >
+          <Link href={portalUrl} target="_blank" rel="noreferrer">
+            Manage billing
+          </Link>
+        </Button>
       </section>
     </div>
   );

@@ -38,7 +38,6 @@ export default async function BillingPage() {
             <UmansLogoMark className="h-5 w-auto" />
             <span className="text-sm font-medium tracking-tight">code</span>
           </Link>
-          <div className="text-sm text-white/50">Billing</div>
         </div>
       </header>
 
