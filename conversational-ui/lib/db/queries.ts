@@ -20,6 +20,7 @@ import {
   user,
   type User,
   vote,
+  pledge,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 
@@ -36,6 +37,21 @@ export async function getUser(email: string): Promise<Array<User>> {
     return await db.select().from(user).where(eq(user.email, email));
   } catch (error) {
     console.error('Failed to get user from database');
+    throw error;
+  }
+}
+
+export async function getLatestPledgeForUser(userId: string) {
+  try {
+    const [record] = await db
+      .select()
+      .from(pledge)
+      .where(eq(pledge.userId, userId))
+      .orderBy(desc(pledge.createdAt))
+      .limit(1);
+    return record;
+  } catch (error) {
+    console.error('Failed to get pledge for user');
     throw error;
   }
 }
