@@ -248,7 +248,7 @@ export async function sendPledgeConfirmationEmail(
 
   const content = `
     <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
-      Your Founding pledge is confirmed. We’ve saved your plan details and will only start billing if we launch by February 28, 2026.
+      Your Founding pledge is confirmed. We’ve saved your plan details.
     </p>
 
     ${createInfoBox(
@@ -261,7 +261,7 @@ export async function sendPledgeConfirmationEmail(
     )}
 
     <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
-      We will charge you on March 1, 2026 only if we launch by February 28, 2026.
+      Billing starts March 1, 2026. The launch window closes February 28, 2026.
       You can cancel anytime before then from your billing dashboard.
     </p>
 

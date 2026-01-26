@@ -87,6 +87,7 @@ function CodeLandingPageContent() {
           plan,
           cycle: resolvedCycle,
           returnTo: `/billing?pledgePlan=${plan}&pledgeCycle=${resolvedCycle}`,
+          source: 'landing',
         }),
       });
       if (res.status === 401) {
@@ -100,6 +101,10 @@ function CodeLandingPageContent() {
         return;
       }
       const data = await res.json();
+      if (data?.alreadyPledged && data?.redirectUrl) {
+        window.location.href = data.redirectUrl as string;
+        return;
+      }
       if (data?.url) {
         window.location.href = data.url as string;
         return;

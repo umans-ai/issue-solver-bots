@@ -88,6 +88,11 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   );
   const [loadingPlan, setLoadingPlan] = useState<PledgePlanKey | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [activeTab, setActiveTab] = useState<
+    'get-started' | 'api-keys' | 'billing'
+  >('get-started');
+  const [showAlreadyPledgedMessage, setShowAlreadyPledgedMessage] =
+    useState(false);
 
   const isActive = Boolean(
     pledge && pledge.status !== 'canceled' && pledge.status !== 'expired',
@@ -115,6 +120,9 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   useEffect(() => {
     const pledgePlan = searchParams?.get('pledgePlan') as PledgePlanKey | null;
     const pledgeCycle = searchParams?.get('pledgeCycle') as BillingCycle | null;
+    if (activePledge) {
+      return;
+    }
     if (!pledgePlan || !pledgeCycle) return;
     if (pledgePlan !== 'code_pro' && pledgePlan !== 'code_max') return;
     if (pledgeCycle !== 'monthly' && pledgeCycle !== 'yearly') return;
@@ -122,6 +130,23 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
     startPledge(pledgePlan, pledgeCycle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const tab = searchParams?.get('tab');
+    if (tab === 'api-keys' || tab === 'billing' || tab === 'get-started') {
+      setActiveTab(tab);
+    }
+    const alreadyPledged = searchParams?.get('alreadyPledged');
+    const changePlan = searchParams?.get('changePlan');
+    if (alreadyPledged) {
+      setShowAlreadyPledgedMessage(true);
+      setActiveTab('billing');
+    }
+    if (changePlan) {
+      setDialogOpen(true);
+      setActiveTab('billing');
+    }
+  }, [searchParams]);
 
   const startPledge = async (
     plan: PledgePlanKey,
@@ -136,6 +161,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
           plan,
           cycle,
           returnTo: `/billing?pledgePlan=${plan}&pledgeCycle=${cycle}`,
+          source: 'billing',
         }),
       });
       const data = await res.json();
@@ -182,216 +208,324 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
           Plan &amp; billing
         </h1>
         <p className="mt-3 text-sm text-white/60">
-          Founding pledge management (pre-launch).
+          Manage your pledge, keys, and billing details.
         </p>
       </div>
 
-      <section className="border-b border-white/10 pb-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
-              {statusLabel}
-            </p>
-            <div>
+      <div className="flex flex-col gap-8 lg:flex-row">
+        <aside className="w-full lg:w-56">
+          <nav className="flex flex-row gap-2 lg:flex-col">
+            {[
+              { id: 'get-started', label: 'Get Started' },
+              { id: 'api-keys', label: 'API keys' },
+              { id: 'billing', label: 'Billing' },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveTab(item.id as typeof activeTab)}
+                className={cn(
+                  'w-full rounded-full px-4 py-2 text-left text-sm font-medium transition',
+                  activeTab === item.id
+                    ? 'bg-white text-[#0b0d10]'
+                    : 'text-white/60 hover:bg-white/10 hover:text-white',
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        <section className="flex-1 space-y-6">
+          {activeTab === 'get-started' ? (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold text-white">Get Started</h2>
               {activePledge ? (
-                <>
-                  <h2 className="text-2xl font-semibold text-white">
-                    {PLEDGE_PLAN_LABELS[activePledge.plan]}
-                    <span className="text-white/60">
-                      {` · ${activePledge.billingCycle === 'yearly' ? 'Yearly' : 'Monthly'}`}
-                    </span>
-                  </h2>
-                  <p className="mt-2 text-sm text-white/60">
-                    {planPriceLine(activePledge.plan, activePledge.billingCycle)}
+                <div className="space-y-2 text-sm text-white/70">
+                  <p>Welcome to Umans Code. Your Founding seat is reserved.</p>
+                  <p>
+                    We are preparing your access now and will open accounts on
+                    March 1, 2026.
                   </p>
-                  <p className="mt-2 text-sm text-white/70">
-                    {PLEDGE_PLAN_DETAILS[activePledge.plan]}
-                  </p>
-                  <p className="mt-4 text-sm text-white/60">
-                    Billing starts {PLEDGE_CHARGE_START_LABEL} — only if we
-                    launch by {PLEDGE_DEADLINE_LABEL}.
-                  </p>
-                </>
+                  <p>We will email you as soon as your endpoint is ready.</p>
+                </div>
               ) : (
-                <>
-                  <h2 className="text-2xl font-semibold text-white">
-                    No active pledge
-                  </h2>
-                  <p className="mt-2 text-sm text-white/60">
-                    Choose a plan to reserve your founding seat.
-                  </p>
-                </>
+                <div className="space-y-3 text-sm text-white/70">
+                  <p>Your pledge is no longer active.</p>
+                  <p>If you still want a Founding seat, choose a plan below.</p>
+                  <Button
+                    variant="outline"
+                    className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                    onClick={() => {
+                      setActiveTab('billing');
+                      setDialogOpen(true);
+                    }}
+                  >
+                    Choose a plan
+                  </Button>
+                </div>
               )}
             </div>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
+          ) : null}
+
+          {activeTab === 'api-keys' ? (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold text-white">API keys</h2>
+                  <p className="mt-2 text-sm text-white/60">
+                    Keys will be available on March 1, 2026. We will email you
+                    when access opens.
+                  </p>
+                </div>
                 <Button
+                  variant="outline"
+                  disabled
+                  className="rounded-full border-white/20 text-white/60"
+                >
+                  Create new secret key
+                </Button>
+              </div>
+
+              <div className="rounded-2xl border border-white/10">
+                <div className="grid grid-cols-[2fr_1fr_2fr_1fr_1fr_1fr] gap-4 border-b border-white/10 px-6 py-3 text-xs uppercase tracking-[0.2em] text-white/40">
+                  <span>Name</span>
+                  <span>Status</span>
+                  <span>Secret key</span>
+                  <span>Created</span>
+                  <span>Last used</span>
+                  <span>Permissions</span>
+                </div>
+                <div className="px-6 py-6 text-sm text-white/50">
+                  No keys yet.
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {activeTab === 'billing' ? (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
+                    {statusLabel}
+                  </p>
+                  <div>
+                    {activePledge ? (
+                      <>
+                        <h2 className="text-2xl font-semibold text-white">
+                          {PLEDGE_PLAN_LABELS[activePledge.plan]}
+                          <span className="text-white/60">
+                            {` · ${activePledge.billingCycle === 'yearly' ? 'Yearly' : 'Monthly'}`}
+                          </span>
+                        </h2>
+                        <p className="mt-2 text-sm text-white/60">
+                          {planPriceLine(
+                            activePledge.plan,
+                            activePledge.billingCycle,
+                          )}
+                        </p>
+                        <p className="mt-2 text-sm text-white/70">
+                          {PLEDGE_PLAN_DETAILS[activePledge.plan]}
+                        </p>
+                        <p className="mt-4 text-sm text-white/60">
+                          Billing starts {PLEDGE_CHARGE_START_LABEL}. If we do
+                          not launch by {PLEDGE_DEADLINE_LABEL}, you will not be
+                          charged.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h2 className="text-2xl font-semibold text-white">
+                          No active pledge
+                        </h2>
+                        <p className="mt-2 text-sm text-white/60">
+                          Choose a plan to reserve your Founding seat.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                      >
+                        {isActive ? 'Change plan' : 'Choose a plan'}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl border-white/10 bg-[#0b0d10] text-white">
+                      <DialogHeader className="space-y-2">
+                        <DialogTitle className="text-2xl">
+                          Choose your plan
+                        </DialogTitle>
+                      </DialogHeader>
+                      {showAlreadyPledgedMessage ? (
+                        <div className="mt-2 text-sm text-white/60">
+                          You already have an active Founding pledge. If you
+                          want to switch plans, choose one below.
+                        </div>
+                      ) : null}
+                      <div className="mt-4 flex w-fit items-center rounded-full border border-white/10 bg-white/5 p-1 text-sm">
+                        <button
+                          type="button"
+                          onClick={() => setBillingCycle('monthly')}
+                          className={cn(
+                            'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                            billingCycle === 'monthly'
+                              ? 'bg-white text-[#0b0d10] shadow-sm'
+                              : 'text-white/60 hover:text-white',
+                          )}
+                        >
+                          Monthly
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBillingCycle('yearly')}
+                          className={cn(
+                            'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                            billingCycle === 'yearly'
+                              ? 'bg-white text-[#0b0d10] shadow-sm'
+                              : 'text-white/60 hover:text-white',
+                          )}
+                        >
+                          Yearly
+                        </button>
+                      </div>
+                      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                        {(Object.keys(planOptions) as PledgePlanKey[]).map(
+                          (plan) => {
+                            const option = planOptions[plan];
+                            const price =
+                              billingCycle === 'yearly'
+                                ? option.yearlyPrice
+                                : option.monthlyPrice;
+                            const isPlanActive = isActive && pledge?.plan === plan;
+                            return (
+                              <div
+                                key={plan}
+                                className={cn(
+                                  'flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-6',
+                                  isPlanActive
+                                    ? 'border-white/40 bg-white/10'
+                                    : 'hover:border-white/30',
+                                )}
+                              >
+                                <div className="flex items-start justify-between gap-4">
+                                  <div>
+                                    <h3 className="text-lg font-semibold">
+                                      {option.label}
+                                    </h3>
+                                    {isPlanActive ? (
+                                      <span className="mt-2 inline-flex rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white/70">
+                                        Active
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  <div className="flex items-end gap-2 text-right">
+                                    <span className="text-2xl font-semibold text-white">
+                                      {price}
+                                    </span>
+                                    <div className="w-20 text-left text-xs leading-tight text-white/60">
+                                      <div>per month</div>
+                                      <div>{billingLabel(billingCycle)}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <p className="mt-3 text-sm font-medium text-white/70">
+                                  {option.description}
+                                </p>
+                                <ul className="mt-4 space-y-2 text-sm text-white/60">
+                                  {option.bullets.map((bullet) => (
+                                    <li key={bullet}>{bullet}</li>
+                                  ))}
+                                </ul>
+                                <div className="mt-auto pt-6">
+                                  <Button
+                                    className={cn(
+                                      'w-full rounded-full',
+                                      isPlanActive
+                                        ? 'border border-white/20 bg-transparent text-white/70 hover:bg-white/5'
+                                        : 'bg-white text-[#0b0d10] hover:bg-white/90',
+                                    )}
+                                    onClick={() => startPledge(plan, billingCycle)}
+                                    disabled={loadingPlan === plan || isPlanActive}
+                                  >
+                                    {isPlanActive
+                                      ? 'Active plan'
+                                      : loadingPlan === plan
+                                        ? 'Opening Stripe…'
+                                        : 'Select plan'}
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          },
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+
+                  {isActive ? (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                          disabled={cancelling}
+                        >
+                          {cancelling ? 'Canceling…' : 'Cancel pledge'}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="border-white/10 bg-[#0b0d10] text-white">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Cancel your pledge?</AlertDialogTitle>
+                          <AlertDialogDescription className="text-white/60">
+                            Your founding seat will be released immediately. You
+                            won&apos;t be billed unless you pledge again.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="rounded-full border-white/20 bg-transparent text-white hover:bg-white/10">
+                            Keep pledge
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            className="rounded-full bg-white text-[#0b0d10] hover:bg-white/90"
+                            onClick={cancelPledge}
+                          >
+                            Cancel pledge
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-t border-white/10 pt-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Manage billing</h2>
+                  <p className="mt-2 text-sm text-white/60">
+                    Update your payment method or review invoices in Stripe.
+                  </p>
+                </div>
+                <Button
+                  asChild
                   variant="outline"
                   className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
                 >
-                  {isActive ? 'Change plan' : 'Choose a plan'}
+                  <Link href={portalUrl} target="_blank" rel="noreferrer">
+                    Manage billing
+                  </Link>
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl border-white/10 bg-[#0b0d10] text-white">
-                <DialogHeader className="space-y-2">
-                  <DialogTitle className="text-2xl">
-                    Choose your plan
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="mt-4 flex w-fit items-center rounded-full border border-white/10 bg-white/5 p-1 text-sm">
-                  <button
-                    type="button"
-                    onClick={() => setBillingCycle('monthly')}
-                    className={cn(
-                      'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                      billingCycle === 'monthly'
-                        ? 'bg-white text-[#0b0d10] shadow-sm'
-                        : 'text-white/60 hover:text-white',
-                    )}
-                  >
-                    Monthly
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBillingCycle('yearly')}
-                    className={cn(
-                      'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                      billingCycle === 'yearly'
-                        ? 'bg-white text-[#0b0d10] shadow-sm'
-                        : 'text-white/60 hover:text-white',
-                    )}
-                  >
-                    Yearly
-                  </button>
-                </div>
-                <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                  {(Object.keys(planOptions) as PledgePlanKey[]).map((plan) => {
-                    const option = planOptions[plan];
-                    const price =
-                      billingCycle === 'yearly'
-                        ? option.yearlyPrice
-                        : option.monthlyPrice;
-                    const isPlanActive = isActive && pledge?.plan === plan;
-                    return (
-                      <div
-                        key={plan}
-                        className={cn(
-                          'flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-6',
-                          isPlanActive
-                            ? 'border-white/40 bg-white/10'
-                            : 'hover:border-white/30',
-                        )}
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <h3 className="text-lg font-semibold">
-                              {option.label}
-                            </h3>
-                            {isPlanActive ? (
-                              <span className="mt-2 inline-flex rounded-full border border-white/20 px-3 py-1 text-xs font-medium text-white/70">
-                                Active
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="flex items-end gap-2 text-right">
-                            <span className="text-2xl font-semibold text-white">
-                              {price}
-                            </span>
-                            <div className="w-20 text-left text-xs leading-tight text-white/60">
-                              <div>per month</div>
-                              <div>{billingLabel(billingCycle)}</div>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="mt-3 text-sm font-medium text-white/70">
-                          {option.description}
-                        </p>
-                        <ul className="mt-4 space-y-2 text-sm text-white/60">
-                          {option.bullets.map((bullet) => (
-                            <li key={bullet}>{bullet}</li>
-                          ))}
-                        </ul>
-                        <div className="mt-auto pt-6">
-                          <Button
-                            className={cn(
-                              'w-full rounded-full',
-                              isPlanActive
-                                ? 'border border-white/20 bg-transparent text-white/70 hover:bg-white/5'
-                                : 'bg-white text-[#0b0d10] hover:bg-white/90',
-                            )}
-                            onClick={() => startPledge(plan, billingCycle)}
-                            disabled={loadingPlan === plan || isPlanActive}
-                          >
-                            {isPlanActive
-                              ? 'Active plan'
-                              : loadingPlan === plan
-                                ? 'Opening Stripe…'
-                                : 'Select plan'}
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </DialogContent>
-            </Dialog>
-
-            {isActive ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    className="rounded-full"
-                    disabled={cancelling}
-                  >
-                    {cancelling ? 'Canceling…' : 'Cancel pledge'}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="border-white/10 bg-[#0b0d10] text-white">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Cancel your pledge?</AlertDialogTitle>
-                    <AlertDialogDescription className="text-white/60">
-                      Your founding seat will be released immediately. You
-                      won&apos;t be billed unless you pledge again.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="rounded-full border-white/20 bg-transparent text-white hover:bg-white/10">
-                      Keep pledge
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      className="rounded-full bg-white text-[#0b0d10] hover:bg-white/90"
-                      onClick={cancelPledge}
-                    >
-                      Cancel pledge
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            ) : null}
-          </div>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-white">Manage billing</h2>
-          <p className="mt-2 text-sm text-white/60">
-            Update your payment method or review invoices in Stripe.
-          </p>
-        </div>
-        <Button
-          asChild
-          variant="outline"
-          className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
-        >
-          <Link href={portalUrl} target="_blank" rel="noreferrer">
-            Manage billing
-          </Link>
-        </Button>
-      </section>
+              </div>
+            </div>
+          ) : null}
+        </section>
+      </div>
     </div>
   );
 }

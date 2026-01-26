@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { type BillingCycle, getPriceId, getStripe } from '@/lib/stripe';
-import { getUser } from '@/lib/db/queries';
+import { getLatestPledgeForUser, getUser } from '@/lib/db/queries';
 import {
   PLEDGE_CHARGE_START_TIMESTAMP,
   PLEDGE_CHARGE_START_LABEL,
@@ -15,10 +15,12 @@ export async function POST(req: Request) {
     plan,
     cycle,
     returnTo,
+    source,
   }: {
     plan: PledgePlanKey;
     cycle: BillingCycle;
     returnTo?: string;
+    source?: 'landing' | 'billing';
   } = await req.json();
 
   if (plan !== 'code_pro' && plan !== 'code_max') {
@@ -53,6 +55,21 @@ export async function POST(req: Request) {
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.APP_URL ||
     'http://localhost:3000';
+
+  const effectiveSource = source === 'billing' ? 'billing' : 'landing';
+  if (userId && effectiveSource === 'landing') {
+    const existing = await getLatestPledgeForUser(userId);
+    const hasActivePledge =
+      existing &&
+      existing.status !== 'canceled' &&
+      existing.status !== 'expired';
+    if (hasActivePledge) {
+      return NextResponse.json({
+        alreadyPledged: true,
+        redirectUrl: `${baseUrl}/billing?alreadyPledged=1&changePlan=1&tab=billing`,
+      });
+    }
+  }
 
   let stripeCustomerId: string | undefined;
   if (email) {
@@ -94,7 +111,7 @@ export async function POST(req: Request) {
     custom_text: {
       submit: {
         message:
-          `Founding pledge — no charge today. You’ll be billed ${PLEDGE_CHARGE_START_LABEL} only if we launch by ${PLEDGE_DEADLINE_LABEL}.`,
+          `Founding pledge. No charge today. You’ll be billed ${PLEDGE_CHARGE_START_LABEL} only if we launch by ${PLEDGE_DEADLINE_LABEL}.`,
       },
       after_submit: {
         message: 'Founding access rolls out progressively as capacity opens.',
