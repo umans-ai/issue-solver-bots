@@ -67,11 +67,8 @@ function CodeLandingPageContent() {
   const [canScrollRight, setCanScrollRight] = useState(false);
   const currentPlans = plans[billingCycle];
 
-  const pledgePercent = Math.min(
-    Math.round((pledgeCount / FOUNDING_TARGET) * 100),
-    100,
-  );
-  const pledgeCountDisplay = pledgeCount.toLocaleString('en-US');
+  const seatsRemaining = FOUNDING_TARGET - pledgeCount;
+  const seatsRemainingDisplay = seatsRemaining.toLocaleString('en-US');
 
   const startPledge = async (
     plan: 'code_pro' | 'code_max',
@@ -1061,15 +1058,15 @@ function CodeLandingPageContent() {
           <div className="mx-auto grid max-w-6xl gap-10 px-6 py-20 lg:grid-cols-[1.1fr,0.9fr] lg:items-center">
             <div className="space-y-4">
               <p className="text-xs font-semibold uppercase tracking-[0.32em] text-black/40 dark:text-white/50">
-                Founding 250
+                Founding members
               </p>
               <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                We launch when 250 seats are reserved.
+                Lock in founding pricing before we launch.
               </h2>
               <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
                 Serving open-source models at usable latency has a baseline
-                cost. Founding 250 is the minimum to start with a stable,
-                reliable setup.
+                cost. Founding members help us launch with a stable, reliable
+                setup and keep the best price for as long as they subscribe.
               </p>
               <div>
                 <Button asChild size="lg" className={primaryButtonClasses}>
@@ -1082,26 +1079,12 @@ function CodeLandingPageContent() {
             </div>
             <div className="w-full rounded-3xl border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
               <div className="text-4xl font-semibold" aria-live="polite">
-                {pledgeCountDisplay}
+                {seatsRemainingDisplay}
               </div>
               <p className="mt-2 text-sm text-black/60 dark:text-white/60">
-                reserved seats out of {foundingTargetDisplay}
+                seats left at founding price
               </p>
-              <div
-                className="mt-6 h-1.5 w-full rounded-full bg-black/10 dark:bg-white/10"
-                role="progressbar"
-                aria-label="Founding reservation progress"
-                aria-valuenow={pledgePercent}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
-                <div
-                  className="h-1.5 rounded-full bg-black dark:bg-white"
-                  style={{ width: `${pledgePercent}%` }}
-                />
-              </div>
-              <div className="mt-4 flex items-center justify-between text-xs text-black/50 dark:text-white/50">
-                <span>{pledgePercent}% to launch</span>
+              <div className="mt-4 text-xs text-black/50 dark:text-white/50">
                 <span>Deadline: {DEADLINE_LABEL}</span>
               </div>
             </div>
