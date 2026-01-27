@@ -11,13 +11,12 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { FaDiscord, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 
 const FOUNDING_TARGET = 250;
-const DEADLINE_LABEL = 'February 28, 2026';
+const ACTIVATION_DATE_LABEL = 'March 1';
 
 const pledgeCountRaw = Number(process.env.NEXT_PUBLIC_FOUNDING_PLEDGES);
 const pledgeCountFallback = Number.isFinite(pledgeCountRaw)
   ? pledgeCountRaw
   : 0;
-const foundingTargetDisplay = FOUNDING_TARGET.toLocaleString('en-US');
 
 const primaryButtonClasses =
   'rounded-full bg-[#0b0d10] text-white hover:bg-black/90 shadow-sm dark:bg-white dark:text-[#0b0d10] dark:hover:bg-white/90';
@@ -1061,20 +1060,19 @@ function CodeLandingPageContent() {
                 Founding members
               </p>
               <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                Lock in founding pricing before we launch.
+                Lock in the founding price.
               </h2>
               <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
-                Serving open-source models at usable latency has a baseline
-                cost. Founding members help us launch with a stable, reliable
-                setup and keep the best price for as long as they subscribe.
+                Seats are released in batches to keep the service stable.
+                Reserve now and we will activate your seat as capacity opens.
               </p>
               <div>
                 <Button asChild size="lg" className={primaryButtonClasses}>
-                  <Link href="#plans">Reserve a Founding seat</Link>
+                  <Link href="#plans">Reserve a seat</Link>
                 </Button>
               </div>
               <p className="text-sm text-black/60 dark:text-white/60">
-                Reserve now, no charge until we launch by {DEADLINE_LABEL}.
+                Activation starts {ACTIVATION_DATE_LABEL}. No charge until then.
               </p>
             </div>
             <div className="w-full rounded-3xl border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
@@ -1085,7 +1083,7 @@ function CodeLandingPageContent() {
                 seats left at founding price
               </p>
               <div className="mt-4 text-xs text-black/50 dark:text-white/50">
-                <span>Deadline: {DEADLINE_LABEL}</span>
+                <span>Activates {ACTIVATION_DATE_LABEL}</span>
               </div>
             </div>
           </div>
