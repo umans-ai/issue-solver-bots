@@ -723,7 +723,7 @@ function CodeLandingPageContent() {
             </div>
             <ThemeToggle variant="ghost" />
           <Button asChild size="sm" className={primaryButtonClasses}>
-            <Link href="#plans">Pledge</Link>
+            <Link href="#plans">Reserve a seat</Link>
           </Button>
           </div>
         </div>
@@ -747,7 +747,7 @@ function CodeLandingPageContent() {
               </p>
               <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <Button asChild size="lg" className={primaryButtonClasses}>
-                  <Link href="#plans">Pledge a Founding seat</Link>
+                  <Link href="#plans">Reserve a Founding seat</Link>
                 </Button>
                 <Link
                   href="https://blog.umans.ai/blog/host-claude-code/"
@@ -1064,7 +1064,7 @@ function CodeLandingPageContent() {
                 Founding 250
               </p>
               <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                We launch when 250 seats are pledged.
+                We launch when 250 seats are reserved.
               </h2>
               <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
                 Serving open-source models at usable latency has a baseline
@@ -1073,11 +1073,11 @@ function CodeLandingPageContent() {
               </p>
               <div>
                 <Button asChild size="lg" className={primaryButtonClasses}>
-                  <Link href="#plans">Pledge a Founding seat</Link>
+                  <Link href="#plans">Reserve a Founding seat</Link>
                 </Button>
               </div>
               <p className="text-sm text-black/60 dark:text-white/60">
-                Pledge now, charge only if we launch by {DEADLINE_LABEL}.
+                Reserve now, no charge until we launch by {DEADLINE_LABEL}.
               </p>
             </div>
             <div className="w-full rounded-3xl border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
@@ -1085,12 +1085,12 @@ function CodeLandingPageContent() {
                 {pledgeCountDisplay}
               </div>
               <p className="mt-2 text-sm text-black/60 dark:text-white/60">
-                pledged seats out of {foundingTargetDisplay}
+                reserved seats out of {foundingTargetDisplay}
               </p>
               <div
                 className="mt-6 h-1.5 w-full rounded-full bg-black/10 dark:bg-white/10"
                 role="progressbar"
-                aria-label="Founding pledge progress"
+                aria-label="Founding reservation progress"
                 aria-valuenow={pledgePercent}
                 aria-valuemin={0}
                 aria-valuemax={100}
@@ -1185,7 +1185,7 @@ function CodeLandingPageContent() {
                     onClick={() => startPledge('code_pro')}
                     disabled={pledgeLoading === 'code_pro'}
                   >
-                    {pledgeLoading === 'code_pro' ? 'Opening Stripe…' : 'Pledge this plan'}
+                    {pledgeLoading === 'code_pro' ? 'Opening Stripe…' : 'Reserve this plan'}
                   </Button>
                 </div>
               </div>
@@ -1221,7 +1221,7 @@ function CodeLandingPageContent() {
                     onClick={() => startPledge('code_max')}
                     disabled={pledgeLoading === 'code_max'}
                   >
-                    {pledgeLoading === 'code_max' ? 'Opening Stripe…' : 'Pledge this plan'}
+                    {pledgeLoading === 'code_max' ? 'Opening Stripe…' : 'Reserve this plan'}
                   </Button>
                 </div>
               </div>
