@@ -64,14 +64,21 @@ e2e-databases-stop:
 e2e-logs-init:
     @mkdir -p "{{logs_dir}}"
 
-# ▶️ Start conversational-ui in background
+# ▶️ Start conversational-ui in background (uses shared MinIO on port 9000)
 [private]
 e2e-start-ui: e2e-logs-init
     @echo "▶️  Starting conversational-ui..."
     @echo "   Waiting for UI database..."
     @until docker exec postgres-umansuidb pg_isready -U user -d umansuidb > /dev/null 2>&1; do sleep 1; done
+    @echo "   Running migrations..."
+    @cd "{{ui_dir}}" && pnpm run db:migrate > /dev/null 2>&1
+    @echo "   Starting Next.js..."
     @cd "{{ui_dir}}" && \
-        nohup just dev > "{{logs_dir}}/ui.log" 2>&1 & \
+        BLOB_ENDPOINT=http://localhost:9000 \
+        BLOB_ACCESS_KEY_ID=minioadmin \
+        BLOB_SECRET_ACCESS_KEY=minioadmin \
+        BLOB_BUCKET_NAME=conversational-ui-blob \
+        nohup pnpm run dev > "{{logs_dir}}/ui.log" 2>&1 & \
         echo $! > "{{logs_dir}}/ui.pid"
     @echo "   PID: $(cat "{{logs_dir}}/ui.pid")"
     @echo "   Log: {{logs_dir}}/ui.log"
