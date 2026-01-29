@@ -2,6 +2,8 @@ import type { InferSelectModel } from 'drizzle-orm';
 import {
   boolean,
   foreignKey,
+  index,
+  integer,
   json,
   jsonb,
   pgTable,
@@ -70,6 +72,32 @@ export const pledge = pgTable('Pledge', {
 });
 
 export type Pledge = InferSelectModel<typeof pledge>;
+
+export const featuredRepo = pgTable(
+  'FeaturedRepo',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    owner: text('owner').notNull(),
+    name: text('name').notNull(),
+    kbId: text('kbId').notNull(),
+    commitSha: text('commitSha').notNull(),
+    repoUrl: text('repoUrl').notNull(),
+    isActive: boolean('isActive').notNull().default(true),
+    stars: integer('stars'),
+    description: text('description'),
+    language: text('language'),
+    indexedAt: timestamp('indexedAt').notNull().defaultNow(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => {
+    return {
+      uniqueOwnerName: uniqueIndex('unique_owner_name').on(table.owner, table.name),
+      activeIdx: index('featured_repo_active_idx').on(table.isActive),
+    };
+  },
+);
+
+export type FeaturedRepo = InferSelectModel<typeof featuredRepo>;
 
 export const spaceToUser = pgTable(
   'SpaceToUser',

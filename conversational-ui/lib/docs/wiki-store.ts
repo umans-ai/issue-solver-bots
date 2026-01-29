@@ -160,25 +160,32 @@ async function listMarkdownFiles(
   kbId: string,
   commitSha: string,
 ): Promise<string[]> {
-  if (!bucketName) return [];
+  // Read bucket name fresh each time to ensure env vars are loaded
+  const dynamicBucketName = process.env.BLOB_BUCKET_NAME || '';
+  if (!dynamicBucketName) return [];
   const s3Client = createS3Client();
   const prefix = `base/${kbId}/docs/${commitSha}/`;
   let continuationToken: string | undefined = undefined;
   const files: string[] = [];
   do {
-    const listCmd: ListObjectsV2Command = new ListObjectsV2Command({
-      Bucket: bucketName,
-      Prefix: prefix,
-      ContinuationToken: continuationToken,
-    });
-    const res = await s3Client.send(listCmd);
-    (res.Contents || []).forEach((obj) => {
-      const key = obj.Key || '';
-      if (key.endsWith('.md')) {
-        files.push(key.substring(prefix.length));
-      }
-    });
-    continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
+    try {
+      const listCmd: ListObjectsV2Command = new ListObjectsV2Command({
+        Bucket: dynamicBucketName,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      });
+      const res = await s3Client.send(listCmd);
+      (res.Contents || []).forEach((obj) => {
+        const key = obj.Key || '';
+        if (key.endsWith('.md')) {
+          files.push(key.substring(prefix.length));
+        }
+      });
+      continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined;
+    } catch (err) {
+      console.error(`Error listing files from S3:`, err);
+      break;
+    }
   } while (continuationToken);
   return files;
 }

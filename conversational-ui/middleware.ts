@@ -33,6 +33,22 @@ export default function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow public wiki endpoints (featured repos)
+  if (req.nextUrl.pathname.startsWith('/docs/public/')) {
+    return NextResponse.next();
+  }
+  if (req.nextUrl.pathname.startsWith('/api/public/')) {
+    return NextResponse.next();
+  }
+  // Rewrite /offers/wiki/:owner/:repo to /docs/public/:owner/:repo
+  const wikiRewriteMatch = req.nextUrl.pathname.match(/^\/offers\/wiki\/([^\/]+)\/([^\/]+)(.*)$/);
+  if (wikiRewriteMatch) {
+    const [, owner, repo, rest] = wikiRewriteMatch;
+    const newPath = `/docs/public/${owner}/${repo}${rest}`;
+    const newUrl = new URL(newPath, req.url);
+    return NextResponse.rewrite(newUrl);
+  }
+
   // If a pending checkout exists, force user into billing/start, except for auth flows
   const allowedDuringPending = [
     '/billing/start',

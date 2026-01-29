@@ -19,6 +19,8 @@ import {
   chat,
   type DBMessage,
   document,
+  featuredRepo,
+  type FeaturedRepo,
   message,
   space,
   spaceToUser,
@@ -600,6 +602,36 @@ export async function getSpaceById(spaceId: string) {
 }
 
 /**
+ * Find user's space by knowledge base ID
+ * Used when converting public wiki visitors to chat users
+ */
+export async function getSpaceByKnowledgeBaseId(
+  userId: string,
+  knowledgeBaseId: string,
+) {
+  return db
+    .select({
+      id: space.id,
+      name: space.name,
+      knowledgeBaseId: space.knowledgeBaseId,
+      processId: space.processId,
+      connectedRepoUrl: space.connectedRepoUrl,
+      createdAt: space.createdAt,
+      updatedAt: space.updatedAt,
+      isDefault: space.isDefault,
+    })
+    .from(space)
+    .innerJoin(spaceToUser, eq(space.id, spaceToUser.spaceId))
+    .where(
+      and(
+        eq(spaceToUser.userId, userId),
+        eq(space.knowledgeBaseId, knowledgeBaseId),
+      ),
+    )
+    .then((spaces) => spaces[0] || null);
+}
+
+/**
  * Update a space's details
  */
 export async function updateSpace(
@@ -939,6 +971,74 @@ export async function getTokenUsageByChat(
       .orderBy(desc(tokenUsage.createdAt));
   } catch (error) {
     console.error('Failed to get token usage by chat');
+    throw error;
+  }
+}
+
+/**
+ * Get a featured repository by owner and name (case-insensitive)
+ */
+export async function getFeaturedRepoByOwnerAndName(
+  owner: string,
+  name: string,
+): Promise<FeaturedRepo | null> {
+  try {
+    const repos = await db
+      .select()
+      .from(featuredRepo)
+      .where(
+        and(
+          eq(featuredRepo.owner, owner.toLowerCase()),
+          eq(featuredRepo.name, name.toLowerCase()),
+          eq(featuredRepo.isActive, true),
+        ),
+      );
+    return repos[0] || null;
+  } catch (error) {
+    console.error('Failed to get featured repo by owner and name');
+    throw error;
+  }
+}
+
+/**
+ * Get a featured repository by knowledge base ID
+ * Used when converting public wiki visitors to chat users
+ */
+export async function getFeaturedRepoByKbId(
+  kbId: string,
+): Promise<FeaturedRepo | null> {
+  try {
+    const repos = await db
+      .select()
+      .from(featuredRepo)
+      .where(
+        and(
+          eq(featuredRepo.kbId, kbId),
+          eq(featuredRepo.isActive, true),
+        ),
+      );
+    return repos[0] || null;
+  } catch (error) {
+    console.error('Failed to get featured repo by KB ID');
+    throw error;
+  }
+}
+
+/**
+ * List all active featured repositories
+ */
+export async function listFeaturedRepos(
+  limit: number = 50,
+): Promise<FeaturedRepo[]> {
+  try {
+    return await db
+      .select()
+      .from(featuredRepo)
+      .where(eq(featuredRepo.isActive, true))
+      .orderBy(desc(featuredRepo.stars))
+      .limit(limit);
+  } catch (error) {
+    console.error('Failed to list featured repos');
     throw error;
   }
 }

@@ -34,70 +34,57 @@ import {
 } from 'lucide-react';
 import { FaDiscord, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 import { RequestRepoDialog } from './request-repo-dialog';
+import useSWR from 'swr';
+import type { FeaturedRepo } from '@/lib/db/schema';
 
 // --- Types ---
-interface FeaturedRepo {
+interface FeaturedRepoDisplay {
+  id: string;
   owner: string;
   name: string;
-  description: string;
-  language: string;
-  stars: string;
+  description: string | null;
+  language: string | null;
+  stars: number | null;
   lastIndexed: string;
 }
 
-// --- Data ---
-const FEATURED_REPOS: FeaturedRepo[] = [
-  {
-    owner: 'fastapi',
-    name: 'fastapi',
-    description: 'FastAPI framework, high performance, easy to learn, fast to code, ready for production',
-    language: 'Python',
-    stars: '74k',
-    lastIndexed: '2h ago'
-  },
-  {
-    owner: 'vercel',
-    name: 'next.js',
-    description: 'The React Framework for the Web',
-    language: 'TypeScript',
-    stars: '123k',
-    lastIndexed: '15m ago'
-  },
-  {
-    owner: 'huggingface',
-    name: 'transformers',
-    description: 'State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX.',
-    language: 'Python',
-    stars: '130k',
-    lastIndexed: '4h ago'
-  },
-  {
-    owner: 'shadcn-ui',
-    name: 'ui',
-    description: 'Beautifully designed components that you can copy and paste into your apps.',
-    language: 'TypeScript',
-    stars: '62k',
-    lastIndexed: '1d ago'
-  },
-  {
-    owner: 'rust-lang',
-    name: 'rust',
-    description: 'Empowering everyone to build reliable and efficient software.',
-    language: 'Rust',
-    stars: '95k',
-    lastIndexed: '30m ago'
-  },
-  {
-    owner: 'facebook',
-    name: 'react',
-    description: 'The library for web and native user interfaces.',
-    language: 'JavaScript',
-    stars: '220k',
-    lastIndexed: '1h ago'
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+// --- Helpers ---
+function formatStars(stars: number | null): string {
+  if (!stars) return '0';
+  if (stars >= 1000) {
+    return `${(stars / 1000).toFixed(0)}k`;
   }
-];
+  return String(stars);
+}
+
+function formatLastIndexed(date: Date | string | null): string {
+  if (!date) return 'recently';
+  const indexed = new Date(date);
+  const now = new Date();
+  const diffMs = now.getTime() - indexed.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return '1d ago';
+  return `${diffDays}d ago`;
+}
 
 export default function WikiLandingPage() {
+  const { data: reposData, error } = useSWR('/api/public/featured-repos', fetcher);
+  const featuredRepos: FeaturedRepoDisplay[] = reposData?.repos?.map((repo: FeaturedRepo) => ({
+    id: repo.id,
+    owner: repo.owner,
+    name: repo.name,
+    description: repo.description,
+    language: repo.language,
+    stars: repo.stars,
+    lastIndexed: formatLastIndexed(repo.indexedAt),
+  })) || [];
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -109,13 +96,13 @@ export default function WikiLandingPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const filteredRepos = FEATURED_REPOS.filter((repo) => {
+  const filteredRepos = featuredRepos.filter((repo) => {
     const query = searchQuery.toLowerCase();
     return (
       repo.name.toLowerCase().includes(query) ||
       repo.owner.toLowerCase().includes(query) ||
-      repo.description.toLowerCase().includes(query) ||
-      repo.language.toLowerCase().includes(query)
+      (repo.description?.toLowerCase().includes(query) ?? false) ||
+      (repo.language?.toLowerCase().includes(query) ?? false)
     );
   });
 
@@ -209,7 +196,7 @@ export default function WikiLandingPage() {
             {filteredRepos.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredRepos.map((repo) => (
-                  <Card key={`${repo.owner}/${repo.name}`} className="flex flex-col h-full hover:shadow-lg transition-shadow bg-card/50 backdrop-blur-sm border-border/50">
+                  <Card key={repo.id} className="flex flex-col h-full hover:shadow-lg transition-shadow bg-card/50 backdrop-blur-sm border-border/50">
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -222,24 +209,30 @@ export default function WikiLandingPage() {
                       </div>
                       <CardTitle className="text-xl">{repo.name}</CardTitle>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-500 ring-1 ring-inset ring-blue-500/20">
-                          {repo.language}
-                        </span>
-                        <span className="flex items-center text-xs text-muted-foreground">
-                          <Star className="w-3 h-3 mr-1" /> {repo.stars}
-                        </span>
+                        {repo.language && (
+                          <span className="inline-flex items-center rounded-md bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-500 ring-1 ring-inset ring-blue-500/20">
+                            {repo.language}
+                          </span>
+                        )}
+                        {repo.stars !== null && (
+                          <span className="flex items-center text-xs text-muted-foreground">
+                            <Star className="w-3 h-3 mr-1" /> {formatStars(repo.stars)}
+                          </span>
+                        )}
                       </div>
                     </CardHeader>
                     <CardContent className="flex-1">
                       <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-                        {repo.description}
+                        {repo.description || 'No description available'}
                       </p>
                     </CardContent>
                     <CardFooter>
-                      <Button variant="secondary" className="w-full group" disabled>
-                        <span>Open Wiki</span>
-                        <ArrowRight className="w-4 h-4 ml-2 opacity-50 group-hover:opacity-100 transition-opacity" />
-                      </Button>
+                      <Link href={`/offers/wiki/${repo.owner}/${repo.name}`} className="w-full">
+                        <Button variant="secondary" className="w-full group">
+                          <span>Open Wiki</span>
+                          <ArrowRight className="w-4 h-4 ml-2 opacity-50 group-hover:opacity-100 transition-opacity" />
+                        </Button>
+                      </Link>
                     </CardFooter>
                   </Card>
                 ))}

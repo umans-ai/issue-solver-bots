@@ -30,6 +30,14 @@ const nextConfig: NextConfig = {
         destination: '/docs/:path*',
       },
       {
+        source: '/offers/wiki/:owner/:repo',
+        destination: '/docs/public/:owner/:repo',
+      },
+      {
+        source: '/offers/wiki/:owner/:repo/:path*',
+        destination: '/docs/public/:owner/:repo/:path*',
+      },
+      {
         source: '/ingest/static/:path*',
         destination: 'https://eu-assets.i.posthog.com/static/:path*',
       },
@@ -41,6 +49,7 @@ const nextConfig: NextConfig = {
   },
   // This is required to support PostHog trailing slash API requests
   skipTrailingSlashRedirect: true,
+  trailingSlash: false,
 };
 
 export default nextConfig;
