@@ -47,10 +47,14 @@ e2e-services-destroy:
     @docker-compose -f docker-compose.e2e.yml down -v
 
 # 📦 Start project-specific databases (Postgres + Redis for each)
-e2e-databases:
+e2e-databases: e2e-logs-init
     @echo "📦 Starting project databases..."
     @cd {{ui_dir}} && docker-compose up -d postgres redis
     @cd {{backend_dir}} && docker-compose up -d postgres redis
+    @echo "⏳ Waiting for databases to be ready..."
+    @until docker exec postgres-umansuidb pg_isready -U user -d umansuidb > /dev/null 2>&1; do sleep 1; done
+    @until docker exec postgres-umansbackenddb pg_isready -U cudu -d umansbackenddb > /dev/null 2>&1 || docker exec postgres-umansbackenddb pg_isready -U postgres > /dev/null 2>&1; do sleep 1; done
+    @sleep 2
     @echo "✅ Databases ready!"
 
 # 🛑 Stop project-specific databases
@@ -66,62 +70,70 @@ e2e-logs-init:
 
 # ▶️ Start conversational-ui in background (production build, uses shared MinIO on port 9000)
 [private]
-e2e-start-ui: e2e-logs-init
+e2e-start-ui:
     @echo "▶️  Starting conversational-ui..."
-    @echo "   Waiting for UI database..."
-    @until docker exec postgres-umansuidb pg_isready -U user -d umansuidb > /dev/null 2>&1; do sleep 1; done
     @echo "   Running migrations..."
-    @cd "{{ui_dir}}" && pnpm run db:migrate
+    @cd "{{ui_dir}}" && bash -c 'set -a && source .env 2>/dev/null || true && set +a && pnpm run db:migrate'
     @echo "   Building UI (this may take a moment)..."
-    @cd "{{ui_dir}}" && rm -rf .next && \
+    @cd "{{ui_dir}}" && bash -c 'set -a && source .env 2>/dev/null || true && set +a && \
+        CUDU_ENDPOINT=http://localhost:8000 \
         BLOB_ENDPOINT=http://localhost:9000 \
         BLOB_ACCESS_KEY_ID=minioadmin \
         BLOB_SECRET_ACCESS_KEY=minioadmin \
         BLOB_BUCKET_NAME=conversational-ui-blob \
-        pnpm build > "{{logs_dir}}/ui-build.log" 2>&1
+        pnpm build > "{{logs_dir}}/ui-build.log" 2>&1'
     @echo "   Starting production server..."
     @cd "{{ui_dir}}" && \
+        bash -c 'set -a && source .env 2>/dev/null || true && set +a && \
+        CUDU_ENDPOINT=http://localhost:8000 \
         BLOB_ENDPOINT=http://localhost:9000 \
         BLOB_ACCESS_KEY_ID=minioadmin \
         BLOB_SECRET_ACCESS_KEY=minioadmin \
         BLOB_BUCKET_NAME=conversational-ui-blob \
         nohup pnpm start > "{{logs_dir}}/ui.log" 2>&1 & \
-        echo $! > "{{logs_dir}}/ui.pid"
+        echo $! > "{{logs_dir}}/ui.pid"'
     @echo "   PID: $(cat "{{logs_dir}}/ui.pid")"
     @echo "   Log: {{logs_dir}}/ui.log"
 
 # ▶️ Start issue-solver API in background (with MinIO for S3, skip LocalStack - using shared)
 [private]
-e2e-start-api: e2e-logs-init
+e2e-start-api:
     @echo "▶️  Starting issue-solver API..."
-    @echo "   Waiting for backend database..."
-    @until docker exec postgres-umansbackenddb pg_isready -U cudu -d umansbackenddb > /dev/null 2>&1; do sleep 1; done
     @echo "   Running migrations..."
-    @cd "{{backend_dir}}" && just db-upgrade
+    @cd "{{backend_dir}}" && bash -c 'set -a && source .env 2>/dev/null || true && set +a && just db-upgrade'
     @echo "   Starting FastAPI..."
     @cd "{{backend_dir}}" && \
-        AWS_ENDPOINT_URL_S3=http://localhost:9000 \
+        bash -c 'set -a && source .env 2>/dev/null || true && \
+        unset AWS_ENDPOINT_URL && \
+        AWS_ENDPOINT_URL=http://localhost:9000 \
         AWS_ENDPOINT_URL_SQS=http://localhost:4566 \
         AWS_ACCESS_KEY_ID=minioadmin \
         AWS_SECRET_ACCESS_KEY=minioadmin \
         KNOWLEDGE_BUCKET_NAME=conversational-ui-blob \
-        nohup just api-start > "{{logs_dir}}/api.log" 2>&1 & \
-        echo $! > "{{logs_dir}}/api.pid"
+        PROCESS_QUEUE_URL=http://sqs.eu-west-3.localhost.localstack.cloud:4566/000000000000/process-queue && \
+        unset MORPH_API_KEY && \
+        nohup uv run uvicorn issue_solver.webapi.main:app --host 0.0.0.0 --port 8000 > "{{logs_dir}}/api.log" 2>&1 & \
+        echo $! > "{{logs_dir}}/api.pid"'
     @echo "   PID: $(cat "{{logs_dir}}/api.pid")"
     @echo "   Log: {{logs_dir}}/api.log"
 
 # ▶️ Start issue-solver worker in background (with MinIO for S3, shared LocalStack for SQS)
 [private]
-e2e-start-worker: e2e-logs-init
+e2e-start-worker:
     @echo "▶️  Starting issue-solver worker..."
     @cd "{{backend_dir}}" && \
-        AWS_ENDPOINT_URL_S3=http://localhost:9000 \
+        bash -c 'set -a && source .env 2>/dev/null || true && \
+        unset AWS_ENDPOINT_URL && \
+        AWS_ENDPOINT_URL=http://localhost:9000 \
         AWS_ENDPOINT_URL_SQS=http://localhost:4566 \
         AWS_ACCESS_KEY_ID=minioadmin \
         AWS_SECRET_ACCESS_KEY=minioadmin \
+        AWS_REGION=eu-west-3 \
         KNOWLEDGE_BUCKET_NAME=conversational-ui-blob \
-        nohup just w > "{{logs_dir}}/worker.log" 2>&1 & \
-        echo $! > "{{logs_dir}}/worker.pid"
+        PROCESS_QUEUE_URL=http://sqs.eu-west-3.localhost.localstack.cloud:4566/000000000000/process-queue && \
+        unset MORPH_API_KEY && \
+        nohup uv run src/issue_solver/worker/local_runner.py > "{{logs_dir}}/worker.log" 2>&1 & \
+        echo $! > "{{logs_dir}}/worker.pid"'
     @echo "   PID: $(cat "{{logs_dir}}/worker.pid")"
     @echo "   Log: {{logs_dir}}/worker.log"
 
@@ -217,12 +229,18 @@ e2e-seed-test:
 e2e-restart-ui: e2e-logs-init
     @echo "🔄 Restarting UI..."
     @if [ -f {{logs_dir}}/ui.pid ]; then kill $(cat {{logs_dir}}/ui.pid) 2>/dev/null || true; rm {{logs_dir}}/ui.pid; fi
-    @cd "{{ui_dir}}" && rm -rf .next && pnpm build > "{{logs_dir}}/ui-build.log" 2>&1
+    @cd "{{ui_dir}}" && bash -c 'set -a && source .env 2>/dev/null || true && set +a && \
+        BLOB_ENDPOINT=http://localhost:9000 \
+        BLOB_ACCESS_KEY_ID=minioadmin \
+        BLOB_SECRET_ACCESS_KEY=minioadmin \
+        BLOB_BUCKET_NAME=conversational-ui-blob \
+        rm -rf .next && pnpm build > "{{logs_dir}}/ui-build.log" 2>&1'
     @cd "{{ui_dir}}" && \
+        bash -c 'set -a && source .env 2>/dev/null || true && set +a && \
         BLOB_ENDPOINT=http://localhost:9000 \
         BLOB_ACCESS_KEY_ID=minioadmin \
         BLOB_SECRET_ACCESS_KEY=minioadmin \
         BLOB_BUCKET_NAME=conversational-ui-blob \
         nohup pnpm start > "{{logs_dir}}/ui.log" 2>&1 & \
-        echo $! > "{{logs_dir}}/ui.pid"
+        echo $! > "{{logs_dir}}/ui.pid"'
     @echo "✅ UI restarted (PID: $(cat "{{logs_dir}}/ui.pid"))"

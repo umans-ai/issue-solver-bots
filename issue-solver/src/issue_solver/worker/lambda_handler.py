@@ -120,7 +120,11 @@ async def load_dependencies() -> Dependencies:
             api_key=os.environ["ANTHROPIC_API_KEY"], agent_messages=agent_message_store
         ),
         knowledge_repository=S3KnowledgeRepository(
-            s3_client=boto3.client("s3"),
+            s3_client=boto3.client(
+                "s3",
+                endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3")
+                or os.environ.get("AWS_ENDPOINT_URL"),
+            ),
             bucket_name=os.environ["KNOWLEDGE_BUCKET_NAME"],
         ),
         clock=get_clock(),

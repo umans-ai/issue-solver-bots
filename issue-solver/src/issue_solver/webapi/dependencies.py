@@ -71,7 +71,11 @@ def get_knowledge_repository() -> KnowledgeRepository:
     if not bucket_name:
         raise RuntimeError("KNOWLEDGE_BUCKET_NAME is not configured")
     return S3KnowledgeRepository(
-        s3_client=boto3.client("s3"),
+        s3_client=boto3.client(
+            "s3",
+            endpoint_url=os.environ.get("AWS_ENDPOINT_URL_S3")
+            or os.environ.get("AWS_ENDPOINT_URL"),
+        ),
         bucket_name=bucket_name,
     )
 

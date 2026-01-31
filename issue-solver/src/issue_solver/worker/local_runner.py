@@ -31,9 +31,11 @@ class DummyContext:
 
 def poll_sqs(process_queue_url: str) -> None:
     # Create an SQS client pointing to LocalStack
+    # Use AWS_ENDPOINT_URL_SQS if available, otherwise fall back to AWS_ENDPOINT_URL
+    sqs_endpoint = os.environ.get("AWS_ENDPOINT_URL_SQS") or os.environ.get("AWS_ENDPOINT_URL")
     sqs = boto3.client(
         "sqs",
-        endpoint_url=os.environ.get("AWS_ENDPOINT_URL"),
+        endpoint_url=sqs_endpoint,
         region_name=os.environ["AWS_REGION"],
         aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
         aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
