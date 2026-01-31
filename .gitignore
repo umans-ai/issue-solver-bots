@@ -7,3 +7,4 @@ venv/
 
 # E2E development logs
 .e2e-logs/
+.playwright-mcp
