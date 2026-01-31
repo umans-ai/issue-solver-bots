@@ -37,12 +37,21 @@ seed-test:
 # ▶️ Start the development server
 dev: install start-services migrate
     @echo "Starting the development server..."
-    @pnpm run dev
+    @WATCHPACK_POLLING=true pnpm run dev
 
-# 📦 Build the project
-build:
+# 🧹 Clean Next.js cache
+clean:
+    @rm -rf .next
+
+# 📦 Build the project (clears cache first to avoid chunk errors)
+build: clean
     @echo "Building the project..."
     @pnpm build
+
+# 🚀 Start production server
+start: build
+    @echo "Starting production server..."
+    @pnpm start
 
 # 🧪 Run tests
 test:

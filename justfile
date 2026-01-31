@@ -64,21 +64,28 @@ e2e-databases-stop:
 e2e-logs-init:
     @mkdir -p "{{logs_dir}}"
 
-# ▶️ Start conversational-ui in background (uses shared MinIO on port 9000)
+# ▶️ Start conversational-ui in background (production build, uses shared MinIO on port 9000)
 [private]
 e2e-start-ui: e2e-logs-init
     @echo "▶️  Starting conversational-ui..."
     @echo "   Waiting for UI database..."
     @until docker exec postgres-umansuidb pg_isready -U user -d umansuidb > /dev/null 2>&1; do sleep 1; done
     @echo "   Running migrations..."
-    @cd "{{ui_dir}}" && pnpm run db:migrate > /dev/null 2>&1
-    @echo "   Starting Next.js..."
+    @cd "{{ui_dir}}" && pnpm run db:migrate
+    @echo "   Building UI (this may take a moment)..."
+    @cd "{{ui_dir}}" && rm -rf .next && \
+        BLOB_ENDPOINT=http://localhost:9000 \
+        BLOB_ACCESS_KEY_ID=minioadmin \
+        BLOB_SECRET_ACCESS_KEY=minioadmin \
+        BLOB_BUCKET_NAME=conversational-ui-blob \
+        pnpm build > "{{logs_dir}}/ui-build.log" 2>&1
+    @echo "   Starting production server..."
     @cd "{{ui_dir}}" && \
         BLOB_ENDPOINT=http://localhost:9000 \
         BLOB_ACCESS_KEY_ID=minioadmin \
         BLOB_SECRET_ACCESS_KEY=minioadmin \
         BLOB_BUCKET_NAME=conversational-ui-blob \
-        nohup pnpm run dev > "{{logs_dir}}/ui.log" 2>&1 & \
+        nohup pnpm start > "{{logs_dir}}/ui.log" 2>&1 & \
         echo $! > "{{logs_dir}}/ui.pid"
     @echo "   PID: $(cat "{{logs_dir}}/ui.pid")"
     @echo "   Log: {{logs_dir}}/ui.log"
@@ -130,14 +137,9 @@ e2e-dev: e2e-services e2e-databases e2e-start-ui e2e-start-api e2e-start-worker
     @echo "  API:     http://localhost:8000"
     @echo "  MinIO:   http://localhost:9001 (console)"
     @echo ""
-    @echo "Logs:"
-    @echo "  just e2e-logs          # All logs"
-    @echo "  just e2e-logs-ui       # UI only"
-    @echo "  just e2e-logs-api      # API only"
-    @echo "  just e2e-logs-worker   # Worker only"
-    @echo ""
-    @echo "Stop:"
-    @echo "  just e2e-stop          # Stop all"
+    @echo "Logs:       just e2e-logs | just e2e-logs-ui"
+    @echo "Restart UI: just e2e-restart-ui"
+    @echo "Stop all:   just e2e-stop"
     @echo ""
 
 # 📋 Show all logs (tail -f)
@@ -210,3 +212,17 @@ e2e-destroy: e2e-clean
 # 🌱 Seed test user for UI (for Playwright/E2E testing)
 e2e-seed-test:
     @cd {{ui_dir}} && just seed-test
+
+# 🔄 Restart UI (stop + rebuild + start)
+e2e-restart-ui: e2e-logs-init
+    @echo "🔄 Restarting UI..."
+    @if [ -f {{logs_dir}}/ui.pid ]; then kill $(cat {{logs_dir}}/ui.pid) 2>/dev/null || true; rm {{logs_dir}}/ui.pid; fi
+    @cd "{{ui_dir}}" && rm -rf .next && pnpm build > "{{logs_dir}}/ui-build.log" 2>&1
+    @cd "{{ui_dir}}" && \
+        BLOB_ENDPOINT=http://localhost:9000 \
+        BLOB_ACCESS_KEY_ID=minioadmin \
+        BLOB_SECRET_ACCESS_KEY=minioadmin \
+        BLOB_BUCKET_NAME=conversational-ui-blob \
+        nohup pnpm start > "{{logs_dir}}/ui.log" 2>&1 & \
+        echo $! > "{{logs_dir}}/ui.pid"
+    @echo "✅ UI restarted (PID: $(cat "{{logs_dir}}/ui.pid"))"
