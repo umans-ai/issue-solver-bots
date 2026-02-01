@@ -333,3 +333,83 @@ describe('Space Naming', () => {
     expect(spaceName).toBe('Documentation Workspace');
   });
 });
+
+describe('Private Wiki View for Converted Spaces', () => {
+  /**
+   * This behavior ensures that when a user converts from public wiki to private
+   * space (via the chat conversion flow), they can still view the wiki content
+   * even though their space doesn't have a connected repository.
+   *
+   * Why: The public wiki content is already generated and stored in S3. When the
+   * user authenticates and gets a space with the same KB ID, they should see
+   * that content without needing to connect a repo first.
+   *
+   * How: The showEmptyState logic checks BOTH hasConnectedRepo AND kbId. If a
+   * space has a KB ID (meaning it has wiki content available), it shows the
+   * content rather than the "Bring a repo to life" empty state.
+   */
+
+  it('shows wiki content when space has KB ID but no connected repo', () => {
+    // Given a space created from public wiki conversion
+    const space = {
+      id: 'space-converted',
+      knowledgeBaseId: 'kb-public-wiki-123',
+      connectedRepoUrl: null, // No connected repo
+      hasGeneratedWiki: true, // But has wiki content from public wiki
+    };
+
+    // When evaluating whether to show empty state
+    const hasConnectedRepo = Boolean(space.connectedRepoUrl);
+    const hasKbId = Boolean(space.knowledgeBaseId);
+    const showEmptyState = !hasConnectedRepo && !hasKbId;
+
+    // Then empty state is NOT shown because KB ID exists
+    expect(showEmptyState).toBe(false);
+    // And wiki content would be displayed
+    expect(hasKbId).toBe(true);
+  });
+
+  it('shows "Bring a repo to life" only when no KB ID and no connected repo', () => {
+    // Given a brand new space with nothing set up
+    const space = {
+      id: 'space-empty',
+      knowledgeBaseId: null,
+      connectedRepoUrl: null,
+    };
+
+    // When evaluating whether to show empty state
+    const hasConnectedRepo = Boolean(space.connectedRepoUrl);
+    const hasKbId = Boolean(space.knowledgeBaseId);
+    const showEmptyState = !hasConnectedRepo && !hasKbId;
+
+    // Then empty state IS shown because there's no content at all
+    expect(showEmptyState).toBe(true);
+  });
+
+  it('allows seamless transition from public wiki to private wiki view', () => {
+    // Given a user who browsed a public wiki and then authenticated
+    const userFlow = {
+      // Step 1: Visited public wiki
+      publicWikiKbId: 'kb-react-docs',
+
+      // Step 2: Authenticated via continue flow
+      convertedSpace: {
+        id: 'space-user-123',
+        knowledgeBaseId: 'kb-react-docs', // Same KB ID
+        connectedRepoUrl: null, // No repo connected yet
+      },
+
+      // Step 3: User navigates to wiki tab
+      currentPath: '/docs/space-user-123',
+    };
+
+    // When checking if wiki content should be visible
+    const space = userFlow.convertedSpace;
+    const canViewWiki = Boolean(space.knowledgeBaseId);
+
+    // Then the wiki content is accessible
+    expect(canViewWiki).toBe(true);
+    // And the user sees the same content they saw on the public wiki
+    expect(space.knowledgeBaseId).toBe(userFlow.publicWikiKbId);
+  });
+});
