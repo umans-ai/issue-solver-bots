@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { IconUmansLogo } from '@/components/icons';
+import { useSession } from 'next-auth/react';
 
 /**
  * Continue Page - Post-Auth Handler for Public Wiki Chat Conversion
@@ -16,14 +17,14 @@ import { IconUmansLogo } from '@/components/icons';
  * 3. After successful auth, user lands here
  * 4. This page:
  *    - Reads the pending message and KB ID from localStorage
- *    - Checks if user already has a space with this KB ID
- *    - If yes: sets that space as selected
- *    - If no: creates a new space with the KB ID
- *    - Redirects to /chat where the pending message is auto-sent
+ *    - Calls /api/spaces/join-or-create to find/create space with this KB
+ *    - Refreshes the session to get updated selectedSpace
+ *    - Redirects to / (home) where the pending message is auto-sent
  */
 
 export default function ContinuePage() {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [status, setStatus] = useState<'loading' | 'error'>('loading');
   const [message, setMessage] = useState('Setting up your workspace...');
 
@@ -73,8 +74,9 @@ export default function ContinuePage() {
           throw new Error(error.error || 'Failed to set up workspace');
         }
 
-        // Successfully set up space - redirect to home
-        // The Chat component will read pending_chat_message and auto-send
+        // Successfully set up space - refresh session to get updated selectedSpace
+        // then redirect to home
+        await updateSession();
         router.replace('/');
       } catch (error) {
         console.error('Error in continue flow:', error);
@@ -88,7 +90,7 @@ export default function ContinuePage() {
     }
 
     setupSpaceAndRedirect();
-  }, [router]);
+  }, [router, updateSession]);
 
   return (
     <div className="flex h-dvh w-screen items-center justify-center bg-background">
