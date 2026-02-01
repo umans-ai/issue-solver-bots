@@ -24,9 +24,14 @@ import { useSession } from 'next-auth/react';
 
 export default function ContinuePage() {
   const router = useRouter();
-  const { update: updateSession } = useSession();
+  const session = useSession();
+  const [isMounted, setIsMounted] = useState(false);
   const [status, setStatus] = useState<'loading' | 'error'>('loading');
   const [message, setMessage] = useState('Setting up your workspace...');
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     async function setupSpaceAndRedirect() {
@@ -76,7 +81,9 @@ export default function ContinuePage() {
 
         // Successfully set up space - refresh session to get updated selectedSpace
         // then redirect to home
-        await updateSession();
+        if (isMounted && session.update) {
+          await session.update();
+        }
         router.replace('/');
       } catch (error) {
         console.error('Error in continue flow:', error);
@@ -90,7 +97,7 @@ export default function ContinuePage() {
     }
 
     setupSpaceAndRedirect();
-  }, [router, updateSession]);
+  }, [router, isMounted, session]);
 
   return (
     <div className="flex h-dvh w-screen items-center justify-center bg-background">

@@ -1461,7 +1461,7 @@ export default function DocsPage() {
     hasConnectedRepo && (docsMissing || (!commitSha && !versionsLoading));
   const showLoadingShell = (versionsLoading || isIndexLoading) && !showProgress;
   const showEmptyState =
-    !showLoadingShell && (showProgress || !hasConnectedRepo);
+    !showLoadingShell && (showProgress || (!hasConnectedRepo && !kbId));
   const isContentLoading = contentStatus === 'loading';
   const emptySteps = useMemo(() => {
     if (!hasConnectedRepo) return [];
