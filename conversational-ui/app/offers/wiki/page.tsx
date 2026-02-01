@@ -227,7 +227,7 @@ export default function WikiLandingPage() {
                       </p>
                     </CardContent>
                     <CardFooter>
-                      <Link href={`/offers/wiki/${repo.owner}/${repo.name}`} className="w-full">
+                      <Link href={`/docs/public/${repo.owner}/${repo.name}`} className="w-full">
                         <Button variant="secondary" className="w-full group">
                           <span>Open Wiki</span>
                           <ArrowRight className="w-4 h-4 ml-2 opacity-50 group-hover:opacity-100 transition-opacity" />
