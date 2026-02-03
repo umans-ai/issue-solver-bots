@@ -87,7 +87,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://umans.ai/og-code.png',
+        url: 'https://app.umans.ai/og-code.png',
         width: 1200,
         height: 630,
         alt: 'code by Umans - Claude Code without limits',
@@ -100,7 +100,7 @@ export const metadata: Metadata = {
     description:
       'Get Claude Code without usage limits. A managed endpoint running top open-source coding models, starting at $20/month. Drop-in compatible with Claude Code CLI.',
     creator: '@umans_ai',
-    images: ['https://umans.ai/og-code.png'],
+    images: ['https://app.umans.ai/og-code.png'],
   },
   alternates: {
     canonical: 'https://app.umans.ai/offers/code',

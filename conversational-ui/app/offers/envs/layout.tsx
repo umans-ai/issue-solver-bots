@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'envs by Umans | Repo-ready sandboxes for AI agents',
     description: 'Give your AI agents a real developer environment. Deterministic, MCP-native sandboxes that spin up in seconds.',
-    url: 'https://umans.ai/offers/envs',
+    url: 'https://app.umans.ai/offers/envs',
     siteName: 'Umans AI',
     locale: 'en_US',
     type: 'website',
     images: [
       {
-        url: 'https://umans.ai/og-envs.png', 
+        url: 'https://app.umans.ai/og-envs.png', 
         width: 1200,
         height: 630,
         alt: 'envs by Umans - Sandboxes for AI Agents',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: 'envs by Umans | Repo-ready sandboxes for AI agents',
     description: 'Give your AI agents a real developer environment. Deterministic, MCP-native sandboxes that spin up in seconds.',
     creator: '@umans_ai',
-    images: ['https://umans.ai/og-envs.png'],
+    images: ['https://app.umans.ai/og-envs.png'],
   },
   alternates: {
     canonical: '/offers/envs',

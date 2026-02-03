@@ -6,13 +6,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Umans Wiki | Turn any repo into a living wiki',
     description: 'Auto-generated documentation grounded in source code. Ask questions, understand architecture, and share knowledge with your team.',
-    url: 'https://umans.ai/offers/wiki',
+    url: 'https://app.umans.ai/offers/wiki',
     siteName: 'Umans AI',
     locale: 'en_US',
     type: 'website',
     images: [
       {
-        url: 'https://umans.ai/og-wiki.png',
+        url: 'https://app.umans.ai/og-wiki.png',
         width: 1200,
         height: 630,
         alt: 'Umans Wiki - Auto-generated documentation',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     title: 'Umans Wiki | Turn any repo into a living wiki',
     description: 'Auto-generated documentation grounded in source code. Ask questions, understand architecture, and share knowledge with your team.',
     creator: '@umans_ai',
-    images: ['https://umans.ai/og-wiki.png'],
+    images: ['https://app.umans.ai/og-wiki.png'],
   },
   alternates: {
     canonical: '/offers/wiki',

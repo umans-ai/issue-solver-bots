@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     siteName: 'Umans AI',
     images: [
       {
-        url: 'https://umans.ai/og-image.png',
+        url: 'https://app.umans.ai/og-image.png',
         width: 1200,
         height: 630,
         alt: 'Umans AI Platform',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     title: 'Umans – AI coding agents for teams that ship on complex systems',
     description:
       'Umans is an AI coding agent platform that helps software teams understand large codebases faster, offload repetitive fixes to remote agents that open PRs, and keep docs and architecture diagrams in sync with the code.',
-    images: ['https://umans.ai/og-image.png'],
+    images: ['https://app.umans.ai/og-image.png'],
     creator: '@umans_ai',
   },
 };
