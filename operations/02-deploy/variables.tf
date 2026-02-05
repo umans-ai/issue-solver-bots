@@ -143,3 +143,17 @@ variable "stripe_billing_portal_url" {
   type        = string
   default     = ""
 }
+
+variable "code_gateway_url" {
+  description = "Base URL for the Umans Code gateway (llm-gateway)"
+  type        = string
+  default     = ""
+}
+
+variable "code_gateway_admin_token" {
+  description = "Admin token for the Umans Code gateway /admin/keys endpoints"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+

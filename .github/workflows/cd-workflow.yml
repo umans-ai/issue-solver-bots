@@ -340,6 +340,8 @@ jobs:
           TF_VAR_google_generative_ai_api_key: ${{ secrets.TF_VAR_GOOGLE_GENERATIVE_AI_API_KEY }}
           TF_VAR_exa_api_key: ${{ secrets.TF_VAR_EXA_API_KEY }}
           TF_VAR_email_api_key: ${{ secrets.TF_VAR_EMAIL_API_KEY }}
+          TF_VAR_code_gateway_url: ${{ secrets.TF_VAR_CODE_GATEWAY_URL }}
+          TF_VAR_code_gateway_admin_token: ${{ secrets.TF_VAR_CODE_GATEWAY_ADMIN_TOKEN }}
           TF_VAR_token_encryption_key: ${{ secrets.TF_VAR_TOKEN_ENCRYPTION_KEY }}
           TF_VAR_notion_mcp_client_id: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_notion_mcp_client_id_prod || env.TF_VAR_notion_mcp_client_id_preview }}
           TF_VAR_notion_mcp_client_secret: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_notion_mcp_client_secret_prod || env.TF_VAR_notion_mcp_client_secret_preview }}
@@ -483,6 +485,8 @@ jobs:
           TF_VAR_google_generative_ai_api_key: ${{ secrets.TF_VAR_GOOGLE_GENERATIVE_AI_API_KEY }}
           TF_VAR_exa_api_key: ${{ secrets.TF_VAR_EXA_API_KEY }}
           TF_VAR_email_api_key: ${{ secrets.TF_VAR_EMAIL_API_KEY }}
+          TF_VAR_code_gateway_url: ${{ secrets.TF_VAR_CODE_GATEWAY_URL }}
+          TF_VAR_code_gateway_admin_token: ${{ secrets.TF_VAR_CODE_GATEWAY_ADMIN_TOKEN }}
           TF_VAR_token_encryption_key: ${{ secrets.TF_VAR_TOKEN_ENCRYPTION_KEY }}
           TF_VAR_notion_mcp_client_id: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_notion_mcp_client_id_prod || env.TF_VAR_notion_mcp_client_id_preview || 'random_dummy_value'}}
           TF_VAR_notion_mcp_client_secret: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_notion_mcp_client_secret_prod || env.TF_VAR_notion_mcp_client_secret_preview || 'random_dummy_value'}}
