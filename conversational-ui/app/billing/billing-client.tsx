@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import useSWR from 'swr';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
+import { cn, fetcher } from '@/lib/utils';
 import {
   PLEDGE_CHARGE_START_LABEL,
   PLEDGE_DEADLINE_LABEL,
@@ -33,6 +34,17 @@ type PledgeSummary = {
 type BillingClientProps = {
   pledge: PledgeSummary | null;
   portalUrl: string;
+};
+
+type ApiKeySummary = {
+  gatewayKeyId: string;
+  keyPrefix: string;
+  createdAt: string;
+  revokedAt: string | null;
+};
+
+type ApiKeysResponse = {
+  keys: Array<ApiKeySummary>;
 };
 
 const planOptions = {
@@ -85,6 +97,24 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   );
 
   const activePledge = isActive && pledge ? pledge : null;
+
+  const {
+    data: apiKeysData,
+    error: apiKeysError,
+    isLoading: apiKeysLoading,
+    mutate: mutateApiKeys,
+  } = useSWR<ApiKeysResponse>(
+    activeTab === 'api-keys' ? '/api/keys' : null,
+    fetcher,
+  );
+
+  const [creatingApiKey, setCreatingApiKey] = useState(false);
+  const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null);
+  const [newApiKey, setNewApiKey] = useState<{
+    key: string;
+    keyPrefix: string;
+  } | null>(null);
+  const [newApiKeyOpen, setNewApiKeyOpen] = useState(false);
 
   useEffect(() => {
     const outcome = searchParams?.get('pledge');
@@ -156,6 +186,77 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
       setDialogOpen(false);
     }
   };
+  const copyNewApiKey = async () => {
+    if (!newApiKey?.key) return;
+
+    try {
+      await navigator.clipboard.writeText(newApiKey.key);
+      toast.success('Copied.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to copy. Please copy manually.');
+    }
+  };
+
+  const createApiKey = async () => {
+    try {
+      setCreatingApiKey(true);
+      const res = await fetch('/api/keys', { method: 'POST' });
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        if (data?.error === 'subscription_required') {
+          toast.message('Choose a plan to create API keys.');
+          setActiveTab('billing');
+          setDialogOpen(true);
+          return;
+        }
+
+        toast.error('Unable to create API key. Try again.');
+        return;
+      }
+
+      if (!data?.key || !data?.key_prefix) {
+        toast.error('Unable to create API key. Try again.');
+        return;
+      }
+
+      setNewApiKey({
+        key: data.key as string,
+        keyPrefix: data.key_prefix as string,
+      });
+      setNewApiKeyOpen(true);
+      toast.success('API key created.');
+      void mutateApiKeys();
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to create API key. Try again.');
+    } finally {
+      setCreatingApiKey(false);
+    }
+  };
+
+  const revokeApiKey = async (gatewayKeyId: string) => {
+    try {
+      setRevokingKeyId(gatewayKeyId);
+      const res = await fetch(`/api/keys/${gatewayKeyId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        toast.error('Unable to revoke key. Try again.');
+        return;
+      }
+
+      toast.success('Key revoked.');
+      void mutateApiKeys();
+    } catch (err) {
+      console.error(err);
+      toast.error('Unable to revoke key. Try again.');
+    } finally {
+      setRevokingKeyId(null);
+    }
+  };
 
   return (
     <div className="grid gap-12 lg:grid-cols-[160px_minmax(0,1fr)] lg:gap-16">
@@ -222,13 +323,128 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
 
         {activeTab === 'api-keys' ? (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold text-white">API keys</h2>
-              <p className="mt-3 text-base leading-relaxed text-white/70">
-                Keys will be available on March 1, 2026. We will email you when
-                access opens.
-              </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-semibold text-white">API keys</h2>
+                <p className="mt-3 text-base leading-relaxed text-white/70">
+                  Create keys to authenticate requests to the Umans Code API.
+                  Your key is shown once - store it somewhere safe.
+                </p>
+              </div>
+
+              <Button
+                variant="outline"
+                className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                onClick={createApiKey}
+                disabled={!activePledge || creatingApiKey}
+              >
+                {creatingApiKey ? 'Creating...' : 'Create key'}
+              </Button>
             </div>
+
+            {!activePledge ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/70">
+                <p className="text-sm">You need an active pledge to create keys.</p>
+                <Button
+                  variant="outline"
+                  className="mt-4 rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                  onClick={() => {
+                    setActiveTab('billing');
+                    setDialogOpen(true);
+                  }}
+                >
+                  Choose a plan
+                </Button>
+              </div>
+            ) : null}
+
+            <Dialog
+              open={newApiKeyOpen}
+              onOpenChange={(open) => {
+                setNewApiKeyOpen(open);
+                if (!open) {
+                  setNewApiKey(null);
+                }
+              }}
+            >
+              {newApiKey ? (
+                <DialogContent className="max-w-2xl border-white/10 bg-[#0b0d10] text-white">
+                  <DialogHeader className="space-y-2">
+                    <DialogTitle className="text-2xl">
+                      Your new API key
+                    </DialogTitle>
+                  </DialogHeader>
+                  <p className="text-sm text-white/60">
+                    This key is shown once. Copy it now and store it securely.
+                  </p>
+                  <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
+                    <code className="w-full overflow-x-auto text-sm text-white/90">
+                      {newApiKey.key}
+                    </code>
+                    <Button
+                      variant="outline"
+                      className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                      onClick={copyNewApiKey}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </DialogContent>
+              ) : null}
+            </Dialog>
+
+            {apiKeysError ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/70">
+                <p className="text-sm">Failed to load keys.</p>
+              </div>
+            ) : apiKeysLoading ? (
+              <p className="text-sm text-white/60">Loading...</p>
+            ) : (
+              <div className="space-y-3">
+                {(apiKeysData?.keys ?? []).length ? (
+                  (apiKeysData?.keys ?? []).map((key) => (
+                    <div
+                      key={key.gatewayKeyId}
+                      className="rounded-2xl border border-white/10 bg-white/5 p-5"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium text-white">
+                            {key.keyPrefix}...
+                          </div>
+                          <div className="text-xs text-white/50">
+                            Created {new Date(key.createdAt).toLocaleString()}
+                          </div>
+                          {key.revokedAt ? (
+                            <div className="text-xs text-white/50">
+                              Revoked{' '}
+                              {new Date(key.revokedAt).toLocaleString()}
+                            </div>
+                          ) : (
+                            <div className="text-xs text-white/50">Active</div>
+                          )}
+                        </div>
+
+                        {!key.revokedAt ? (
+                          <Button
+                            variant="outline"
+                            className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                            disabled={revokingKeyId === key.gatewayKeyId}
+                            onClick={() => revokeApiKey(key.gatewayKeyId)}
+                          >
+                            {revokingKeyId === key.gatewayKeyId
+                              ? 'Revoking...'
+                              : 'Revoke'}
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-white/60">No keys yet.</p>
+                )}
+              </div>
+            )}
           </div>
         ) : null}
 

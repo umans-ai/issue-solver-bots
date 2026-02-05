@@ -94,6 +94,8 @@ resource "aws_apprunner_service" "conversational_ui" {
           ANTHROPIC_BASE_URL           = var.anthropic_base_url
           EXA_API_KEY                  = var.exa_api_key
           CUDU_ENDPOINT                = aws_apigatewayv2_api.cudu_api.api_endpoint
+          CODE_GATEWAY_URL             = var.code_gateway_url
+          CODE_GATEWAY_ADMIN_TOKEN     = var.code_gateway_admin_token
           EMAIL_API_KEY                = var.email_api_key
           EMAIL_FROM                   = var.email_from
           POSTHOG_KEY                  = var.posthog_key

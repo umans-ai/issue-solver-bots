@@ -73,6 +73,31 @@ export const pledge = pgTable('Pledge', {
 
 export type Pledge = InferSelectModel<typeof pledge>;
 
+export const gatewayApiKey = pgTable(
+  'GatewayApiKey',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    gatewayKeyId: uuid('gatewayKeyId').notNull(),
+    keyPrefix: varchar('keyPrefix', { length: 32 }).notNull(),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+    revokedAt: timestamp('revokedAt'),
+  },
+  (table) => {
+    return {
+      gatewayKeyIdUnique: uniqueIndex(
+        'gateway_api_key_gateway_key_id_unique',
+      ).on(table.gatewayKeyId),
+      userIdx: index('gateway_api_key_user_idx').on(table.userId),
+      revokedAtIdx: index('gateway_api_key_revoked_at_idx').on(table.revokedAt),
+    };
+  },
+);
+
+export type GatewayApiKey = InferSelectModel<typeof gatewayApiKey>;
+
 export const featuredRepo = pgTable(
   'FeaturedRepo',
   {
