@@ -97,7 +97,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const pillOutlineButton =
-    'rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white';
+    'rounded-full !bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white';
   const [dialogOpen, setDialogOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(
     pledge?.billingCycle === 'yearly' ? 'yearly' : 'monthly',
@@ -421,7 +421,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
               }}
             >
               {newApiKey ? (
-                <DialogContent className="max-w-2xl border-white/10 bg-[#0b0d10] text-white">
+                <DialogContent className="max-w-2xl border-white/10 !bg-[#0b0d10] text-white">
                   <DialogHeader className="space-y-2">
                     <DialogTitle className="text-2xl">
                       Your new API key
@@ -498,7 +498,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                                   : 'Revoke'}
                               </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent className="border-white/10 bg-[#0b0d10] text-white">
+                            <AlertDialogContent className="border-white/10 !bg-[#0b0d10] text-white">
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Revoke API key</AlertDialogTitle>
                                 <AlertDialogDescription className="text-white/60">
@@ -596,7 +596,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                           Choose a plan
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-4xl border-white/10 bg-[#0b0d10] text-white">
+                      <DialogContent className="max-w-4xl border-white/10 !bg-[#0b0d10] text-white">
                         <DialogHeader className="space-y-2">
                           <DialogTitle className="text-2xl">
                             Choose your plan
