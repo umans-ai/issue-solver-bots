@@ -97,7 +97,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const pillOutlineButton =
-    'rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white';
+    'rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white';
   const [dialogOpen, setDialogOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(
     pledge?.billingCycle === 'yearly' ? 'yearly' : 'monthly',
