@@ -28,7 +28,7 @@ export default async function BillingPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#111318] text-white">
+    <div className="dark min-h-screen bg-[#111318] text-white">
       <header className="border-b border-white/10">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link
