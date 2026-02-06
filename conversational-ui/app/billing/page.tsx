@@ -44,6 +44,7 @@ export default async function BillingPage() {
       <main className="mx-auto max-w-5xl px-6 py-10">
         <BillingClient pledge={pledge} portalUrl={portalUrl} />
       </main>
+      <div data-umans-portal-root />
     </div>
   );
 }
