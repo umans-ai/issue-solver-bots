@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Check, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 
@@ -83,6 +84,8 @@ const planPriceLine = (plan: PledgePlanKey, cycle: BillingCycle) => {
 
 export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(
     pledge?.billingCycle === 'yearly' ? 'yearly' : 'monthly',
@@ -115,6 +118,13 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
     keyPrefix: string;
   } | null>(null);
   const [newApiKeyOpen, setNewApiKeyOpen] = useState(false);
+  const [newApiKeyCopied, setNewApiKeyCopied] = useState(false);
+  const [newApiKeyCopyError, setNewApiKeyCopyError] = useState<string | null>(
+    null,
+  );
+  const [apiKeysActionError, setApiKeysActionError] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     const outcome = searchParams?.get('pledge');
@@ -147,10 +157,15 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
     }
     const alreadyPledged = searchParams?.get('alreadyPledged');
     if (alreadyPledged) {
-      toast.message('You already have an active pledge.');
       setActiveTab('billing');
+      // Clean the URL so refreshing doesn't retrigger this state change.
+      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      params.delete('alreadyPledged');
+      params.set('tab', 'billing');
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     }
-  }, [searchParams]);
+  }, [pathname, router, searchParams]);
 
   const startPledge = async (
     plan: PledgePlanKey,
@@ -190,34 +205,36 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
     if (!newApiKey?.key) return;
 
     try {
+      setNewApiKeyCopyError(null);
       await navigator.clipboard.writeText(newApiKey.key);
-      toast.success('Copied.');
+      setNewApiKeyCopied(true);
+      window.setTimeout(() => setNewApiKeyCopied(false), 1500);
     } catch (err) {
       console.error(err);
-      toast.error('Unable to copy. Please copy manually.');
+      setNewApiKeyCopyError('Unable to copy. Please copy manually.');
     }
   };
 
   const createApiKey = async () => {
     try {
+      setApiKeysActionError(null);
       setCreatingApiKey(true);
       const res = await fetch('/api/keys', { method: 'POST' });
       const data = await res.json().catch(() => null);
 
       if (!res.ok) {
         if (data?.error === 'subscription_required') {
-          toast.message('Choose a plan to create API keys.');
           setActiveTab('billing');
           setDialogOpen(true);
           return;
         }
 
-        toast.error('Unable to create API key. Try again.');
+        setApiKeysActionError('Unable to create API key. Try again.');
         return;
       }
 
       if (!data?.key || !data?.key_prefix) {
-        toast.error('Unable to create API key. Try again.');
+        setApiKeysActionError('Unable to create API key. Try again.');
         return;
       }
 
@@ -225,12 +242,13 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
         key: data.key as string,
         keyPrefix: data.key_prefix as string,
       });
+      setNewApiKeyCopied(false);
+      setNewApiKeyCopyError(null);
       setNewApiKeyOpen(true);
-      toast.success('API key created.');
       void mutateApiKeys();
     } catch (err) {
       console.error(err);
-      toast.error('Unable to create API key. Try again.');
+      setApiKeysActionError('Unable to create API key. Try again.');
     } finally {
       setCreatingApiKey(false);
     }
@@ -238,21 +256,21 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
 
   const revokeApiKey = async (gatewayKeyId: string) => {
     try {
+      setApiKeysActionError(null);
       setRevokingKeyId(gatewayKeyId);
       const res = await fetch(`/api/keys/${gatewayKeyId}`, {
         method: 'DELETE',
       });
 
       if (!res.ok) {
-        toast.error('Unable to revoke key. Try again.');
+        setApiKeysActionError('Unable to revoke key. Try again.');
         return;
       }
 
-      toast.success('Key revoked.');
       void mutateApiKeys();
     } catch (err) {
       console.error(err);
-      toast.error('Unable to revoke key. Try again.');
+      setApiKeysActionError('Unable to revoke key. Try again.');
     } finally {
       setRevokingKeyId(null);
     }
@@ -334,7 +352,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
 
               <Button
                 variant="outline"
-                className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                className="rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white"
                 onClick={createApiKey}
                 disabled={!activePledge || creatingApiKey}
               >
@@ -342,12 +360,18 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
               </Button>
             </div>
 
+            {apiKeysActionError ? (
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+                {apiKeysActionError}
+              </div>
+            ) : null}
+
             {!activePledge ? (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/70">
                 <p className="text-sm">You need an active pledge to create keys.</p>
                 <Button
                   variant="outline"
-                  className="mt-4 rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                  className="mt-4 rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white"
                   onClick={() => {
                     setActiveTab('billing');
                     setDialogOpen(true);
@@ -364,6 +388,8 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                 setNewApiKeyOpen(open);
                 if (!open) {
                   setNewApiKey(null);
+                  setNewApiKeyCopied(false);
+                  setNewApiKeyCopyError(null);
                 }
               }}
             >
@@ -383,12 +409,19 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                     </code>
                     <Button
                       variant="outline"
-                      className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                      size="icon"
+                      className="rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white"
                       onClick={copyNewApiKey}
+                      aria-label="Copy API key"
                     >
-                      Copy
+                      {newApiKeyCopied ? <Check /> : <Copy />}
                     </Button>
                   </div>
+                  {newApiKeyCopyError ? (
+                    <p className="mt-2 text-xs text-red-200">
+                      {newApiKeyCopyError}
+                    </p>
+                  ) : null}
                 </DialogContent>
               ) : null}
             </Dialog>
@@ -407,7 +440,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                       key={key.gatewayKeyId}
                       className="rounded-2xl border border-white/10 bg-white/5 p-5"
                     >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-1">
                           <div className="text-sm font-medium text-white">
                             {key.keyPrefix}...
@@ -428,7 +461,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                         {!key.revokedAt ? (
                           <Button
                             variant="outline"
-                            className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                            className="rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white"
                             disabled={revokingKeyId === key.gatewayKeyId}
                             onClick={() => revokeApiKey(key.gatewayKeyId)}
                           >
