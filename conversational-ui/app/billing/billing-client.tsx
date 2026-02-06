@@ -4,9 +4,19 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Check, Copy } from 'lucide-react';
-import { toast } from 'sonner';
 import useSWR from 'swr';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -86,11 +96,16 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const pillOutlineButton =
+    'rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white';
   const [dialogOpen, setDialogOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(
     pledge?.billingCycle === 'yearly' ? 'yearly' : 'monthly',
   );
   const [loadingPlan, setLoadingPlan] = useState<PledgePlanKey | null>(null);
+  const [billingActionError, setBillingActionError] = useState<string | null>(
+    null,
+  );
   const [activeTab, setActiveTab] = useState<
     'get-started' | 'api-keys' | 'billing'
   >('get-started');
@@ -128,13 +143,13 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
 
   useEffect(() => {
     const outcome = searchParams?.get('pledge');
-    if (outcome === 'success') {
-      toast.success('Pledge saved. We’ll email you when access opens.');
-    }
-    if (outcome === 'cancelled') {
-      toast.message('Pledge checkout canceled.');
-    }
-  }, [searchParams]);
+    if (outcome !== 'success' && outcome !== 'cancelled') return;
+    // Clean the URL so refreshing doesn't retrigger pledge state.
+    const params = new URLSearchParams(searchParams?.toString() ?? '');
+    params.delete('pledge');
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   useEffect(() => {
     const pledgePlan = searchParams?.get('pledgePlan') as PledgePlanKey | null;
@@ -173,6 +188,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   ) => {
     try {
       setLoadingPlan(plan);
+      setBillingActionError(null);
       const res = await fetch('/api/billing/pledge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -192,13 +208,12 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
         window.location.href = data.url as string;
         return;
       }
-      toast.error('Unable to start Stripe checkout. Try again.');
+      setBillingActionError('Unable to start Stripe checkout. Try again.');
     } catch (err) {
       console.error(err);
-      toast.error('Unable to start Stripe checkout. Try again.');
+      setBillingActionError('Unable to start Stripe checkout. Try again.');
     } finally {
       setLoadingPlan(null);
-      setDialogOpen(false);
     }
   };
   const copyNewApiKey = async () => {
@@ -290,7 +305,19 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setActiveTab(item.id as typeof activeTab)}
+                onClick={() => {
+                  setActiveTab(item.id as typeof activeTab);
+                  const params = new URLSearchParams(
+                    searchParams?.toString() ?? '',
+                  );
+                  params.set('tab', item.id);
+                  params.delete('pledge');
+                  params.delete('alreadyPledged');
+                  const qs = params.toString();
+                  router.replace(qs ? `${pathname}?${qs}` : pathname, {
+                    scroll: false,
+                  });
+                }}
                 className={cn(
                   'flex w-full items-center rounded-md px-3 py-2 text-left font-medium transition focus-visible:outline-none',
                   isActiveTab
@@ -326,7 +353,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                 <p>If you still want a Founding seat, choose a plan below.</p>
                 <Button
                   variant="outline"
-                  className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                  className={pillOutlineButton}
                   onClick={() => {
                     setActiveTab('billing');
                     setDialogOpen(true);
@@ -352,7 +379,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
 
               <Button
                 variant="outline"
-                className="rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white"
+                className={pillOutlineButton}
                 onClick={createApiKey}
                 disabled={!activePledge || creatingApiKey}
               >
@@ -371,7 +398,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                 <p className="text-sm">You need an active pledge to create keys.</p>
                 <Button
                   variant="outline"
-                  className="mt-4 rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white"
+                  className={cn('mt-4', pillOutlineButton)}
                   onClick={() => {
                     setActiveTab('billing');
                     setDialogOpen(true);
@@ -410,7 +437,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                     <Button
                       variant="outline"
                       size="icon"
-                      className="rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white"
+                      className={pillOutlineButton}
                       onClick={copyNewApiKey}
                       aria-label="Copy API key"
                     >
@@ -459,16 +486,45 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                         </div>
 
                         {!key.revokedAt ? (
-                          <Button
-                            variant="outline"
-                            className="rounded-full border-white/20 !bg-transparent text-white hover:bg-white/10 hover:text-white"
-                            disabled={revokingKeyId === key.gatewayKeyId}
-                            onClick={() => revokeApiKey(key.gatewayKeyId)}
-                          >
-                            {revokingKeyId === key.gatewayKeyId
-                              ? 'Revoking...'
-                              : 'Revoke'}
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={pillOutlineButton}
+                                disabled={revokingKeyId === key.gatewayKeyId}
+                              >
+                                {revokingKeyId === key.gatewayKeyId
+                                  ? 'Revoking...'
+                                  : 'Revoke'}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="border-white/10 bg-[#0b0d10] text-white">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Revoke API key</AlertDialogTitle>
+                                <AlertDialogDescription className="text-white/60">
+                                  Are you sure you&apos;d like to revoke{' '}
+                                  <span className="font-medium text-white/90">
+                                    {key.keyPrefix}...
+                                  </span>
+                                  ? This is permanent and cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter className="mt-4">
+                                <AlertDialogCancel className={pillOutlineButton}>
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => revokeApiKey(key.gatewayKeyId)}
+                                  disabled={revokingKeyId === key.gatewayKeyId}
+                                  className="rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {revokingKeyId === key.gatewayKeyId
+                                    ? 'Revoking...'
+                                    : 'Revoke'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         ) : null}
                       </div>
                     </div>
@@ -523,11 +579,19 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {!isActive ? (
-                    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <Dialog
+                      open={dialogOpen}
+                      onOpenChange={(open) => {
+                        setDialogOpen(open);
+                        if (!open) {
+                          setBillingActionError(null);
+                        }
+                      }}
+                    >
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
-                          className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                          className={pillOutlineButton}
                         >
                           Choose a plan
                         </Button>
@@ -538,6 +602,11 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                             Choose your plan
                           </DialogTitle>
                         </DialogHeader>
+                        {billingActionError ? (
+                          <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+                            {billingActionError}
+                          </div>
+                        ) : null}
                         <div className="mt-4 flex w-fit items-center rounded-full border border-white/10 bg-white/5 p-1 text-sm">
                           <button
                             type="button"
@@ -625,6 +694,12 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                 </div>
               </div>
 
+            {billingActionError && !dialogOpen ? (
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+                {billingActionError}
+              </div>
+            ) : null}
+
             <div className="flex flex-col gap-4 border-t border-white/10 pt-6 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-white">Manage billing</h2>
@@ -635,7 +710,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
               <Button
                 asChild
                 variant="outline"
-                className="rounded-full border-white/20 text-white hover:bg-white/10 hover:text-white"
+                className={pillOutlineButton}
               >
                 <Link href={portalUrl} target="_blank" rel="noreferrer">
                   Manage billing
