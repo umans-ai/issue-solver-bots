@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
 import { getLatestPledgeForUser } from '@/lib/db/queries';
+import { CodeUserNav } from '@/components/code-user-nav';
 import { BillingClient } from './billing-client';
 
 export const dynamic = 'force-dynamic';
@@ -27,6 +28,10 @@ export default async function BillingPage() {
       }
     : null;
 
+  const activePlan = pledge && pledge.status !== 'canceled' && pledge.status !== 'expired'
+    ? pledge.plan
+    : null;
+
   return (
     <div className="dark min-h-screen bg-[#111318] text-white">
       <header className="border-b border-white/10">
@@ -38,6 +43,12 @@ export default async function BillingPage() {
             <UmansLogoMark className="h-5 w-auto" />
             <span className="text-sm font-medium tracking-tight">code</span>
           </Link>
+          <CodeUserNav
+            user={session.user}
+            plan={activePlan}
+            showDashboardLink={false}
+            dark={true}
+          />
         </div>
       </header>
 

@@ -182,6 +182,16 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
     }
   }, [pathname, router, searchParams]);
 
+  // Listen for open-pricing-dialog event from CodeUserNav
+  useEffect(() => {
+    const handleOpenPricing = () => {
+      setActiveTab('billing');
+      setDialogOpen(true);
+    };
+    window.addEventListener('open-pricing-dialog', handleOpenPricing);
+    return () => window.removeEventListener('open-pricing-dialog', handleOpenPricing);
+  }, []);
+
   const startPledge = async (
     plan: PledgePlanKey,
     cycle: BillingCycle = billingCycle,
