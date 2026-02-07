@@ -2,6 +2,11 @@
     "name": "blog",
     "type": "module",
     "version": "1.0.0",
+    "pnpm": {
+        "overrides": {
+            "fast-xml-parser": ">=5.3.4"
+        }
+    },
     "scripts": {
         "dev": "astro dev",
         "start": "astro dev",
