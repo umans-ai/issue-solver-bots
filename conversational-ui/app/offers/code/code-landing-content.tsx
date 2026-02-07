@@ -688,7 +688,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
               Plans
             </Link>
             <Link
-              href="https://blog.umans.ai/blog/host-claude-code/"
+              href="https://blog.umans.ai/blog"
               target="_blank"
               rel="noreferrer"
               className="hover:text-black dark:hover:text-white"
@@ -760,16 +760,8 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
               </p>
               <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <Button asChild size="lg" className={primaryButtonClasses}>
-                  <Link href="#plans">Reserve a Founding seat</Link>
+                  <Link href="#plans">Try it now</Link>
                 </Button>
-                <Link
-                  href="https://blog.umans.ai/blog/host-claude-code/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className={ghostLinkClasses}
-                >
-                  See how we built it
-                </Link>
               </div>
             </div>
           </div>
@@ -845,8 +837,8 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 It&apos;s still Claude Code.
               </h2>
                 <p className="text-base leading-relaxed text-[#5e5d59] dark:text-white/70">
-                  Benchmarks show umans-coder-v0 ahead of Sonnet 4.5 and
-                  competitive with Opus 4.5, matching the level of performance
+                  Benchmarks show umans-coder ahead of Sonnet 4.5 and
+                  competitive with Opus 4.5 and Opus 4.6, matching the level of performance
                   you expect from Claude Code.
                 </p>
                 <p className="text-base leading-relaxed text-[#5e5d59] dark:text-white/70">
@@ -856,7 +848,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                   something clearly better appears.
                 </p>
                 <Link
-                  href="https://blog.umans.ai/blog/host-claude-code/"
+                  href="https://blog.umans.ai/blog"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex text-sm font-medium text-[#5e5d59] underline-offset-4 hover:underline dark:text-white/60"
@@ -1039,7 +1031,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                       <div className="px-5 py-4">
                         <p className="text-sm font-medium">{video.title}</p>
                         <Link
-                          href="https://blog.umans.ai/blog/host-claude-code/"
+                          href="https://blog.umans.ai/blog"
                           target="_blank"
                           rel="noreferrer"
                           className="mt-2 inline-flex text-xs text-black/50 underline-offset-4 hover:underline dark:text-white/50"
@@ -1080,12 +1072,13 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 Lock in the founding price.
               </h2>
               <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
-                Seats are released in batches to keep the service stable.
-                Reserve now and we will activate your seat as capacity opens.
+                Join now, start coding immediately, and pay nothing until March 1st.
+                <br />
+                You&apos;ll also secure the founding member rate.
               </p>
               <div>
                 <Button asChild size="lg" className={primaryButtonClasses}>
-                  <Link href="#plans">Reserve a seat</Link>
+                  <Link href="#plans">Try it now</Link>
                 </Button>
               </div>
               <p className="text-sm text-black/60 dark:text-white/60">
@@ -1183,7 +1176,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                     onClick={() => startPledge('code_pro')}
                     disabled={pledgeLoading === 'code_pro'}
                   >
-                    {pledgeLoading === 'code_pro' ? 'Opening Stripe…' : 'Reserve this plan'}
+                    {pledgeLoading === 'code_pro' ? 'Opening Stripe…' : 'Get Started'}
                   </Button>
                 </div>
               </div>
@@ -1219,7 +1212,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                     onClick={() => startPledge('code_max')}
                     disabled={pledgeLoading === 'code_max'}
                   >
-                    {pledgeLoading === 'code_max' ? 'Opening Stripe…' : 'Reserve this plan'}
+                    {pledgeLoading === 'code_max' ? 'Opening Stripe…' : 'Get Started'}
                   </Button>
                 </div>
               </div>
