@@ -7,6 +7,7 @@
 - Tests should state behaviour (Given/When/Then) and live beside the code they describe.
 - Only follow `docs/local-dev-setup.md` when a task explicitly asks for full-stack/manual verification.
 - Keep specs in `docs/specs/` updated when implementing or changing features.
+- **Commits:** Use conventional commits with emoji suffix (e.g., `feat(ui): add billing dashboard ✨`). Never add `Co-Authored-By` lines.
 
 ## Testing Style (all code)
 
