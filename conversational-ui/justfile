@@ -30,7 +30,7 @@ migrate:
     @echo "Migrating the database..."
     @pnpm run db:migrate
 
-# 🌱 Seed test user for Playwright/E2E testing (playwright-test@umans.local / test123)
+# 🌱 Seed test users (basic, code_pro, code_max - all password: test123)
 seed-test:
     @pnpm run db:seed-test
 

@@ -40,20 +40,26 @@ WATCHPACK_POLLING=true WATCHPACK_POLLING_INTERVAL=200 \
 
 These steps keep all three long-running services alive with tailable logs while we keep working in the CLI. Adjust the polling interval or switch back to normal watchers if you are on a host without the EMFILE constraint.
 
-### Test account for Playwright/E2E testing
+### Test accounts for Playwright/E2E testing
 
-For automated testing, use the seeded test account:
+For automated testing, use the seeded test accounts:
 
 ```bash
 cd conversational-ui
 just seed-test
 ```
 
-This creates or resets the test user:
-- **Email:** `playwright-test@umans.local`
-- **Password:** `test123`
+This creates or resets three test users (all with password `test123`):
 
-The account is pre-verified with a default space, ready for immediate login.
+| Email | Type | Use Case |
+|-------|------|----------|
+| `playwright-test@umans.local` | Basic user | General testing |
+| `test-code-pro@umans.local` | Code Pro subscriber | Test billing dashboard, API keys |
+| `test-code-max@umans.local` | Code Max subscriber | Test unlimited plan features |
+
+All accounts are pre-verified with a default space and active subscriptions (for code offer users), ready for immediate login.
+
+Access the code offer dashboard at: `http://localhost:3000/billing`
 
 ### Creating a throwaway UI account (no email service)
 
