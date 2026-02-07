@@ -148,7 +148,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
     const params = new URLSearchParams(searchParams?.toString() ?? '');
     params.delete('pledge');
     const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    router.replace(qs ? `${pathname}?${qs}` : (pathname ?? '/'), { scroll: false });
   }, [pathname, router, searchParams]);
 
   useEffect(() => {
@@ -178,7 +178,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
       params.delete('alreadyPledged');
       params.set('tab', 'billing');
       const qs = params.toString();
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      router.replace(qs ? `${pathname}?${qs}` : (pathname ?? '/'), { scroll: false });
     }
   }, [pathname, router, searchParams]);
 
@@ -314,7 +314,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                   params.delete('pledge');
                   params.delete('alreadyPledged');
                   const qs = params.toString();
-                  router.replace(qs ? `${pathname}?${qs}` : pathname, {
+                  router.replace(qs ? `${pathname}?${qs}` : (pathname ?? '/'), {
                     scroll: false,
                   });
                 }}
