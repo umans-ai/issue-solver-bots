@@ -20,7 +20,7 @@
 ## Frontend (`conversational-ui`)
 
 - To install dependencies (only when the task actually needs them refreshed), run `cd conversational-ui && just install`; it shells out to pnpm install.
-- To run the UI for explicit end-to-end requests, the usual order is `just start-services` (one-time Postgres/Redis/MinIO stack) followed by `just dev`, which applies Drizzle migrations and launches `pnpm dev` on port 3000 (auto-increments when occupied). Skip this entire sequence unless the user specifically asks for a live UI.
+- To run the UI for explicit end-to-end requests, use `just dev` — it starts Postgres/Redis, waits for DB readiness, applies Drizzle migrations, and launches `pnpm dev` on port 3000 (auto-increments when occupied). Skip this unless the user specifically asks for a live UI.
 - Quality guardrail is `just build` (Next build + Drizzle). `just lint` remains red until lint debt is paid down, so leave it alone unless the task is lint remediation; use `pnpm format` and migrations (`pnpm db:generate`, `pnpm db:migrate`) for schema changes.
 - When Postgres is not running, use `pnpm build:only` to verify the Next.js build without migrations.
 
@@ -50,7 +50,7 @@
 ## Working Modes & Quick Checks
 
 - **Default (lightweight) mode:** stay in read/modify/test loops. Do not start `just dev`, `just start-services`, or the worker unless the task explicitly calls for end-to-end verification or background processing.
-- **Full-stack mode (explicitly requested):** once asked to verify end-to-end behaviour, follow `docs/local-dev-setup.md` to boot long-lived services (`just start-services`, `just dev`, `just w`). Use nohup logs so you can prove what's running.
+- **Full-stack mode (explicitly requested):** once asked to verify end-to-end behaviour, follow `docs/local-dev-setup.md` to boot long-lived services (`just dev`, `just w`). Use nohup logs so you can prove what's running.
 - **Is something already running?**
   - Frontend: `curl -I http://localhost:3000` (or increment ports) before starting anything. If you get a 2xx/3xx, reuse the existing server.
   - Backend API: `curl -I http://localhost:8000/health` or `lsof -i :8000` to see if FastAPI is up.

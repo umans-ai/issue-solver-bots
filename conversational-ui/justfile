@@ -10,10 +10,13 @@ supabase:
     @echo "Starting local Supabase server..."
     supabase start --exclude=vector
 
-# 🔌 start backing services
+# 🔌 start backing services (waits for postgres to be ready)
 start-services:
     @echo "Starting backing services..."
     @docker-compose up -d
+    @echo "⏳ Waiting for postgres to be ready..."
+    @until docker exec postgres-umansuidb pg_isready -U user -d umansuidb > /dev/null 2>&1; do sleep 1; done
+    @echo "✅ Postgres is ready!"
 
 # 🛑 stop backing services
 stop-services:
