@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { IconUmansLogo } from '@/components/icons';
 import { Check, Copy, Loader2, Lock, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
 
 interface SetupCliClientProps {
