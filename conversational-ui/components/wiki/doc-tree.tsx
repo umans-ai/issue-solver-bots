@@ -1,6 +1,4 @@
 'use client';
-
-import type { ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 export type DocFileEntry = {

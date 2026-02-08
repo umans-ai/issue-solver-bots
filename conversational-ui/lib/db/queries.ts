@@ -1028,7 +1028,7 @@ export async function getFeaturedRepoByKbId(
  * List all active featured repositories
  */
 export async function listFeaturedRepos(
-  limit: number = 50,
+  limit = 50,
 ): Promise<FeaturedRepo[]> {
   try {
     return await db

@@ -3,7 +3,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense, useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { User } from 'next-auth';
 import { Button } from '@/components/ui/button';
@@ -1173,7 +1173,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 </ul>
                 <div className="mt-auto pt-6">
                   <Button
-                    className={primaryButtonClasses + ' w-full'}
+                    className={`${primaryButtonClasses} w-full`}
                     onClick={() => startPledge('code_pro')}
                     disabled={pledgeLoading === 'code_pro'}
                   >
@@ -1209,7 +1209,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 </ul>
                 <div className="mt-auto pt-6">
                   <Button
-                    className={primaryButtonClasses + ' w-full'}
+                    className={`${primaryButtonClasses} w-full`}
                     onClick={() => startPledge('code_max')}
                     disabled={pledgeLoading === 'code_max'}
                   >
@@ -1234,8 +1234,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                   <Link
                     href="mailto:contact@umans.ai"
                     className={
-                      secondaryButtonClasses +
-                      ' inline-flex w-full items-center justify-center px-4 py-2 text-sm'
+                      `${secondaryButtonClasses} inline-flex w-full items-center justify-center px-4 py-2 text-sm`
                     }
                   >
                     Contact us

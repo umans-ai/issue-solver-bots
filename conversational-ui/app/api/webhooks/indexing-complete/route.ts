@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { featuredRepo } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 /**
  * Webhook endpoint called by the backend when indexing completes.

@@ -38,12 +38,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowUpIcon, CopyIcon, SearchIcon } from '@/components/icons';
 import { ModelSelector } from '@/components/model-selector';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';

@@ -21,7 +21,7 @@ describe('Public Wiki Chat Conversion', () => {
   beforeEach(() => {
     storage = {};
     // Mock window.location for testing redirects
-    delete (window as any).location;
+    (window as any).location = undefined;
     (window as any).location = { href: '' };
   });
 
@@ -36,13 +36,13 @@ describe('Public Wiki Chat Conversion', () => {
       const kbId = 'kb-123';
 
       // When they submit (simulating ChatCta handleSubmit)
-      storage['pending_chat_message'] = JSON.stringify(message);
-      storage['knowledge_base_id'] = JSON.stringify(kbId);
+      storage.pending_chat_message = JSON.stringify(message);
+      storage.knowledge_base_id = JSON.stringify(kbId);
       window.location.href = '/login?next=/continue';
 
       // Then the data is stored and they're sent to login with continue flow
-      expect(storage['pending_chat_message']).toBe(JSON.stringify(message));
-      expect(storage['knowledge_base_id']).toBe(JSON.stringify(kbId));
+      expect(storage.pending_chat_message).toBe(JSON.stringify(message));
+      expect(storage.knowledge_base_id).toBe(JSON.stringify(kbId));
       expect(window.location.href).toBe('/login?next=/continue');
     });
   });
@@ -57,8 +57,8 @@ describe('Public Wiki Chat Conversion', () => {
       };
 
       // And they have a pending message
-      storage['knowledge_base_id'] = JSON.stringify('kb-123');
-      storage['pending_chat_message'] = JSON.stringify('How does the TOC work?');
+      storage.knowledge_base_id = JSON.stringify('kb-123');
+      storage.pending_chat_message = JSON.stringify('How does the TOC work?');
 
       // When the continue flow runs (simulating API response)
       const response = {
@@ -80,7 +80,7 @@ describe('Public Wiki Chat Conversion', () => {
         knowledgeBaseId: 'kb-new',
       };
 
-      storage['knowledge_base_id'] = JSON.stringify('kb-new');
+      storage.knowledge_base_id = JSON.stringify('kb-new');
 
       // When the continue flow creates a new space
       const response = {
@@ -122,16 +122,16 @@ describe('Public Wiki Chat Conversion', () => {
 
     it('cleans up localStorage after successful setup', () => {
       // Given localStorage has pending data
-      storage['knowledge_base_id'] = JSON.stringify('kb-123');
-      storage['pending_chat_message'] = JSON.stringify('Hello');
+      storage.knowledge_base_id = JSON.stringify('kb-123');
+      storage.pending_chat_message = JSON.stringify('Hello');
 
       // When setup completes (simulating cleanup)
-      delete storage['knowledge_base_id'];
-      delete storage['pending_chat_message'];
+      storage.knowledge_base_id = undefined;
+      storage.pending_chat_message = undefined;
 
       // Then localStorage is cleaned up
-      expect(storage['knowledge_base_id']).toBeUndefined();
-      expect(storage['pending_chat_message']).toBeUndefined();
+      expect(storage.knowledge_base_id).toBeUndefined();
+      expect(storage.pending_chat_message).toBeUndefined();
     });
   });
 
@@ -139,11 +139,11 @@ describe('Public Wiki Chat Conversion', () => {
     it('reads pending message from localStorage on mount', () => {
       // Given localStorage has a pending message
       const pendingMessage = 'How does authentication work?';
-      storage['pending_chat_message'] = JSON.stringify(pendingMessage);
-      storage['knowledge_base_id'] = JSON.stringify('kb-123');
+      storage.pending_chat_message = JSON.stringify(pendingMessage);
+      storage.knowledge_base_id = JSON.stringify('kb-123');
 
       // When the Chat component mounts (simulating the effect)
-      const raw = storage['pending_chat_message'];
+      const raw = storage.pending_chat_message;
       const message = raw ? JSON.parse(raw) : null;
 
       // Then it reads the message
@@ -175,17 +175,17 @@ describe('Public Wiki Chat Conversion', () => {
 
     it('clears pending message after sending to prevent duplicates', () => {
       // Given a pending message was sent
-      storage['pending_chat_message'] = JSON.stringify('Hello');
+      storage.pending_chat_message = JSON.stringify('Hello');
       let sent = false;
 
       // When message is sent
       if (!sent) {
-        storage['pending_chat_message'] = '';
+        storage.pending_chat_message = '';
         sent = true;
       }
 
       // Then it's cleared to prevent re-sending on refresh
-      expect(storage['pending_chat_message']).toBe('');
+      expect(storage.pending_chat_message).toBe('');
     });
 
     it('waits for KB to load before sending message', () => {
@@ -229,7 +229,7 @@ describe('Public Wiki Chat Conversion', () => {
 
     it('shows error if KB ID is missing', () => {
       // Given no KB ID in localStorage
-      const kbId = storage['knowledge_base_id'];
+      const kbId = storage.knowledge_base_id;
 
       // When checking for KB ID
       if (!kbId) {
@@ -242,14 +242,14 @@ describe('Public Wiki Chat Conversion', () => {
 
     it('handles legacy non-JSON localStorage values', () => {
       // Given old data stored as raw string (not JSON)
-      storage['knowledge_base_id'] = 'kb-raw-string';
+      storage.knowledge_base_id = 'kb-raw-string';
 
       // When parsing (simulating the component logic)
       let kbId: string;
       try {
-        kbId = JSON.parse(storage['knowledge_base_id']);
+        kbId = JSON.parse(storage.knowledge_base_id);
       } catch {
-        kbId = storage['knowledge_base_id'];
+        kbId = storage.knowledge_base_id;
       }
 
       // Then it falls back to raw string
@@ -277,11 +277,11 @@ describe('Public Wiki Chat Conversion', () => {
 
     it('handles concurrent visits to different wikis', () => {
       // Given a user visits wiki A, then wiki B before logging in
-      storage['knowledge_base_id'] = JSON.stringify('kb-wiki-b'); // Last one wins
-      storage['pending_chat_message'] = JSON.stringify('Question about B');
+      storage.knowledge_base_id = JSON.stringify('kb-wiki-b'); // Last one wins
+      storage.pending_chat_message = JSON.stringify('Question about B');
 
       // When they complete auth
-      const kbId = JSON.parse(storage['knowledge_base_id']);
+      const kbId = JSON.parse(storage.knowledge_base_id);
 
       // Then they're set up for wiki B (latest visit)
       expect(kbId).toBe('kb-wiki-b');

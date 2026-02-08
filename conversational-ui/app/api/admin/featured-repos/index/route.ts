@@ -2,7 +2,7 @@ import { auth } from '@/app/(auth)/auth';
 import { db } from '@/lib/db';
 import { featuredRepo } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 
 /**
  * Admin endpoint to index a repository and add it to featured repos.

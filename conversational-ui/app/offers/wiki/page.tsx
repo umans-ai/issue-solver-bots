@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, } from 'react';
 import { IconUmansLogo } from '@/components/icons';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -18,21 +18,18 @@ import { cn } from '@/lib/utils';
 import { 
   Book, 
   Search, 
-  GitBranch, 
   Lock, 
   ArrowRight, 
   Star, 
   Github, 
-  Sparkles,
   RefreshCw,
   Link2,
   Workflow,
   Users,
   Lightbulb,
   Zap,
-  Plus
 } from 'lucide-react';
-import { FaDiscord, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
+import { FaDiscord, FaXTwitter } from 'react-icons/fa6';
 import { RequestRepoDialog } from './request-repo-dialog';
 import useSWR from 'swr';
 import type { FeaturedRepo } from '@/lib/db/schema';
