@@ -201,6 +201,13 @@ export function getTextFromMessage(message: ChatMessage): string {
     .join('');
 }
 
+// Theme-aware button styles for offers/code UI only
+// Uses Tailwind dark: classes to avoid hydration mismatch
+// Note: These styles are specifically for the /offers/code and /billing pages,
+// not for the main chat app UI which uses different button styling
+export const pillOutlineButton =
+  'rounded-full bg-white border border-black/20 text-[#0b0d10] hover:bg-black/5 dark:bg-white/10 dark:border-white/30 dark:text-white dark:hover:bg-white/15';
+
 // Favicon utilities
 export const getFallbackFaviconUrls = (url: string) => {
   try {

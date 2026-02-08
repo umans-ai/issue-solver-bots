@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { Check, Copy } from 'lucide-react';
 import useSWR from 'swr';
 
@@ -25,7 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { cn, fetcher } from '@/lib/utils';
+import { cn, fetcher, pillOutlineButton } from '@/lib/utils';
 import {
   PLEDGE_CHARGE_START_LABEL,
   PLEDGE_DEADLINE_LABEL,
@@ -96,8 +97,9 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const pillOutlineButton =
-    'rounded-full !bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white';
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(
     pledge?.billingCycle === 'yearly' ? 'yearly' : 'monthly',
@@ -331,8 +333,8 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                 className={cn(
                   'flex w-full items-center rounded-md px-3 py-2 text-left font-medium transition focus-visible:outline-none',
                   isActiveTab
-                    ? 'bg-white/5 text-white'
-                    : 'text-white/55 hover:bg-white/5 hover:text-white',
+                    ? 'bg-black/5 dark:bg-white/5 text-[#0b0d10] dark:text-white'
+                    : 'text-[#0b0d10]/55 dark:text-white/55 hover:bg-black/5 dark:bg-white/5 hover:text-[#0b0d10] dark:hover:text-white',
                 )}
               >
                 {item.label}
@@ -345,10 +347,10 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
       <section className="w-full max-w-2xl space-y-8">
         {activeTab === 'get-started' ? (
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-white">Get Started</h2>
+            <h2 className="text-2xl font-semibold text-[#0b0d10] dark:text-white">Get Started</h2>
             {activePledge ? (
-              <div className="space-y-4 text-base leading-relaxed text-white/70">
-                <p className="font-semibold text-white/90">
+              <div className="space-y-4 text-base leading-relaxed text-[#0b0d10]/70 dark:text-white/70">
+                <p className="font-semibold text-[#0b0d10]/90 dark:text-white/90">
                   Welcome to Umans Code. Your Founding seat is reserved.
                 </p>
                 <p>
@@ -358,11 +360,10 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                 <p>We will email you as soon as your endpoint is ready.</p>
               </div>
             ) : (
-              <div className="space-y-4 text-base text-white/70">
+              <div className="space-y-4 text-base text-[#0b0d10]/70 dark:text-white/70">
                 <p>Your pledge is no longer active.</p>
                 <p>If you still want a Founding seat, choose a plan below.</p>
                 <Button
-                  variant="outline"
                   className={pillOutlineButton}
                   onClick={() => {
                     setActiveTab('billing');
@@ -380,15 +381,14 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
           <div className="space-y-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h2 className="text-2xl font-semibold text-white">API keys</h2>
-                <p className="mt-3 text-base leading-relaxed text-white/70">
+                <h2 className="text-2xl font-semibold text-[#0b0d10] dark:text-white">API keys</h2>
+                <p className="mt-3 text-base leading-relaxed text-[#0b0d10]/70 dark:text-white/70">
                   Create keys to authenticate requests to the Umans Code API.
                   Your key is shown once - store it somewhere safe.
                 </p>
               </div>
 
               <Button
-                variant="outline"
                 className={pillOutlineButton}
                 onClick={createApiKey}
                 disabled={!activePledge || creatingApiKey}
@@ -398,16 +398,15 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
             </div>
 
             {apiKeysActionError ? (
-              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-200">
                 {apiKeysActionError}
               </div>
             ) : null}
 
             {!activePledge ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/70">
+              <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 p-5 text-[#0b0d10]/70 dark:text-white/70">
                 <p className="text-sm">You need an active pledge to create keys.</p>
                 <Button
-                  variant="outline"
                   className={cn('mt-4', pillOutlineButton)}
                   onClick={() => {
                     setActiveTab('billing');
@@ -431,21 +430,20 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
               }}
             >
               {newApiKey ? (
-                <DialogContent className="max-w-2xl border-white/10 bg-[#0b0d10] text-white">
+                <DialogContent className="max-w-2xl border-black/10 dark:border-black/10 bg-white dark:border-white/10 dark:bg-[#0b0d10] text-[#0b0d10] dark:text-white">
                   <DialogHeader className="space-y-2">
                     <DialogTitle className="text-2xl">
                       Your new API key
                     </DialogTitle>
                   </DialogHeader>
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-[#0b0d10]/60 dark:text-white/60">
                     This key is shown once. Copy it now and store it securely.
                   </p>
-                  <div className="mt-4 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4">
-                    <code className="w-full overflow-x-auto text-sm text-white/90">
+                  <div className="mt-4 flex items-center gap-3 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 p-4">
+                    <code className="w-full overflow-x-auto text-sm text-[#0b0d10]/90 dark:text-white/90">
                       {newApiKey.key}
                     </code>
                     <Button
-                      variant="outline"
                       size="icon"
                       className={pillOutlineButton}
                       onClick={copyNewApiKey}
@@ -455,7 +453,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                     </Button>
                   </div>
                   {newApiKeyCopyError ? (
-                    <p className="mt-2 text-xs text-red-200">
+                    <p className="mt-2 text-xs text-red-700 dark:text-red-200">
                       {newApiKeyCopyError}
                     </p>
                   ) : null}
@@ -464,34 +462,34 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
             </Dialog>
 
             {apiKeysError ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-white/70">
+              <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 p-5 text-[#0b0d10]/70 dark:text-white/70">
                 <p className="text-sm">Failed to load keys.</p>
               </div>
             ) : apiKeysLoading ? (
-              <p className="text-sm text-white/60">Loading...</p>
+              <p className="text-sm text-[#0b0d10]/60 dark:text-white/60">Loading...</p>
             ) : (
               <div className="space-y-3">
                 {(apiKeysData?.keys ?? []).length ? (
                   (apiKeysData?.keys ?? []).map((key) => (
                     <div
                       key={key.gatewayKeyId}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-5"
+                      className="rounded-2xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 p-5"
                     >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="space-y-1">
-                          <div className="text-sm font-medium text-white">
+                          <div className="text-sm font-medium text-[#0b0d10] dark:text-white">
                             {key.keyPrefix}...
                           </div>
-                          <div className="text-xs text-white/50">
+                          <div className="text-xs text-[#0b0d10]/50 dark:text-white/50">
                             Created {new Date(key.createdAt).toLocaleString()}
                           </div>
                           {key.revokedAt ? (
-                            <div className="text-xs text-white/50">
+                            <div className="text-xs text-[#0b0d10]/50 dark:text-white/50">
                               Revoked{' '}
                               {new Date(key.revokedAt).toLocaleString()}
                             </div>
                           ) : (
-                            <div className="text-xs text-white/50">Active</div>
+                            <div className="text-xs text-[#0b0d10]/50 dark:text-white/50">Active</div>
                           )}
                         </div>
 
@@ -499,7 +497,6 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
-                                variant="outline"
                                 className={pillOutlineButton}
                                 disabled={revokingKeyId === key.gatewayKeyId}
                               >
@@ -508,12 +505,12 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                                   : 'Revoke'}
                               </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent className="border-white/10 bg-[#0b0d10] text-white">
+                            <AlertDialogContent className="border-black/10 dark:border-black/10 bg-white dark:border-white/10 dark:bg-[#0b0d10] text-[#0b0d10] dark:text-white">
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Revoke API key</AlertDialogTitle>
-                                <AlertDialogDescription className="text-white/60">
+                                <AlertDialogDescription className="text-[#0b0d10]/60 dark:text-white/60">
                                   Are you sure you&apos;d like to revoke{' '}
-                                  <span className="font-medium text-white/90">
+                                  <span className="font-medium text-[#0b0d10]/90 dark:text-white/90">
                                     {key.keyPrefix}...
                                   </span>
                                   ? This is permanent and cannot be undone.
@@ -540,7 +537,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-white/60">No keys yet.</p>
+                  <p className="text-sm text-[#0b0d10]/60 dark:text-white/60">No keys yet.</p>
                 )}
               </div>
             )}
@@ -554,22 +551,22 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                   <div>
                     {activePledge ? (
                       <>
-                        <h2 className="text-2xl font-semibold text-white">
+                        <h2 className="text-2xl font-semibold text-[#0b0d10] dark:text-white">
                           {PLEDGE_PLAN_LABELS[activePledge.plan]}
-                          <span className="text-white/60">
+                          <span className="text-[#0b0d10]/60 dark:text-white/60">
                             {` · ${activePledge.billingCycle === 'yearly' ? 'Yearly' : 'Monthly'}`}
                           </span>
                         </h2>
-                        <p className="mt-2 text-sm text-white/60">
+                        <p className="mt-2 text-sm text-[#0b0d10]/60 dark:text-white/60">
                           {planPriceLine(
                             activePledge.plan,
                             activePledge.billingCycle,
                           )}
                         </p>
-                        <p className="mt-2 text-sm text-white/70">
+                        <p className="mt-2 text-sm text-[#0b0d10]/70 dark:text-white/70">
                           {PLEDGE_PLAN_DETAILS[activePledge.plan]}
                         </p>
-                        <p className="mt-4 text-sm text-white/60">
+                        <p className="mt-4 text-sm text-[#0b0d10]/60 dark:text-white/60">
                           Billing starts {PLEDGE_CHARGE_START_LABEL}. If we do
                           not launch by {PLEDGE_DEADLINE_LABEL}, you will not be
                           charged.
@@ -577,10 +574,10 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                       </>
                     ) : (
                       <>
-                        <h2 className="text-2xl font-semibold text-white">
+                        <h2 className="text-2xl font-semibold text-[#0b0d10] dark:text-white">
                           No active pledge
                         </h2>
-                        <p className="mt-2 text-sm text-white/60">
+                        <p className="mt-2 text-sm text-[#0b0d10]/60 dark:text-white/60">
                           Choose a plan to reserve your Founding seat.
                         </p>
                       </>
@@ -600,32 +597,31 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                     >
                       <DialogTrigger asChild>
                         <Button
-                          variant="outline"
                           className={pillOutlineButton}
                         >
                           Choose a plan
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-4xl border-white/10 bg-[#0b0d10] text-white">
+                      <DialogContent className="max-w-4xl border-black/10 dark:border-black/10 bg-white dark:border-white/10 dark:bg-[#0b0d10] text-[#0b0d10] dark:text-white">
                         <DialogHeader className="space-y-2">
                           <DialogTitle className="text-2xl">
                             Choose your plan
                           </DialogTitle>
                         </DialogHeader>
                         {billingActionError ? (
-                          <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+                          <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-200">
                             {billingActionError}
                           </div>
                         ) : null}
-                        <div className="mt-4 flex w-fit items-center rounded-full border border-white/10 bg-white/5 p-1 text-sm">
+                        <div className="mt-4 flex w-fit items-center rounded-full border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 p-1 text-sm">
                           <button
                             type="button"
                             onClick={() => setBillingCycle('monthly')}
                             className={cn(
                               'rounded-full px-4 py-2 text-sm font-medium transition-colors',
                               billingCycle === 'monthly'
-                                ? 'bg-white text-[#0b0d10] shadow-sm'
-                                : 'text-white/60 hover:text-white',
+                                ? 'bg-[#0b0d10] text-white shadow-sm dark:bg-white dark:text-[#0b0d10]'
+                                : 'text-[#0b0d10]/60 dark:text-white/60 hover:text-[#0b0d10] dark:hover:text-white',
                             )}
                           >
                             Monthly
@@ -636,8 +632,8 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                             className={cn(
                               'rounded-full px-4 py-2 text-sm font-medium transition-colors',
                               billingCycle === 'yearly'
-                                ? 'bg-white text-[#0b0d10] shadow-sm'
-                                : 'text-white/60 hover:text-white',
+                                ? 'bg-[#0b0d10] text-white shadow-sm dark:bg-white dark:text-[#0b0d10]'
+                                : 'text-[#0b0d10]/60 dark:text-white/60 hover:text-[#0b0d10] dark:hover:text-white',
                             )}
                           >
                             Yearly
@@ -654,7 +650,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                               return (
                                 <div
                                   key={plan}
-                                  className="flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-6 hover:border-white/30"
+                                  className="flex h-full flex-col rounded-3xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 p-6 hover:border-white/30"
                                 >
                                   <div className="flex items-start justify-between gap-4">
                                     <div>
@@ -663,26 +659,26 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                                       </h3>
                                     </div>
                                     <div className="flex items-end gap-2 text-right">
-                                      <span className="text-2xl font-semibold text-white">
+                                      <span className="text-2xl font-semibold text-[#0b0d10] dark:text-white">
                                         {price}
                                       </span>
-                                      <div className="w-20 text-left text-xs leading-tight text-white/60">
+                                      <div className="w-20 text-left text-xs leading-tight text-[#0b0d10]/60 dark:text-white/60">
                                         <div>per month</div>
                                         <div>{billingLabel(billingCycle)}</div>
                                       </div>
                                     </div>
                                   </div>
-                                  <p className="mt-3 text-sm font-medium text-white/70">
+                                  <p className="mt-3 text-sm font-medium text-[#0b0d10]/70 dark:text-white/70">
                                     {option.description}
                                   </p>
-                                  <ul className="mt-4 space-y-2 text-sm text-white/60">
+                                  <ul className="mt-4 space-y-2 text-sm text-[#0b0d10]/60 dark:text-white/60">
                                     {option.bullets.map((bullet) => (
                                       <li key={bullet}>{bullet}</li>
                                     ))}
                                   </ul>
                                   <div className="mt-auto pt-6">
                                     <Button
-                                      className="w-full rounded-full bg-white text-[#0b0d10] hover:bg-white/90"
+                                      className="w-full rounded-full bg-[#0b0d10] text-white hover:bg-[#0b0d10]/90 dark:bg-white dark:text-[#0b0d10] dark:hover:bg-white/90"
                                       onClick={() =>
                                         startPledge(plan, billingCycle)
                                       }
@@ -705,21 +701,20 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
               </div>
 
             {billingActionError && !dialogOpen ? (
-              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-200">
                 {billingActionError}
               </div>
             ) : null}
 
-            <div className="flex flex-col gap-4 border-t border-white/10 pt-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-4 border-t border-black/10 dark:border-white/10 pt-6 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-white">Manage billing</h2>
-                <p className="mt-2 text-sm text-white/60">
+                <h2 className="text-lg font-semibold text-[#0b0d10] dark:text-white">Manage billing</h2>
+                <p className="mt-2 text-sm text-[#0b0d10]/60 dark:text-white/60">
                   Update your payment method or review invoices in Stripe.
                 </p>
               </div>
               <Button
                 asChild
-                variant="outline"
                 className={pillOutlineButton}
               >
                 <Link href={portalUrl} target="_blank" rel="noreferrer">

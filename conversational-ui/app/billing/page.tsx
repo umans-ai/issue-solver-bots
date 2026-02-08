@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/app/(auth)/auth';
 import { getLatestPledgeForUser } from '@/lib/db/queries';
 import { CodeUserNav } from '@/components/code-user-nav';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { BillingClient } from './billing-client';
 
 export const dynamic = 'force-dynamic';
@@ -33,28 +34,31 @@ export default async function BillingPage() {
     : null;
 
   return (
-    <div className="dark min-h-screen bg-[#111318] text-white">
-      <header className="border-b border-white/10">
+    <div className="min-h-screen bg-[#f6f6f4] text-[#0b0d10] dark:bg-[#0b0d10] dark:text-white">
+      <header className="border-b border-black/10 bg-white/70 backdrop-blur dark:border-white/10 dark:bg-[#0b0d10]/70">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link
             href="/offers/code"
-            className="flex items-center gap-2 text-white/80 transition hover:text-white"
+            className="flex items-center gap-2 text-black/70 transition hover:text-black dark:text-white/80 dark:hover:text-white"
           >
             <UmansLogoMark className="h-5 w-auto" />
             <span className="text-sm font-medium tracking-tight">code</span>
           </Link>
-          <CodeUserNav
-            user={session.user}
-            plan={activePlan}
-            showDashboardLink={false}
-            dark={true}
-          />
+          <div className="flex items-center gap-3">
+            <ThemeToggle variant="ghost" />
+            <CodeUserNav
+              user={session.user}
+              plan={activePlan}
+              showDashboardLink={false}
+            />
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-10">
         <BillingClient pledge={pledge} portalUrl={portalUrl} />
       </main>
+      <div data-umans-portal-root />
       <div data-umans-portal-root />
     </div>
   );

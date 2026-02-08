@@ -668,8 +668,9 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
   return (
     <div className="relative min-h-screen bg-[#f6f6f4] text-[#0b0d10] font-sans antialiased dark:bg-[#0b0d10] dark:text-white">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-48 left-1/2 h-[520px] w-[860px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(15,23,42,0.12),transparent_60%)] blur-3xl opacity-70 dark:hidden" />
-        <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_80%_0%,rgba(14,116,144,0.08),transparent_55%)] dark:hidden" />
+        {/* Light mode gradients - enhanced to match dark mode magic */}
+        <div className="absolute -top-48 left-1/2 h-[520px] w-[860px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(99,102,241,0.15),transparent_60%)] blur-3xl opacity-70 dark:hidden" />
+        <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_80%_0%,rgba(14,165,233,0.12),transparent_55%)] dark:hidden" />
         <div className="absolute -top-48 left-1/2 hidden h-[520px] w-[860px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(120,119,198,0.25),transparent_60%)] blur-3xl opacity-70 dark:block" />
         <div className="absolute inset-0 hidden bg-[radial-gradient(60%_50%_at_80%_0%,rgba(94,234,212,0.12),transparent_55%)] dark:block" />
       </div>
