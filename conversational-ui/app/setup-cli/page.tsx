@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/app/(auth)/auth';
-import { getLatestPledgeForUser } from '@/lib/code-gateway/api-keys-db';
+import { createUserGatewayApiKeyMetadata, getLatestPledgeForUser } from '@/lib/code-gateway/api-keys-db';
 import { SetupCliClient } from './client';
 
 interface SetupCliPageProps {
@@ -131,6 +131,35 @@ export default async function SetupCliPage({ searchParams }: SetupCliPageProps) 
     }
 
     const data = await upstreamResponse.json() as GatewayKeyResponse;
+
+    // Save metadata to local database so key appears in dashboard
+    try {
+      await createUserGatewayApiKeyMetadata({
+        userId,
+        gatewayKeyId: data.id,
+        keyPrefix: data.key_prefix,
+      });
+    } catch (metadataError) {
+      // Best-effort cleanup: revoke the key if we can't persist metadata
+      try {
+        await fetch(`${gateway.baseUrl}/admin/keys/${data.id}`, {
+          method: 'DELETE',
+          headers: {
+            'x-admin-api-key': gateway.adminToken,
+          },
+        });
+      } catch {
+        // Ignore cleanup failures
+      }
+      console.error('Failed to persist API key metadata:', metadataError);
+      return (
+        <SetupCliClient
+          error="Failed to save API key. Please try again."
+          token={null}
+          callbackUrl={callback}
+        />
+      );
+    }
 
     // Redirect to callback with token
     const redirectUrl = new URL(callback);
