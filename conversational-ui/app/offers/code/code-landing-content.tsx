@@ -11,7 +11,7 @@ import { IconUmansLogo } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { CodeUserNav } from '@/components/code-user-nav';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import { FaDiscord, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 
 const FOUNDING_TARGET = 250;
@@ -69,6 +69,19 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
   const [pledgeLoading, setPledgeLoading] = useState<null | 'code_pro' | 'code_max'>(
     null,
   );
+  const [copied, setCopied] = useState(false);
+
+  const installCommand = 'curl -fsSL https://api.code.umans.ai/cli/install.sh | bash';
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(installCommand);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback: do nothing
+    }
+  };
   const [pledgeCount, setPledgeCount] = useState<number>(pledgeCountFallback);
   const demosRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -759,9 +772,52 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 Keep the Claude Code workflow. Swap the limits for a managed
                 endpoint we run for software work.
               </p>
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+
+              {/* CLI Install Command */}
+              <div className="mt-8 max-w-2xl">
+                <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-[#0b0d10] p-1 pl-4 dark:border-white/10">
+                  <code className="flex-1 truncate font-mono text-sm text-white/90">
+                    <span className="text-[#d27a5a]">curl</span>
+                    <span className="text-[#7dd3fc]"> -fsSL</span>
+                    <span className="text-[#a5b4fc]"> https://api.code.umans.ai/cli/install.sh</span>
+                    <span className="text-white/60"> | bash</span>
+                  </code>
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="flex shrink-0 items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-medium text-white/90 transition hover:bg-white/20"
+                    aria-label={copied ? 'Copied!' : 'Copy install command'}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="mt-3 text-sm text-black/50 dark:text-white/50">
+                  Requires{' '}
+                  <a
+                    href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2 hover:text-black dark:hover:text-white"
+                  >
+                    Claude Code
+                  </a>
+                  . The CLI authenticates on first run.
+                </p>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
                 <Button asChild size="lg" className={primaryButtonClasses}>
-                  <Link href="#plans">Try it now</Link>
+                  <Link href="#plans">View plans</Link>
                 </Button>
               </div>
             </div>
@@ -784,44 +840,6 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
               </p>
             </div>
 
-          </div>
-        </section>
-
-        <section className="relative before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-black/10 before:to-transparent dark:before:via-white/10">
-          <div className="mx-auto max-w-6xl px-6 py-16">
-            <div className="max-w-3xl space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-black/40 dark:text-white/50">
-                Setup
-              </p>
-              <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
-                From signup to coding in under 2 minutes.
-              </h2>
-            </div>
-            <div className="mt-8">
-              <div className="grid gap-6 text-sm text-black/70 dark:text-white/70 sm:grid-cols-2 lg:grid-cols-4">
-                {[
-                  'Subscribe',
-                  'Get your API key',
-                  'Point Claude Code to our endpoint',
-                  'Keep working',
-                ].map((step, index) => (
-                  <div
-                    key={step}
-                    className={cn(
-                      'flex items-center gap-3 lg:pl-6',
-                      index === 0 ? 'lg:pl-0' : 'lg:border-l lg:border-black/10 dark:lg:border-white/10',
-                    )}
-                  >
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-black/10 text-[11px] font-semibold text-black/70 dark:border-white/20 dark:text-white/70">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <p className="text-sm font-medium text-black dark:text-white">
-                      {step}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </section>
 
