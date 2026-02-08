@@ -142,6 +142,13 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   const [apiKeysActionError, setApiKeysActionError] = useState<string | null>(
     null,
   );
+  const [copiedCommand, setCopiedCommand] = useState<'install' | 'launch' | null>(null);
+
+  const handleCopyCommand = async (command: 'install' | 'launch', text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedCommand(command);
+    setTimeout(() => setCopiedCommand(null), 2000);
+  };
 
   useEffect(() => {
     const outcome = searchParams?.get('pledge');
@@ -349,15 +356,79 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-[#0b0d10] dark:text-white">Get Started</h2>
             {activePledge ? (
-              <div className="space-y-4 text-base leading-relaxed text-[#0b0d10]/70 dark:text-white/70">
-                <p className="font-semibold text-[#0b0d10]/90 dark:text-white/90">
-                  Welcome to Umans Code. Your Founding seat is reserved.
-                </p>
-                <p>
-                  We are preparing your access now and will open accounts on
-                  March 1, 2026.
-                </p>
-                <p>We will email you as soon as your endpoint is ready.</p>
+              <div className="space-y-6">
+                {/* Install Command */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-[#0b0d10]/70 dark:text-white/70">
+                    1. Install the CLI
+                  </p>
+                  <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-[#0b0d10] p-1 pl-4 dark:border-white/10">
+                    <code className="flex-1 truncate font-mono text-sm text-white/90">
+                      <span className="text-[#d27a5a]">curl</span>
+                      <span className="text-[#7dd3fc]"> -fsSL</span>
+                      <span className="text-[#a5b4fc]"> https://api.code.umans.ai/cli/install.sh</span>
+                      <span className="text-white/60"> | bash</span>
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyCommand('install', 'curl -fsSL https://api.code.umans.ai/cli/install.sh | bash')}
+                      className="flex shrink-0 items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-medium text-white/90 transition hover:bg-white/20"
+                    >
+                      {copiedCommand === 'install' ? (
+                        <>
+                          <Check className="h-4 w-4" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Launch Command */}
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-[#0b0d10]/70 dark:text-white/70">
+                    2. Launch Claude Code with Umans backend
+                  </p>
+                  <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-[#0b0d10] p-1 pl-4 dark:border-white/10">
+                    <code className="flex-1 truncate font-mono text-sm text-white/90">
+                      <span className="text-[#a5b4fc]">umans</span>
+                      <span className="text-white/60"> claude</span>
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyCommand('launch', 'umans claude')}
+                      className="flex shrink-0 items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm font-medium text-white/90 transition hover:bg-white/20"
+                    >
+                      {copiedCommand === 'launch' ? (
+                        <>
+                          <Check className="h-4 w-4" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-4 text-base leading-relaxed text-[#0b0d10]/70 dark:text-white/70 pt-2">
+                  <p className="font-semibold text-[#0b0d10]/90 dark:text-white/90">
+                    Your Founding seat is reserved.
+                  </p>
+                  <p>
+                    We are preparing your access now and will open accounts on
+                    March 1, 2026.
+                  </p>
+                  <p>We will email you as soon as your endpoint is ready.</p>
+                </div>
               </div>
             ) : (
               <div className="space-y-4 text-base text-[#0b0d10]/70 dark:text-white/70">
