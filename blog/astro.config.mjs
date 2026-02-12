@@ -4,6 +4,8 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import { defineConfig } from 'astro/config';
 import siteConfig from './src/data/site-config';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 // https://astro.build/config
 export default defineConfig({
@@ -11,5 +13,16 @@ export default defineConfig({
     vite: {
         plugins: [tailwindcss()]
     },
-    integrations: [react(), mdx(), sitemap()]
+    markdown: {
+        remarkPlugins: [remarkMath],
+        rehypePlugins: [rehypeKatex]
+    },
+    integrations: [
+        react(),
+        mdx({
+            remarkPlugins: [remarkMath],
+            rehypePlugins: [rehypeKatex]
+        }),
+        sitemap()
+    ]
 });
