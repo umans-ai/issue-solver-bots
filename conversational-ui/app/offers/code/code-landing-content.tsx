@@ -956,7 +956,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                           lineHeight: '18px',
                           letterSpacing: '0px',
                         }}
-                      ><span className="text-[#d27a5a]"> ▐▛███▜▌   </span><span className="font-semibold text-[#faf9f5]">Claude Code </span><span className="text-[#b9b6ad]">v2.1.12</span>{'\n'}<span className="text-[#d27a5a]">▝▜█████▛▘  </span><span className="text-[#b9b6ad]">umans-coder-v0</span>{'\n'}<span className="text-[#d27a5a]">  ▘▘ ▝▝</span></pre>
+                      ><span className="text-[#d27a5a]"> ▐▛███▜▌   </span><span className="font-semibold text-[#faf9f5]">Claude Code </span><span className="text-[#b9b6ad]">v2.1.12</span>{'\n'}<span className="text-[#d27a5a]">▝▜█████▛▘  </span><span className="text-[#b9b6ad]">umans-coder</span>{'\n'}<span className="text-[#d27a5a]">  ▘▘ ▝▝</span></pre>
                       <div
                         key={`${parityTab}-prompt`}
                         className="mb-[46.2857px] flex items-start gap-[12px] text-[15px] leading-[24px]"
@@ -1051,7 +1051,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                   {[
                     {
                       id: 'yu7gTHoo16M',
-                      title: 'Claude Code session with umans-coder-v0',
+                      title: 'Claude Code session with umans-coder',
                     },
                     {
                       id: 'P6xWWBzraRo',
