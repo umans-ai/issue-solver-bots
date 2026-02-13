@@ -813,6 +813,12 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                   </a>
                   . The CLI authenticates on first run.
                 </p>
+
+                {/* Tool compatibility */}
+                <p className="mt-3 text-sm text-black/60 dark:text-white/60">
+                  <span className="font-medium text-black dark:text-white">Works with your favorite tools.</span>{' '}
+                  Claude Code, Cursor, Crush, OpenCode, or any OpenAI/Anthropic-compatible agent.
+                </p>
               </div>
 
               <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -867,6 +873,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
 
           </div>
         </section>
+
 
         <section
           id="experience"
@@ -1101,6 +1108,127 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
               </div>
             </div>
           </div>
+        </section>
+
+        <section
+          id="no-lock-in"
+          className="relative before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-black/20 before:to-transparent dark:before:via-white/20"
+        >
+          <div className="mx-auto max-w-6xl px-6 py-20">
+            <div className="max-w-3xl space-y-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-black/40 dark:text-white/50">
+                No lock-in
+              </p>
+              <h2 className="text-3xl font-semibold tracking-tight text-black dark:text-white md:text-4xl">
+                Bring your own tools.
+              </h2>
+
+              {/* Tool logos with looping marquee animation */}
+              <div className="relative overflow-hidden py-6">
+                <div className="flex animate-marquee gap-4">
+                  {/* First set - 9 tools (excluding Codex CLI) */}
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/claude-ai-icon.svg" alt="Claude Code" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Claude Code</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/cursor-ai-code-icon.svg" alt="Cursor" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Cursor</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://stuff.charm.sh/crush/charm-crush.png" alt="Crush" className="h-6 w-6 rounded" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Crush</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/opencode.svg" alt="OpenCode" className="h-6 w-6 rounded bg-white p-0.5" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">OpenCode</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://kilo.ai/favicon/favicon.svg" alt="Kilo Code" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Kilo Code</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/cline-ai-icon.svg" alt="Cline" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Cline</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://www.vectorlogo.zone/logos/traeai/traeai-icon.svg" alt="TRAE" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">TRAE</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/grok-icon.svg" alt="Grok CLI" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Grok CLI</span>
+                  </div>
+
+                  {/* Duplicate set for seamless loop */}
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/claude-ai-icon.svg" alt="Claude Code" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Claude Code</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/cursor-ai-code-icon.svg" alt="Cursor" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Cursor</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://stuff.charm.sh/crush/charm-crush.png" alt="Crush" className="h-6 w-6 rounded" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Crush</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/opencode.svg" alt="OpenCode" className="h-6 w-6 rounded bg-white p-0.5" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">OpenCode</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://kilo.ai/favicon/favicon.svg" alt="Kilo Code" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Kilo Code</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/cline-ai-icon.svg" alt="Cline" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Cline</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://www.vectorlogo.zone/logos/traeai/traeai-icon.svg" alt="TRAE" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">TRAE</span>
+                  </div>
+
+                  <div className="group flex shrink-0 items-center gap-3 rounded-xl border border-black/10 bg-white/80 px-4 py-3 transition-all hover:scale-105 hover:border-black/20 hover:shadow-lg dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                    <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/grok-icon.svg" alt="Grok CLI" className="h-6 w-6" />
+                    <span className="whitespace-nowrap text-sm font-semibold text-black dark:text-white">Grok CLI</span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-base leading-relaxed text-black/70 dark:text-white/70">
+                Our endpoint speaks standard OpenAI and Anthropic APIs. Use
+                Claude Code, Cursor, Roo Code, Kilo Code, Cline, OpenCode, TRAE, Grok CLI, Crush, or any compatible agent.
+                Switch anytime. Your tools, your choice.
+              </p>
+            </div>
+          </div>
+          <style jsx>{`
+            @keyframes marquee {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
+              animation: marquee 20s linear infinite;
+            }
+            .animate-marquee:hover {
+              animation-play-state: paused;
+            }
+          `}</style>
         </section>
 
         <section
