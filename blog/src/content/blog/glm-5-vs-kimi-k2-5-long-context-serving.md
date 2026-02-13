@@ -3,7 +3,7 @@ title: "GLM-5 vs Kimi-K2.5: Long-context serving at scale"
 excerpt: "Why GLM-5 is a real step forward compared to GLM-4.7 for serving long-context coding agents, and why we still keep Kimi-K2.5 as the default for the best experience."
 publishDate: 2026-02-12
 isFeatured: true
-tags: ["llm", "inference", "glm", "kimi", "moe"]
+tags: ["llm", "inference", "glm", "kimi", "moe", "claude code"]
 seo:
   title: "GLM-5 vs Kimi-K2.5: Long-context serving at scale"
   description: "A technical breakdown of why GLM-5 improves on GLM-4.7 for long-context serving, and why Kimi-K2.5 remains the default for agentic coding workloads."
@@ -16,85 +16,57 @@ If you care about a "Claude Code" style experience, costs and latency are domina
 
 At **[code.umans.ai](https://code.umans.ai/)**, that is exactly what we optimize for. This post explains why **GLM-5** is a real step forward compared to **GLM-4.7**, and why we still keep **Kimi-K2.5** as the default for the best experience.
 
-## The stress case we use
-
-* 128k context
-* 100 concurrent live sessions
-* single node (no multi-node cluster)
-
-Multi-node works, but it is a different product and a different cost curve. This section is about what holds on one box.
-
-## KV cache is what scales with users
-
-We already went through the mental model and the math in **[host-claude-code](https://blog.umans.ai/blog/host-claude-code/)**. Same framework here: weights are shared, KV cache is per session, so KV cache is the scaling term.
-
 ## GLM-5: a massive leap over GLM-4.7
 
 A realistic serving scenario for long-context coding agents: 128k context, 100 concurrent live sessions, single node. We covered the KV cache math in **[host-claude-code](https://blog.umans.ai/blog/host-claude-code/)**. Same framework applies here. Weights are shared across sessions. KV cache is not. So KV cache is the term that scales with users.
 
-GLM-4.7 uses full attention. At 128k context that puts you at around 23 GiB of KV cache per session, or about 2.3 TB across 100 sessions. That is before weights and runtime overhead. We covered this in **[host-claude-code](https://blog.umans.ai/blog/host-claude-code/)**, and ZAI themselves have acknowledged the [serving pain](https://x.com/Zai_org/status/2021656633320018365) publicly.
+GLM-4.7 is a 300B MoE with full attention. At 128k context that puts you at around 23 GiB of KV cache per session, or about 2.3 TB across 100 sessions. That is before weights and runtime overhead. We covered this in **[host-claude-code](https://blog.umans.ai/blog/host-claude-code/)**, and ZAI themselves have acknowledged the [serving pain](https://x.com/Zai_org/status/2021656633320018365) publicly.
 
-GLM-5 includes compressed attention (DSA) that changes this picture. **[GLM-5 blog](https://z.ai/blog/glm-5)** and **[GLM-5 model](https://huggingface.co/zai-org/GLM-5)**
+GLM-5 is a 744B MoE with compressed attention (DSA). **[GLM-5 blog](https://z.ai/blog/glm-5)** and **[GLM-5 model](https://huggingface.co/zai-org/GLM-5)**
 
 * GLM-4.7: ~23 GiB per session, ~2.3 TB at 100 sessions
 * GLM-5: ~6.25 GiB per session, ~625 GiB at 100 sessions
 
-Roughly 3x to 4x less memory on the term that actually multiplies with concurrency. That is the whole point of GLM-5.
+More than double the parameters, 3x to 4x less KV cache per session. That is what moving from full attention to compressed attention gets you at scale.
 
 
-## Single-node constraint: weights decide the format
+## Single-node reality: weights plus KV cache have to fit
 
-Take the nodes people actually run:
+GLM-5 is 744B total parameters. In BF16 that is roughly 1.5 TB of weights alone, so BF16 is off the table for single-node. The practical format is FP8, which means quantizing down from the native checkpoint with some quality loss. **[GLM-5 FP8](https://huggingface.co/zai-org/GLM-5-FP8)**
 
-* **8x H200**: 141 GB per GPU
-* **8x B200**: more headroom, still finite
+Kimi-K2.5 is 1.04T total parameters. It ships with native INT4 as the post-trained deployment format, so INT4 is where the model was evaluated and optimized. No quality loss from quantization. **[Kimi-K2.5 model](https://huggingface.co/moonshotai/Kimi-K2.5)**
 
-GLM-5 is **744B** total parameters. Serving it in BF16 is roughly **1.5 TB of weights** before you even allocate KV cache and runtime overhead. That does not fit on an 8xH200 node, and it is still not a comfortable single-node target even on the next class up once you include KV cache and headroom.
+Now add KV cache for 100 sessions on top:
 
-So the practical single-node format for GLM-5 is the **FP8 artifact**: **[GLM-5 FP8](https://huggingface.co/zai-org/GLM-5-FP8)**. This is not "hacky quant", this is the standard serving format for modern large models.
+| | Weights | KV cache (100 sessions) | Total |
+|---|---|---|---|
+| GLM-5 FP8 | ~744 GB | ~625 GiB | ~1.37 TB |
+| Kimi-K2.5 INT4 | ~520 GB | ~489 GiB | ~1.01 TB |
+
+An 8xH200 node has 1.13 TB GPU memory and 8xB200 has 1.44 TB. Neither is comfortable for GLM-5 once you account for activations and framework overhead. Kimi-K2.5 fits on both with headroom.
+
+The bigger model takes less memory and keeps full quality. That is what MoE plus a native low-bit deployment format gets you.
+
 
 ## Why Kimi is materially faster under load
 
-When the service is busy, the user experience is driven by decode throughput under contention. For MoE models, the best first-order predictor is:
+When the service is busy, what the user feels is decode speed. For MoE models, that comes down to two things: how many parameters activate per token, and how many bytes each one costs to move.
 
-* **activated parameters per token**
-* **bytes per weight** in the deployed format
+* **Kimi-K2.5**: 32B activated, INT4. **[Kimi-K2.5 model](https://huggingface.co/moonshotai/Kimi-K2.5)**
+* **GLM-5**: 40B activated, FP8. **[GLM-5 FP8](https://huggingface.co/zai-org/GLM-5-FP8)**
 
-Published numbers:
+Fewer activated parameters at half the bytes per weight. Back-of-the-envelope bytes moved per generated token:
 
-* **Kimi-K2.5**: 1.04T total, **32B activated**
-* **GLM-5**: **40B activated** (on the 744B variant) **[GLM-5 model](https://huggingface.co/zai-org/GLM-5)**
+* Kimi INT4: 32B × 0.5 bytes ≈ 16 GB
+* GLM-5 FP8: 40B × 1 byte ≈ 40 GB
 
-Now combine that with what you actually serve:
-
-* Kimi-K2.5 ships as a **post-trained checkpoint** and is released with **native INT4 quantization** as the intended deployment configuration **[Kimi-K2.5 model](https://huggingface.co/moonshotai/Kimi-K2.5)**
-* GLM-5, on a single node, is realistically served as **FP8** **[GLM-5 FP8](https://huggingface.co/zai-org/GLM-5-FP8)**
-
-Back-of-the-envelope bytes moved per generated token:
-
-* Kimi INT4: 32B × 0.5 bytes ≈ 16 GB per token
-* GLM-5 FP8: 40B × 1 byte ≈ 40 GB per token
-
-That ratio is **2.5x**. In the interactive agent regime, it is completely normal for that to show up as **2x to 4x faster generation per user under load**, depending on batching and context length.
+That is a 2.5x ratio. In practice, depending on batching and context length, that shows up as **2x to 4x faster generation per user under load**.
 
 ## Native multimodal is another real difference
 
 Kimi-K2.5 is natively multimodal, jointly pretrained on text and vision from the start. GLM-5 is text-only. You can bolt a vision encoder onto it, and we have done exactly this kind of work with DeepSeek V3.2 in [umans-coder-v0](https://huggingface.co/umans-ai/umans-coder-v0/tree/main). But a post-hoc adapter does not match a model that learned both modalities together over the full training run.
 
 In a Claude Code-like workflow, users copy-paste screenshots constantly while iterating: UI state, error dialogs, visual debugging. If vision is a second-class citizen, the agent loses context on exactly the inputs that make the workflow feel native.
-
-
-## Why a 1T+ model can be cheaper than a smaller-looking one
-
-This is where people get misled by headline total parameters.
-
-Serving cost and latency are driven by:
-
-* KV cache per session (multiplies by concurrency)
-* activated parameters per token (drives decode compute)
-* deployed weight format (drives memory and throughput)
-
-So a "bigger" MoE can be cheaper if it activates fewer parameters and ships a lower-bit deployment format that you can run comfortably.
 
 ## What we ship
 
