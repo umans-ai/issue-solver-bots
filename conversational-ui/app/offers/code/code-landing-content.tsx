@@ -821,6 +821,31 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 </Button>
               </div>
             </div>
+
+            {/* Setup Video */}
+            <div className="w-full max-w-3xl">
+              <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#0b0d10] shadow-2xl dark:border-white/10">
+                <div className="flex h-10 items-center gap-2 bg-[#1a1a1a] px-4">
+                  <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
+                  <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
+                  <span className="h-3 w-3 rounded-full bg-[#27ca40]" />
+                  <span className="ml-3 text-xs text-white/40">umans code setup</span>
+                </div>
+                <div className="aspect-video w-full">
+                  <iframe
+                    className="h-full w-full"
+                    src="https://www.youtube.com/embed/Ihqt9ZH8c8M"
+                    title="Setup Claude Code with Umans in 30 seconds"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+              <p className="mt-3 text-sm text-black/60 dark:text-white/60">
+                <span className="font-medium text-black dark:text-white">Setup takes 30 seconds.</span>{' '}
+                No configuration. Just run the command above.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -872,7 +897,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                   rel="noreferrer"
                   className="inline-flex text-sm font-medium text-[#5e5d59] underline-offset-4 hover:underline dark:text-white/60"
                 >
-                  See the benchmark breakdown →
+                  Read more on our blog →
                 </Link>
             </div>
             <div className="mt-12">
