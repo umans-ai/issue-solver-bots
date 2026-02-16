@@ -123,10 +123,10 @@ interface BenchmarkData {
   models: { name: string; score: number; color: string }[];
 }
 
-// Consistent model colors across all benchmarks
+// Consistent model colors across all benchmarks - Umans models use logo pink
 const MODEL_COLORS: Record<string, string> = {
-  'Kimi K2.5 (umans-coder)': '#d97757',
-  'MiniMax M2.5 (umans-minimax-m2.5)': '#e89a5a',
+  'Kimi K2.5 (umans-coder)': '#FA75AA',
+  'MiniMax M2.5 (umans-minimax-m2.5)': '#FA75AA',
   'Claude Opus 4.5': '#cc785c',
   'Claude Opus 4.6': '#b86b52',
   'Claude Sonnet 4.5': '#a85d48',
