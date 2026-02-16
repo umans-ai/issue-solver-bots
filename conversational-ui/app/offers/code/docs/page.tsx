@@ -123,6 +123,17 @@ interface BenchmarkData {
   models: { name: string; score: number; color: string }[];
 }
 
+// Consistent model colors across all benchmarks
+const MODEL_COLORS: Record<string, string> = {
+  'Kimi K2.5 (umans-coder)': '#d97757',
+  'MiniMax M2.5 (umans-minimax-m2.5)': '#e89a5a',
+  'Claude Opus 4.5': '#cc785c',
+  'Claude Opus 4.6': '#b86b52',
+  'Claude Sonnet 4.5': '#a85d48',
+  'Gemini 3 Pro': '#4285f4',
+  'GPT-5.2': '#10a37f',
+};
+
 const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
   omnidocbench: {
     name: 'OmniDocBench',
@@ -130,11 +141,11 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
     maxScore: 95,
     date: 'January 2026',
     models: [
-      { name: 'Kimi K2.5 (umans-coder)', score: 88.8, color: '#d97757' },
-      { name: 'Gemini 3 Pro', score: 88.5, color: '#4285f4' },
-      { name: 'Claude Opus 4.5', score: 87.7, color: '#cc785c' },
-      { name: 'GPT-5.2', score: 85.7, color: '#10a37f' },
-      { name: 'Claude 3.5 Sonnet', score: 62.5, color: '#a85d48' },
+      { name: 'Kimi K2.5 (umans-coder)', score: 88.8, color: MODEL_COLORS['Kimi K2.5 (umans-coder)'] },
+      { name: 'Gemini 3 Pro', score: 88.5, color: MODEL_COLORS['Gemini 3 Pro'] },
+      { name: 'Claude Opus 4.5', score: 87.7, color: MODEL_COLORS['Claude Opus 4.5'] },
+      { name: 'GPT-5.2', score: 85.7, color: MODEL_COLORS['GPT-5.2'] },
+      { name: 'Claude Sonnet 4.5', score: 68.0, color: MODEL_COLORS['Claude Sonnet 4.5'] },
     ],
   },
   mmmu_pro: {
@@ -143,11 +154,11 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
     maxScore: 85,
     date: 'January 2026',
     models: [
-      { name: 'Gemini 3 Pro', score: 81.0, color: '#4285f4' },
-      { name: 'Kimi K2.5 (umans-coder)', score: 78.5, color: '#d97757' },
-      { name: 'GPT-5.2', score: 79.5, color: '#10a37f' },
-      { name: 'Claude Opus 4.5', score: 74.0, color: '#cc785c' },
-      { name: 'Claude Sonnet 4.5', score: 68.0, color: '#a85d48' },
+      { name: 'Gemini 3 Pro', score: 81.0, color: MODEL_COLORS['Gemini 3 Pro'] },
+      { name: 'Kimi K2.5 (umans-coder)', score: 78.5, color: MODEL_COLORS['Kimi K2.5 (umans-coder)'] },
+      { name: 'GPT-5.2', score: 79.5, color: MODEL_COLORS['GPT-5.2'] },
+      { name: 'Claude Opus 4.5', score: 74.0, color: MODEL_COLORS['Claude Opus 4.5'] },
+      { name: 'Claude Sonnet 4.5', score: 68.0, color: MODEL_COLORS['Claude Sonnet 4.5'] },
     ],
   },
   swe_bench: {
@@ -156,11 +167,11 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
     maxScore: 85,
     date: 'February 2026',
     models: [
-      { name: 'Claude Opus 4.5', score: 80.9, color: '#cc785c' },
-      { name: 'Claude Opus 4.6', score: 80.8, color: '#b86b52' },
-      { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 80.2, color: '#d97757' },
-      { name: 'Claude Sonnet 4.5', score: 77.2, color: '#a85d48' },
-      { name: 'Kimi K2.5 (umans-coder)', score: 76.8, color: '#e88a6a' },
+      { name: 'Claude Opus 4.5', score: 80.9, color: MODEL_COLORS['Claude Opus 4.5'] },
+      { name: 'Claude Opus 4.6', score: 80.8, color: MODEL_COLORS['Claude Opus 4.6'] },
+      { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 80.2, color: MODEL_COLORS['MiniMax M2.5 (umans-minimax-m2.5)'] },
+      { name: 'Claude Sonnet 4.5', score: 77.2, color: MODEL_COLORS['Claude Sonnet 4.5'] },
+      { name: 'Kimi K2.5 (umans-coder)', score: 76.8, color: MODEL_COLORS['Kimi K2.5 (umans-coder)'] },
     ],
   },
   mathvision: {
@@ -169,10 +180,10 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
     maxScore: 90,
     date: 'January 2026',
     models: [
-      { name: 'Kimi K2.5 (umans-coder)', score: 84.2, color: '#d97757' },
-      { name: 'Gemini 3 Pro', score: 86.1, color: '#4285f4' },
-      { name: 'Claude Opus 4.5', score: 82.0, color: '#cc785c' },
-      { name: 'GPT-5.2', score: 81.5, color: '#10a37f' },
+      { name: 'Gemini 3 Pro', score: 86.1, color: MODEL_COLORS['Gemini 3 Pro'] },
+      { name: 'Kimi K2.5 (umans-coder)', score: 84.2, color: MODEL_COLORS['Kimi K2.5 (umans-coder)'] },
+      { name: 'Claude Opus 4.5', score: 82.0, color: MODEL_COLORS['Claude Opus 4.5'] },
+      { name: 'GPT-5.2', score: 81.5, color: MODEL_COLORS['GPT-5.2'] },
     ],
   },
 };
@@ -343,7 +354,7 @@ export default function DocsPage() {
         {/* Sidebar Navigation */}
         <aside
           className={cn(
-            'fixed inset-y-0 left-0 z-40 w-64 transform bg-[#f6f6f4] px-6 pt-24 transition-transform dark:bg-[#0b0d10] sm:static sm:translate-x-0 sm:bg-transparent sm:pt-0',
+            'fixed inset-y-0 left-0 z-40 w-64 transform bg-[#f6f6f4] px-6 pt-24 transition-transform dark:bg-[#0b0d10] sm:sticky sm:top-20 sm:h-[calc(100vh-5rem)] sm:translate-x-0 sm:overflow-y-auto sm:bg-transparent sm:pt-0',
             mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           )}
         >
