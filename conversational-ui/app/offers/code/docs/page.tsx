@@ -113,7 +113,7 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
 }
 
 // Benchmark data from API and research
-type BenchmarkKey = 'omnidocbench' | 'mmmu_pro' | 'swe_bench' | 'multi_swe_bench' | 'mathvision';
+type BenchmarkKey = 'multi_swe_bench' | 'omnidocbench' | 'mmmu_pro' | 'swe_bench' | 'mathvision';
 
 interface BenchmarkData {
   name: string;
@@ -135,6 +135,17 @@ const MODEL_COLORS: Record<string, string> = {
 };
 
 const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
+  multi_swe_bench: {
+    name: 'Multi-SWE-Bench',
+    description: 'Multi-language software engineering (Java, JS, Go, C++, etc.).',
+    maxScore: 60,
+    date: 'February 2026',
+    models: [
+      { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 51.3, color: MODEL_COLORS['MiniMax M2.5 (umans-minimax-m2.5)'] },
+      { name: 'Claude Opus 4.6', score: 50.3, color: MODEL_COLORS['Claude Opus 4.6'] },
+      { name: 'Gemini 3 Pro', score: 42.7, color: MODEL_COLORS['Gemini 3 Pro'] },
+    ],
+  },
   omnidocbench: {
     name: 'OmniDocBench',
     description: 'Document understanding and OCR benchmark. Higher is better.',
@@ -166,22 +177,11 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
     maxScore: 85,
     date: 'February 2026',
     models: [
-      { name: 'Claude Opus 4.5', score: 80.9, color: MODEL_COLORS['Claude Opus 4.5'] },
       { name: 'Claude Opus 4.6', score: 80.8, color: MODEL_COLORS['Claude Opus 4.6'] },
       { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 80.2, color: MODEL_COLORS['MiniMax M2.5 (umans-minimax-m2.5)'] },
-      { name: 'Claude Sonnet 4.5', score: 77.2, color: MODEL_COLORS['Claude Sonnet 4.5'] },
+      { name: 'GPT-5.2', score: 80.0, color: MODEL_COLORS['GPT-5.2'] },
+      { name: 'Gemini 3 Pro', score: 78.0, color: MODEL_COLORS['Gemini 3 Pro'] },
       { name: 'Kimi K2.5 (umans-coder)', score: 76.8, color: MODEL_COLORS['Kimi K2.5 (umans-coder)'] },
-    ],
-  },
-  multi_swe_bench: {
-    name: 'SWE-Bench Multilingual',
-    description: 'Multi-language software engineering (Java, JS, Go, C++, etc.).',
-    maxScore: 60,
-    date: 'February 2026',
-    models: [
-      { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 51.3, color: MODEL_COLORS['MiniMax M2.5 (umans-minimax-m2.5)'] },
-      { name: 'Claude Opus 4.6', score: 50.3, color: MODEL_COLORS['Claude Opus 4.6'] },
-      { name: 'Gemini 3 Pro', score: 42.7, color: MODEL_COLORS['Gemini 3 Pro'] },
     ],
   },
   mathvision: {
@@ -199,7 +199,7 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
 };
 
 function BenchmarkChart() {
-  const [activeBenchmark, setActiveBenchmark] = useState<BenchmarkKey>('omnidocbench');
+  const [activeBenchmark, setActiveBenchmark] = useState<BenchmarkKey>('multi_swe_bench');
   const data = benchmarkData[activeBenchmark];
 
   return (
@@ -934,7 +934,7 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
                       rel="noreferrer"
                       className="text-[#d97757] underline-offset-2 hover:underline"
                     >
-                      SWE-Bench Multilingual
+                      Multi-SWE-Bench
                     </a>
                     {' '}with <strong>51.3%</strong> (vs Claude Opus 4.6 at 50.3%) for multi-language
                     coding (Java, Go, Rust, C++, etc.). Also achieves <strong>80.2%</strong> on{' '}
