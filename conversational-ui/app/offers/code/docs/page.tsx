@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { IconUmansLogo } from '@/components/icons';
 import { cn } from '@/lib/utils';
@@ -270,11 +270,41 @@ export default function DocsPage() {
   const scrollToSection = (id: string) => {
     setActiveSection(id);
     setMobileMenuOpen(false);
+    // Update URL hash without triggering scroll
+    window.history.pushState(null, '', `#${id}`);
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Offset for sticky header (80px)
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
   };
+
+  // Handle initial hash on page load
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      const element = document.getElementById(hash);
+      if (element) {
+        setActiveSection(hash);
+        // Small delay to ensure page is fully rendered
+        setTimeout(() => {
+          const headerOffset = 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }, 100);
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f6f6f4] dark:bg-[#0b0d10]">
