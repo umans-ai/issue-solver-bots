@@ -346,6 +346,8 @@ jobs:
           TF_VAR_conversational_ui_image_tag: umans-platform-conversational-ui-${{ github.sha }}
           TF_VAR_morph_api_key: ${{ secrets.TF_VAR_MORPH_API_KEY }}
           TF_VAR_posthog_key: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_POSTHOG_KEY_PROD || secrets.TF_VAR_POSTHOG_KEY_DEV }}
+          TF_VAR_google_ads_id: ${{ secrets.TF_VAR_GOOGLE_ADS_ID }}
+          TF_VAR_google_ads_purchase_label: ${{ secrets.TF_VAR_GOOGLE_ADS_PURCHASE_LABEL }}
           STRIPE_SECRET_KEY_PROD: ${{ secrets.TF_VAR_STRIPE_SECRET_KEY_PROD }}
           STRIPE_SECRET_KEY_DEV: ${{ secrets.TF_VAR_STRIPE_SECRET_KEY_DEV }}
           STRIPE_BILLING_PORTAL_URL_PROD: ${{ secrets.TF_VAR_STRIPE_BILLING_PORTAL_URL_PROD }}
@@ -487,6 +489,8 @@ jobs:
           TF_VAR_conversational_ui_image_tag: umans-platform-conversational-ui-${{ github.sha }}
           TF_VAR_morph_api_key: ${{ secrets.TF_VAR_MORPH_API_KEY }}
           TF_VAR_posthog_key: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_POSTHOG_KEY_PROD || secrets.TF_VAR_POSTHOG_KEY_DEV }}
+          TF_VAR_google_ads_id: ${{ secrets.TF_VAR_GOOGLE_ADS_ID }}
+          TF_VAR_google_ads_purchase_label: ${{ secrets.TF_VAR_GOOGLE_ADS_PURCHASE_LABEL }}
           STRIPE_SECRET_KEY_PROD: ${{ secrets.TF_VAR_STRIPE_SECRET_KEY_PROD }}
           STRIPE_SECRET_KEY_DEV: ${{ secrets.TF_VAR_STRIPE_SECRET_KEY_DEV }}
           STRIPE_BILLING_PORTAL_URL_PROD: ${{ secrets.TF_VAR_STRIPE_BILLING_PORTAL_URL_PROD }}
