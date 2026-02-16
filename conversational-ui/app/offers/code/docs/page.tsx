@@ -643,11 +643,24 @@ umans claude --model umans-minimax-m2.5   # MiniMax M2.5 with vision/websearch`}
                 <Table
                   headers={['Model', 'Provider', 'Capabilities', 'Best For']}
                   rows={[
-                    ['umans-coder', 'Kimi K2.5', 'Text, Vision, WebSearch', 'General coding (default)'],
-                    ['umans-kimi-k2.5', 'Kimi K2.5', 'Text, Vision, WebSearch', 'Native Kimi experience'],
-                    ['umans-minimax-m2.5', 'MiniMax M2.5', 'Text, Vision (handoff), WebSearch (handoff)', 'Fast text + smart handoffs'],
+                    ['umans-coder', 'Kimi K2.5*', 'Text, Vision, WebSearch', 'Default — we choose the best for you'],
+                    ['umans-kimi-k2.5', 'Kimi K2.5', 'Text, Vision, WebSearch', 'When you specifically want Kimi'],
+                    ['umans-minimax-m2.5', 'MiniMax M2.5', 'Text, Vision (handoff), WebSearch (handoff)', 'When you specifically want MiniMax'],
                   ]}
                 />
+                <p className="mt-2 text-xs text-[#5e5d59] dark:text-white/60">
+                  * Today, umans-coder routes to Kimi K2.5. This may change as we continuously evaluate models.
+                  See our model selection methodology at{' '}
+                  <a
+                    href="https://blog.umans.ai"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    blog.umans.ai
+                  </a>
+                  .
+                </p>
 
                 <p className="mt-4 text-sm font-medium text-[#0b0d10] dark:text-white">
                   Manual configuration:
@@ -901,27 +914,40 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
               <Table
                 headers={['Model', 'Provider', 'Best For', 'Trade-off']}
                 rows={[
-                  ['umans-coder', 'Kimi K2.5', 'General coding (default)', 'Zero overhead, native multimodal'],
-                  ['umans-kimi-k2.5', 'Kimi K2.5', 'Vision-heavy workflows', 'Same as above, explicit alias'],
-                  ['umans-minimax-m2.5', 'MiniMax M2.5', 'Fast text + occasional vision/websearch', 'Smart handoffs add ~100-200ms overhead for image/search'],
+                  ['umans-coder', 'Kimi K2.5*', 'Default — we choose the best for you', 'Routes to our top pick (may change over time)'],
+                  ['umans-kimi-k2.5', 'Kimi K2.5', 'When you specifically want Kimi', 'Zero overhead, native multimodal'],
+                  ['umans-minimax-m2.5', 'MiniMax M2.5', 'When you specifically want MiniMax', 'Fast text + smart handoffs (~100-200ms overhead)'],
                 ]}
               />
+              <p className="mt-2 text-xs text-[#5e5d59] dark:text-white/60">
+                * Today, umans-coder routes to Kimi K2.5. This may change as we continuously evaluate models.
+                Read more at{' '}
+                <a
+                  href="https://blog.umans.ai"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[#d97757] underline-offset-2 hover:underline"
+                >
+                  blog.umans.ai
+                </a>
+                .
+              </p>
 
               <h3 className="mt-8 text-lg font-semibold text-[#0b0d10] dark:text-white">
                 How to Choose
               </h3>
               <ul className="mt-4 list-disc space-y-2 pl-5 text-[#5e5d59] dark:text-white/70">
                 <li>
-                  Use <InlineCode>umans-coder</InlineCode> (default) for most work—it&apos;s our
-                  recommended balanced option
+                  Use <InlineCode>umans-coder</InlineCode> (default) to let us choose the best model for you.
+                  We continuously evaluate and select what works best for most coding tasks. Today this is Kimi K2.5.
                 </li>
                 <li>
-                  Use <InlineCode>umans-minimax-m2.5</InlineCode> when you primarily do text
-                  coding but occasionally need vision/websearch
+                  Use <InlineCode>umans-minimax-m2.5</InlineCode> when you specifically want MiniMax M2.5 —
+                  ideal for multi-language coding and when you need the best SWE-Bench Multilingual performance.
                 </li>
                 <li>
-                  Use <InlineCode>umans-kimi-k2.5</InlineCode> when you explicitly want the
-                  native Kimi experience
+                  Use <InlineCode>umans-kimi-k2.5</InlineCode> when you specifically want native Kimi K2.5 —
+                  for vision-heavy workflows and document understanding tasks where it leads benchmarks.
                 </li>
               </ul>
 
@@ -1201,20 +1227,20 @@ $env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
                     What models does Umans Code use?
                   </h3>
                   <p className="mt-2 text-[#5e5d59] dark:text-white/70">
-                    Umans Code serves the best open-source models available. We currently offer:
+                    Umans Code serves the best open-source models available. We do the hard work of evaluating and selecting so you don&apos;t have to. Currently:
                   </p>
                   <ul className="mt-4 list-disc space-y-2 pl-5 text-[#5e5d59] dark:text-white/70">
                     <li>
                       <strong className="text-[#0b0d10] dark:text-white">umans-coder</strong> —
-                      Kimi K2.5 for general coding (default, zero overhead, native multimodal)
+                      Our recommended default. We continuously evaluate and route to what works best (today: Kimi K2.5)
                     </li>
                     <li>
                       <strong className="text-[#0b0d10] dark:text-white">umans-kimi-k2.5</strong> —
-                      Native Kimi K2.5 for vision-heavy workflows
+                      Explicitly choose native Kimi K2.5 for vision-heavy workflows and document understanding
                     </li>
                     <li>
                       <strong className="text-[#0b0d10] dark:text-white">umans-minimax-m2.5</strong>{' '}
-                      — MiniMax M2.5 for fast text coding with smart vision/websearch handoffs
+                      — Explicitly choose MiniMax M2.5 for multi-language coding and best-in-class SWE-Bench Multilingual performance
                     </li>
                   </ul>
                   <p className="mt-4 text-[#5e5d59] dark:text-white/70">
