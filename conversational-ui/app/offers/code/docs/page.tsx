@@ -145,7 +145,6 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
       { name: 'Gemini 3 Pro', score: 88.5, color: MODEL_COLORS['Gemini 3 Pro'] },
       { name: 'Claude Opus 4.5', score: 87.7, color: MODEL_COLORS['Claude Opus 4.5'] },
       { name: 'GPT-5.2', score: 85.7, color: MODEL_COLORS['GPT-5.2'] },
-      { name: 'Claude Sonnet 4.5', score: 68.0, color: MODEL_COLORS['Claude Sonnet 4.5'] },
     ],
   },
   mmmu_pro: {
