@@ -419,16 +419,25 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                   </div>
                 </div>
 
-                <div className="space-y-4 text-base leading-relaxed text-[#0b0d10]/70 dark:text-white/70 pt-2">
-                  <p className="font-semibold text-[#0b0d10]/90 dark:text-white/90">
-                    Your Founding seat is reserved.
-                  </p>
-                  <p>
-                    We are preparing your access now and will open accounts on
-                    March 1, 2026.
-                  </p>
-                  <p>We will email you as soon as your endpoint is ready.</p>
-                </div>
+                <p className="pt-4 text-base text-[#0b0d10]/70 dark:text-white/70">
+                  Questions? Check out the{' '}
+                  <Link
+                    href="/offers/code/docs"
+                    className="font-medium text-[#d97757] hover:underline"
+                  >
+                    docs
+                  </Link>{' '}
+                  or ask the community on{' '}
+                  <a
+                    href="https://discord.gg/Q5hdNrk7Rw"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-[#d97757] hover:underline"
+                  >
+                    Discord
+                  </a>
+                  .
+                </p>
               </div>
             ) : (
               <div className="space-y-4 text-base text-[#0b0d10]/70 dark:text-white/70">

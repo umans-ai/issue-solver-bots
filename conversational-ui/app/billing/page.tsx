@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { FaDiscord } from 'react-icons/fa6';
 
 import { auth } from '@/app/(auth)/auth';
 import { getLatestPledgeForUser } from '@/lib/db/queries';
@@ -44,7 +45,32 @@ export default async function BillingPage() {
             <UmansLogoMark className="h-5 w-auto" />
             <span className="text-sm font-medium tracking-tight">code</span>
           </Link>
+          <nav className="landing-nav hidden items-center gap-6 text-sm font-medium text-black/60 md:flex dark:text-white/70">
+            <Link
+              href="/offers/code/docs"
+              className="hover:text-black dark:hover:text-white"
+            >
+              Docs
+            </Link>
+            <Link
+              href="https://blog.umans.ai/blog"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-black dark:hover:text-white"
+            >
+              Blog
+            </Link>
+          </nav>
           <div className="flex items-center gap-3">
+            <a
+              href="https://discord.gg/Q5hdNrk7Rw"
+              target="_blank"
+              rel="noreferrer"
+              className="hidden text-black/50 transition hover:text-black dark:text-white/60 dark:hover:text-white md:block"
+              aria-label="Discord"
+            >
+              <FaDiscord className="h-4 w-4" />
+            </a>
             <ThemeToggle variant="ghost" />
             <CodeUserNav
               user={session.user}

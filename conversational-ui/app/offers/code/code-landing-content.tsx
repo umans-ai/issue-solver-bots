@@ -702,6 +702,12 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
               Plans
             </Link>
             <Link
+              href="/offers/code/docs"
+              className="hover:text-black dark:hover:text-white"
+            >
+              Docs
+            </Link>
+            <Link
               href="https://blog.umans.ai/blog"
               target="_blank"
               rel="noreferrer"

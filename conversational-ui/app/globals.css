@@ -266,6 +266,26 @@
     border-right: none !important;
 }
 
+/* Docs sidebar - transparent on desktop - more specific to override nav styles */
+@media (min-width: 640px) {
+    :not(.dark) aside.docs-sidebar,
+    :not(.dark) aside.docs-sidebar[role="complementary"] {
+        background-color: transparent !important;
+        backdrop-filter: none !important;
+        border-right: none !important;
+    }
+}
+
+/* Docs sidebar nav - transparent on desktop */
+@media (min-width: 640px) {
+    :not(.dark) nav.docs-sidebar-nav,
+    :not(.dark) aside[role="complementary"] nav.docs-sidebar-nav {
+        background-color: transparent !important;
+        backdrop-filter: none !important;
+        border-right: none !important;
+    }
+}
+
 :not(.dark) .docs-search-overlay {
     background-color: transparent !important;
     backdrop-filter: blur(5px);
@@ -433,6 +453,27 @@ form textarea::-webkit-scrollbar {
     background-color: transparent !important;
     backdrop-filter: none !important;
     border-right: none !important;
+}
+
+/* Docs sidebar - transparent on desktop (dark mode) - more specific */
+@media (min-width: 640px) {
+    .dark aside.docs-sidebar,
+    .dark aside.docs-sidebar[role="complementary"] {
+        background: transparent !important;
+        background-color: transparent !important;
+        backdrop-filter: none !important;
+        border-right: none !important;
+    }
+}
+
+/* Docs sidebar nav - transparent on desktop (dark mode) */
+@media (min-width: 640px) {
+    .dark nav.docs-sidebar-nav,
+    .dark aside[role="complementary"] nav.docs-sidebar-nav {
+        background-color: transparent !important;
+        backdrop-filter: none !important;
+        border-right: none !important;
+    }
 }
 
 /* Keep billing nav transparent (avoid global nav panel styling) */
