@@ -113,7 +113,7 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
 }
 
 // Benchmark data from API and research
-type BenchmarkKey = 'omnidocbench' | 'mmmu_pro' | 'swe_bench' | 'mathvision';
+type BenchmarkKey = 'omnidocbench' | 'mmmu_pro' | 'swe_bench' | 'multi_swe_bench' | 'mathvision';
 
 interface BenchmarkData {
   name: string;
@@ -171,6 +171,17 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
       { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 80.2, color: MODEL_COLORS['MiniMax M2.5 (umans-minimax-m2.5)'] },
       { name: 'Claude Sonnet 4.5', score: 77.2, color: MODEL_COLORS['Claude Sonnet 4.5'] },
       { name: 'Kimi K2.5 (umans-coder)', score: 76.8, color: MODEL_COLORS['Kimi K2.5 (umans-coder)'] },
+    ],
+  },
+  multi_swe_bench: {
+    name: 'SWE-Bench Multilingual',
+    description: 'Multi-language software engineering (Java, JS, Go, C++, etc.).',
+    maxScore: 60,
+    date: 'February 2026',
+    models: [
+      { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 51.3, color: MODEL_COLORS['MiniMax M2.5 (umans-minimax-m2.5)'] },
+      { name: 'Claude Opus 4.6', score: 50.3, color: MODEL_COLORS['Claude Opus 4.6'] },
+      { name: 'Gemini 3 Pro', score: 42.7, color: MODEL_COLORS['Gemini 3 Pro'] },
     ],
   },
   mathvision: {
@@ -916,7 +927,17 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
                 <div className="rounded-xl border border-[#d97757]/20 bg-[#d97757]/5 p-4 dark:border-[#d97757]/30 dark:bg-[#d97757]/10">
                   <p className="text-sm text-[#5e5d59] dark:text-white/70">
                     <strong className="text-[#0b0d10] dark:text-white">🚀 Best in Class Coding:</strong>{' '}
-                    MiniMax M2.5 achieves <strong>80.2%</strong> on{' '}
+                    MiniMax M2.5 leads on{' '}
+                    <a
+                      href="https://www.swebench.com/multilingual/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#d97757] underline-offset-2 hover:underline"
+                    >
+                      SWE-Bench Multilingual
+                    </a>
+                    {' '}with <strong>51.3%</strong> (vs Claude Opus 4.6 at 50.3%) for multi-language
+                    coding (Java, Go, Rust, C++, etc.). Also achieves <strong>80.2%</strong> on{' '}
                     <a
                       href="https://www.swebench.com/"
                       target="_blank"
@@ -925,8 +946,7 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
                     >
                       SWE-Bench Verified
                     </a>
-                    — competitive with Claude Opus 4.5 (80.9%) and ahead of Claude Sonnet 4.5
-                    (77.2%). Use <InlineCode>umans-minimax-m2.5</InlineCode> for demanding
+                    . Use <InlineCode>umans-minimax-m2.5</InlineCode> for demanding
                     software engineering tasks.
                   </p>
                 </div>
@@ -942,6 +962,15 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
                     className="text-[#d97757] underline-offset-2 hover:underline"
                   >
                     Moonshot AI
+                  </a>
+                  ,{' '}
+                  <a
+                    href="https://www.minimax.io/news/minimax-m25"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    MiniMax
                   </a>
                   ,{' '}
                   <a
