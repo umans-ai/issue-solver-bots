@@ -18,6 +18,7 @@ const sections = [
   { id: 'tool-setup', title: 'Tool-Specific Setup' },
   { id: 'troubleshooting', title: 'Troubleshooting' },
   { id: 'api-reference', title: 'API Reference' },
+  { id: 'models', title: 'Models' },
   { id: 'faq', title: 'FAQ' },
   { id: 'support', title: 'Support' },
 ];
@@ -107,6 +108,120 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// Benchmark data from API and research
+type BenchmarkKey = 'omnidocbench' | 'mmmu_pro' | 'swe_bench' | 'mathvision';
+
+interface BenchmarkData {
+  name: string;
+  description: string;
+  maxScore: number;
+  models: { name: string; score: number; color: string }[];
+}
+
+const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
+  omnidocbench: {
+    name: 'OmniDocBench',
+    description: 'Document understanding and OCR benchmark. Higher is better.',
+    maxScore: 95,
+    models: [
+      { name: 'Kimi K2.5 (umans-coder)', score: 88.8, color: '#d97757' },
+      { name: 'Gemini 3 Pro', score: 88.5, color: '#4285f4' },
+      { name: 'Claude Opus 4.5', score: 87.7, color: '#cc785c' },
+      { name: 'GPT-5.2', score: 85.7, color: '#10a37f' },
+      { name: 'Claude 3.5 Sonnet', score: 62.5, color: '#a85d48' },
+    ],
+  },
+  mmmu_pro: {
+    name: 'MMMU Pro',
+    description: 'Multimodal understanding across college-level disciplines.',
+    maxScore: 85,
+    models: [
+      { name: 'Gemini 3 Pro', score: 81.0, color: '#4285f4' },
+      { name: 'Kimi K2.5 (umans-coder)', score: 78.5, color: '#d97757' },
+      { name: 'GPT-5.2', score: 79.5, color: '#10a37f' },
+      { name: 'Claude Opus 4.5', score: 74.0, color: '#cc785c' },
+      { name: 'Claude Sonnet 4.5', score: 68.0, color: '#a85d48' },
+    ],
+  },
+  swe_bench: {
+    name: 'SWE-Bench Verified',
+    description: 'Real-world software engineering task resolution.',
+    maxScore: 85,
+    models: [
+      { name: 'Claude Opus 4.5', score: 80.9, color: '#cc785c' },
+      { name: 'Claude Opus 4.6', score: 80.8, color: '#b86b52' },
+      { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 80.2, color: '#d97757' },
+      { name: 'Claude Sonnet 4.5', score: 77.2, color: '#a85d48' },
+      { name: 'Kimi K2.5 (umans-coder)', score: 76.8, color: '#e88a6a' },
+    ],
+  },
+  mathvision: {
+    name: 'MathVision',
+    description: 'Mathematical reasoning with visual understanding.',
+    maxScore: 90,
+    models: [
+      { name: 'Kimi K2.5 (umans-coder)', score: 84.2, color: '#d97757' },
+      { name: 'Gemini 3 Pro', score: 86.1, color: '#4285f4' },
+      { name: 'Claude Opus 4.5', score: 82.0, color: '#cc785c' },
+      { name: 'GPT-5.2', score: 81.5, color: '#10a37f' },
+    ],
+  },
+};
+
+function BenchmarkChart() {
+  const [activeBenchmark, setActiveBenchmark] = useState<BenchmarkKey>('omnidocbench');
+  const data = benchmarkData[activeBenchmark];
+
+  return (
+    <div className="my-6">
+      {/* Benchmark selector */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {(Object.keys(benchmarkData) as BenchmarkKey[]).map((key) => (
+          <button
+            key={key}
+            onClick={() => setActiveBenchmark(key)}
+            className={cn(
+              'rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
+              activeBenchmark === key
+                ? 'bg-[#d97757] text-white'
+                : 'bg-black/5 text-[#5e5d59] hover:bg-black/10 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20'
+            )}
+          >
+            {benchmarkData[key].name}
+          </button>
+        ))}
+      </div>
+
+      {/* Description */}
+      <p className="mb-4 text-sm text-[#5e5d59] dark:text-white/60">{data.description}</p>
+
+      {/* Chart */}
+      <div className="space-y-3">
+        {data.models.map((model) => (
+          <div key={model.name} className="flex items-center gap-3">
+            <div className="w-48 shrink-0 text-xs text-[#5e5d59] dark:text-white/70 sm:w-56 sm:text-sm">
+              {model.name}
+            </div>
+            <div className="flex-1">
+              <div className="h-6 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
+                <div
+                  className="flex h-full items-center justify-end pr-2 text-xs font-medium text-white transition-all duration-500"
+                  style={{
+                    width: `${(model.score / data.maxScore) * 100}%`,
+                    backgroundColor: model.color,
+                  }}
+                >
+                  <span className="drop-shadow-sm">{model.score}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -311,10 +426,11 @@ export default function DocsPage() {
               </p>
               <p className="mt-4 text-[#5e5d59] dark:text-white/70">
                 Umans Code delivers a Claude Code-first agentic development experience with
-                ultra-generous usage limits, powered by the best open-source model available at any
-                given time. We currently serve{' '}
-                <strong className="text-[#0b0d10] dark:text-white">Kimi K2.5</strong>. We publish our
-                model tests and reviews at{' '}
+                ultra-generous usage limits, powered by the best open-source models available.
+                We currently serve{' '}
+                <strong className="text-[#0b0d10] dark:text-white">Kimi K2.5</strong> and{' '}
+                <strong className="text-[#0b0d10] dark:text-white">MiniMax M2.5</strong>.
+                We publish our model tests and reviews at{' '}
                 <a
                   href="https://blog.umans.ai"
                   target="_blank"
@@ -378,11 +494,12 @@ umans claude`} />
               <h2 className="text-2xl font-semibold tracking-tight text-[#0b0d10] dark:text-white">
                 CLI Commands
               </h2>
-              <CodeBlock code={`umans claude      # Launch Claude Code with Umans backend
-umans opencode   # Launch OpenCode with Umans backend
-umans status     # Check authentication status
-umans logout     # Remove saved credentials
-umans --help     # Show all available commands`} />
+              <CodeBlock code={`umans claude                          # Launch Claude Code (default: umans-coder)
+umans claude --model umans-minimax-m2.5   # Use MiniMax M2.5 with vision/websearch handoffs
+umans opencode                       # Launch OpenCode with Umans backend
+umans status                         # Check authentication status
+umans logout                         # Remove saved credentials
+umans --help                         # Show all available commands`} />
             </section>
 
             {/* Manual Configuration */}
@@ -423,7 +540,7 @@ umans --help     # Show all available commands`} />
                     app.umans.ai/billing
                   </a>
                 </li>
-                <li>Go to your Dashboard → API Keys</li>
+                <li>Go to your Dashboard &rarr; API Keys</li>
                 <li>Generate a new key (shown only once - copy it immediately)</li>
               </ol>
             </section>
@@ -442,7 +559,21 @@ umans --help     # Show all available commands`} />
                 <p className="mt-2 text-sm font-medium text-[#0b0d10] dark:text-white">
                   Using the CLI (Recommended):
                 </p>
-                <CodeBlock code="umans claude" />
+                <CodeBlock code={`umans claude                    # Default: umans-coder (Kimi K2.5)
+umans claude --model umans-minimax-m2.5   # MiniMax M2.5 with vision/websearch`} />
+
+                <h4 className="mt-6 text-sm font-semibold text-[#0b0d10] dark:text-white">
+                  Available Models:
+                </h4>
+                <Table
+                  headers={['Model', 'Provider', 'Capabilities', 'Best For']}
+                  rows={[
+                    ['umans-coder', 'Kimi K2.5', 'Text, Vision, WebSearch', 'General coding (default)'],
+                    ['umans-kimi-k2.5', 'Kimi K2.5', 'Text, Vision, WebSearch', 'Native Kimi experience'],
+                    ['umans-minimax-m2.5', 'MiniMax M2.5', 'Text, Vision (handoff), WebSearch (handoff)', 'Fast text + smart handoffs'],
+                  ]}
+                />
+
                 <p className="mt-4 text-sm font-medium text-[#0b0d10] dark:text-white">
                   Manual configuration:
                 </p>
@@ -459,7 +590,8 @@ claude --model umans-coder`}
                 <p className="mt-2 text-sm font-medium text-[#0b0d10] dark:text-white">
                   Using the CLI (Recommended):
                 </p>
-                <CodeBlock code="umans opencode" />
+                <CodeBlock code={`umans opencode                          # Default: umans-coder
+umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
                 <p className="mt-4 text-sm font-medium text-[#0b0d10] dark:text-white">
                   Manual configuration (add to <InlineCode>~/.opencode/config.json</InlineCode>):
                 </p>
@@ -503,7 +635,7 @@ claude --model umans-coder`}
                   </p>
                 </div>
                 <ol className="mt-4 list-decimal space-y-2 pl-5 text-[#5e5d59] dark:text-white/70">
-                  <li>Open Cursor Settings → Models</li>
+                  <li>Open Cursor Settings &rarr; Models</li>
                   <li>Enable <strong className="text-[#0b0d10] dark:text-white">Override OpenAI Base URL</strong></li>
                   <li>
                     Set the base URL to: <InlineCode>https://api.code.umans.ai/v1</InlineCode>
@@ -780,6 +912,143 @@ $env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
               </div>
             </section>
 
+            {/* Models */}
+            <section id="models" className="mb-12 scroll-mt-24">
+              <h2 className="text-2xl font-semibold tracking-tight text-[#0b0d10] dark:text-white">
+                Models
+              </h2>
+
+              <div className="mt-6 rounded-xl border border-[#d97757]/20 bg-[#d97757]/5 p-4 dark:border-[#d97757]/30 dark:bg-[#d97757]/10">
+                <p className="text-[#5e5d59] dark:text-white/70">
+                  <strong className="text-[#0b0d10] dark:text-white">Our Philosophy:</strong> We
+                  believe in serving the best open-source models available. We continuously
+                  evaluate and filter models to ensure your agents stay productive all day—without
+                  the decision fatigue of choosing between dozens of options.
+                </p>
+              </div>
+
+              <h3 className="mt-8 text-lg font-semibold text-[#0b0d10] dark:text-white">
+                Available Models
+              </h3>
+              <Table
+                headers={['Model', 'Provider', 'Best For', 'Trade-off']}
+                rows={[
+                  ['umans-coder', 'Kimi K2.5', 'General coding (default)', 'Zero overhead, native multimodal'],
+                  ['umans-kimi-k2.5', 'Kimi K2.5', 'Vision-heavy workflows', 'Same as above, explicit alias'],
+                  ['umans-minimax-m2.5', 'MiniMax M2.5', 'Fast text + occasional vision/websearch', 'Smart handoffs add ~100-200ms overhead for image/search'],
+                ]}
+              />
+
+              <h3 className="mt-8 text-lg font-semibold text-[#0b0d10] dark:text-white">
+                How to Choose
+              </h3>
+              <ul className="mt-4 list-disc space-y-2 pl-5 text-[#5e5d59] dark:text-white/70">
+                <li>
+                  Use <InlineCode>umans-coder</InlineCode> (default) for most work—it&apos;s our
+                  recommended balanced option
+                </li>
+                <li>
+                  Use <InlineCode>umans-minimax-m2.5</InlineCode> when you primarily do text
+                  coding but occasionally need vision/websearch
+                </li>
+                <li>
+                  Use <InlineCode>umans-kimi-k2.5</InlineCode> when you explicitly want the
+                  native Kimi experience
+                </li>
+              </ul>
+
+              <h3 className="mt-8 text-lg font-semibold text-[#0b0d10] dark:text-white">
+                Benchmark Comparison
+              </h3>
+              <p className="mt-4 text-[#5e5d59] dark:text-white/70">
+                We believe in transparency. Select a benchmark below to see how our served
+                models compare across different capabilities. Our models excel particularly in
+                document understanding and multimodal tasks.
+              </p>
+
+              <BenchmarkChart />
+
+              <div className="mt-6 rounded-xl border border-[#d97757]/20 bg-[#d97757]/5 p-4 dark:border-[#d97757]/30 dark:bg-[#d97757]/10">
+                <p className="text-sm text-[#5e5d59] dark:text-white/70">
+                  <strong className="text-[#0b0d10] dark:text-white">🏆 State of the Art:</strong>{' '}
+                  On{' '}
+                  <a
+                    href="https://github.com/opendatalab/OmniDocBench"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    OmniDocBench
+                  </a>
+                  , Kimi K2.5 achieves <strong>88.8%</strong> — outperforming Gemini 3 Pro
+                  (88.5%), Claude Opus 4.5 (87.7%), and GPT-5.2 (85.7%) on document
+                  understanding and OCR tasks.
+                </p>
+              </div>
+
+              <div className="mt-4 text-xs text-[#5e5d59] dark:text-white/60">
+                <p>
+                  Sources:{' '}
+                  <a
+                    href="https://github.com/MoonshotAI/Kimi-K2.5"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    Moonshot AI
+                  </a>
+                  ,{' '}
+                  <a
+                    href="https://www.anthropic.com/news/claude-opus-4-6"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    Anthropic
+                  </a>
+                  ,{' '}
+                  <a
+                    href="https://www.vellum.ai/blog/claude-opus-4-6-benchmarks"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    Vellum AI
+                  </a>
+                  ,{' '}
+                  <a
+                    href="http://export.arxiv.org/pdf/2502.13923"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    Qwen2.5-VL Technical Report
+                  </a>
+                </p>
+                <p className="mt-2">
+                  <strong>Note:</strong> Scores are from official model reports and independent
+                  evaluations. Different benchmarks test different capabilities—choose the one
+                  that matches your use case. Data available via{' '}
+                  <code className="rounded bg-black/5 px-1 dark:bg-white/10">/v1/models/info</code>.
+                </p>
+              </div>
+
+              <h3 className="mt-8 text-lg font-semibold text-[#0b0d10] dark:text-white">
+                Model Information API
+              </h3>
+              <p className="mt-4 text-[#5e5d59] dark:text-white/70">
+                For programmatic access to current model information, including context windows,
+                pricing, and capabilities:
+              </p>
+              <CodeBlock
+                code={`curl https://api.code.umans.ai/v1/models/info | jq`}
+              />
+              <p className="mt-2 text-sm text-[#5e5d59] dark:text-white/60">
+                This public endpoint returns up-to-date information about all available models,
+                their capabilities, and current pricing.
+              </p>
+            </section>
+
             {/* FAQ */}
             <section id="faq" className="mb-12 scroll-mt-24">
               <h2 className="text-2xl font-semibold tracking-tight text-[#0b0d10] dark:text-white">
@@ -789,11 +1058,26 @@ $env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
               <div className="mt-6 space-y-6">
                 <div className="rounded-lg border border-black/10 p-6 dark:border-white/10">
                   <h3 className="font-semibold text-[#0b0d10] dark:text-white">
-                    What model does Umans Code use?
+                    What models does Umans Code use?
                   </h3>
                   <p className="mt-2 text-[#5e5d59] dark:text-white/70">
-                    Umans Code serves the best open-source model available at any given time. We
-                    currently serve <strong className="text-[#0b0d10] dark:text-white">Kimi K2.5</strong>.
+                    Umans Code serves the best open-source models available. We currently offer:
+                  </p>
+                  <ul className="mt-4 list-disc space-y-2 pl-5 text-[#5e5d59] dark:text-white/70">
+                    <li>
+                      <strong className="text-[#0b0d10] dark:text-white">umans-coder</strong> —
+                      Kimi K2.5 for general coding (default, zero overhead, native multimodal)
+                    </li>
+                    <li>
+                      <strong className="text-[#0b0d10] dark:text-white">umans-kimi-k2.5</strong> —
+                      Native Kimi K2.5 for vision-heavy workflows
+                    </li>
+                    <li>
+                      <strong className="text-[#0b0d10] dark:text-white">umans-minimax-m2.5</strong>{' '}
+                      — MiniMax M2.5 for fast text coding with smart vision/websearch handoffs
+                    </li>
+                  </ul>
+                  <p className="mt-4 text-[#5e5d59] dark:text-white/70">
                     We publish our model evaluations and reviews at{' '}
                     <a
                       href="https://blog.umans.ai"
@@ -803,9 +1087,7 @@ $env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
                     >
                       blog.umans.ai
                     </a>
-                    . We intentionally maintain a single model choice to reduce cognitive load. The
-                    model may change as better options become available, but always with a focus on
-                    coding quality and agentic workflows.
+                    .
                   </p>
                 </div>
 
