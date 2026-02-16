@@ -16,9 +16,9 @@ const sections = [
   { id: 'cli-commands', title: 'CLI Commands' },
   { id: 'manual-config', title: 'Manual Configuration' },
   { id: 'tool-setup', title: 'Tool-Specific Setup' },
-  { id: 'troubleshooting', title: 'Troubleshooting' },
   { id: 'api-reference', title: 'API Reference' },
   { id: 'models', title: 'Models' },
+  { id: 'troubleshooting', title: 'Troubleshooting' },
   { id: 'faq', title: 'FAQ' },
   { id: 'support', title: 'Support' },
 ];
@@ -209,11 +209,18 @@ function BenchmarkChart() {
 
       {/* Chart */}
       <div className="space-y-3">
-        {data.models.map((model) => (
-          <div key={model.name} className="flex items-center gap-3">
-            <div className="w-48 shrink-0 text-xs text-[#5e5d59] dark:text-white/70 sm:w-56 sm:text-sm">
-              {model.name}
-            </div>
+        {data.models.map((model) => {
+          const isUmansModel = model.name.includes('umans-') || model.name.includes('(umans-');
+          return (
+            <div key={model.name} className="flex items-center gap-3">
+              <div className={cn(
+                "w-48 shrink-0 text-xs sm:w-56 sm:text-sm",
+                isUmansModel
+                  ? "font-semibold text-[#0b0d10] dark:text-white"
+                  : "text-[#5e5d59] dark:text-white/70"
+              )}>
+                {model.name}
+              </div>
             <div className="flex-1">
               <div className="h-6 overflow-hidden rounded-full bg-black/5 dark:bg-white/10">
                 <div
@@ -228,7 +235,8 @@ function BenchmarkChart() {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -562,7 +570,15 @@ umans --help                         # Show all available commands`} />
               {/* Claude Code */}
               <div id="claude-code" className="mt-8 scroll-mt-24">
                 <h3 className="text-lg font-semibold text-[#0b0d10] dark:text-white">
-                  Claude Code
+                  Claude Code{' '}
+                  <a
+                    href="https://docs.anthropic.com/en/docs/claude-code/overview"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ml-2 text-xs font-normal text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    Official Docs →
+                  </a>
                 </h3>
                 <p className="mt-2 text-sm font-medium text-[#0b0d10] dark:text-white">
                   Using the CLI (Recommended):
@@ -594,7 +610,17 @@ claude --model umans-coder`}
 
               {/* OpenCode */}
               <div id="opencode" className="mt-8 scroll-mt-24">
-                <h3 className="text-lg font-semibold text-[#0b0d10] dark:text-white">OpenCode</h3>
+                <h3 className="text-lg font-semibold text-[#0b0d10] dark:text-white">
+                  OpenCode{' '}
+                  <a
+                    href="https://opencode.ai/docs"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ml-2 text-xs font-normal text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    Official Docs →
+                  </a>
+                </h3>
                 <p className="mt-2 text-sm font-medium text-[#0b0d10] dark:text-white">
                   Using the CLI (Recommended):
                 </p>
@@ -628,7 +654,17 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
 
               {/* Cursor */}
               <div id="cursor" className="mt-8 scroll-mt-24">
-                <h3 className="text-lg font-semibold text-[#0b0d10] dark:text-white">Cursor IDE</h3>
+                <h3 className="text-lg font-semibold text-[#0b0d10] dark:text-white">
+                  Cursor IDE{' '}
+                  <a
+                    href="https://docs.cursor.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ml-2 text-xs font-normal text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    Official Docs →
+                  </a>
+                </h3>
                 <div className="mt-4 rounded-xl border border-[#d97757]/20 bg-[#d97757]/5 p-4 dark:border-[#d97757]/30 dark:bg-[#d97757]/10">
                   <p className="text-sm text-[#5e5d59] dark:text-white/70">
                     <strong className="text-[#0b0d10] dark:text-white">Video Demo:</strong>{' '}
@@ -659,7 +695,15 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
               {/* Crush */}
               <div id="crush" className="mt-8 scroll-mt-24">
                 <h3 className="text-lg font-semibold text-[#0b0d10] dark:text-white">
-                  Crush (Charm Bracelet)
+                  Crush (Charm Bracelet){' '}
+                  <a
+                    href="https://charm.land/crush"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="ml-2 text-xs font-normal text-[#d97757] underline-offset-2 hover:underline"
+                  >
+                    Official Docs →
+                  </a>
                 </h3>
                 <p className="mt-4 text-[#5e5d59] dark:text-white/70">
                   Add to your Crush configuration ({' '}
@@ -711,141 +755,6 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
                     <InlineCode>umans-coder</InlineCode>
                   </li>
                 </ul>
-              </div>
-            </section>
-
-            {/* Troubleshooting */}
-            <section id="troubleshooting" className="mb-12 scroll-mt-24">
-              <h2 className="text-2xl font-semibold tracking-tight text-[#0b0d10] dark:text-white">
-                Troubleshooting
-              </h2>
-
-              <div className="mt-6 space-y-6">
-                <div>
-                  <h3 className="font-semibold text-[#0b0d10] dark:text-white">CLI Issues</h3>
-                  <div className="mt-4 space-y-4">
-                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
-                      <p className="font-medium text-[#0b0d10] dark:text-white">
-                        &quot;Command not found: umans&quot;
-                      </p>
-                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
-                        <li>
-                          Ensure <InlineCode>~/.local/bin</InlineCode> or{' '}
-                          <InlineCode>/usr/local/bin</InlineCode> is in your PATH
-                        </li>
-                        <li>
-                          Run <InlineCode>source ~/.bashrc</InlineCode> or{' '}
-                          <InlineCode>source ~/.zshrc</InlineCode> after installation
-                        </li>
-                      </ul>
-                    </div>
-                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
-                      <p className="font-medium text-[#0b0d10] dark:text-white">
-                        &quot;Authentication failed&quot;
-                      </p>
-                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
-                        <li>
-                          Run <InlineCode>umans logout</InlineCode> to clear saved credentials
-                        </li>
-                        <li>
-                          Run <InlineCode>umans claude</InlineCode> again to re-authenticate
-                        </li>
-                      </ul>
-                    </div>
-                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
-                      <p className="font-medium text-[#0b0d10] dark:text-white">
-                        Browser does not open
-                      </p>
-                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
-                        <li>Copy the URL shown in the terminal and open it manually</li>
-                        <li>
-                          The CLI displays a localhost callback URL - authentication will complete
-                          when you visit the URL
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-[#0b0d10] dark:text-white">
-                    Connection Issues
-                  </h3>
-                  <div className="mt-4 space-y-4">
-                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
-                      <p className="font-medium text-[#0b0d10] dark:text-white">
-                        &quot;401 Unauthorized&quot;
-                      </p>
-                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
-                        <li>Your API key may be expired or revoked</li>
-                        <li>
-                          Generate a new key in the{' '}
-                          <a
-                            href="https://app.umans.ai/billing"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[#d97757] underline-offset-2 hover:underline"
-                          >
-                            Dashboard
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
-                      <p className="font-medium text-[#0b0d10] dark:text-white">
-                        &quot;Rate limit exceeded&quot;
-                      </p>
-                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
-                        <li>You have hit your plan&apos;s usage limits</li>
-                        <li>
-                          Check your usage in the{' '}
-                          <a
-                            href="https://app.umans.ai/billing"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[#d97757] underline-offset-2 hover:underline"
-                          >
-                            Dashboard
-                          </a>{' '}
-                          or upgrade your plan
-                        </li>
-                      </ul>
-                    </div>
-                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
-                      <p className="font-medium text-[#0b0d10] dark:text-white">
-                        Streaming interruptions
-                      </p>
-                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
-                        <li>
-                          For long-running sessions, some networks may drop idle connections
-                        </li>
-                        <li>Check your network stability or try a wired connection</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-[#0b0d10] dark:text-white">Windows-Specific</h3>
-                  <p className="mt-4 text-[#5e5d59] dark:text-white/70">
-                    The Umans CLI is not yet available for Windows. Use the manual configuration
-                    method with your preferred tool:
-                  </p>
-                  <ol className="mt-4 list-decimal space-y-2 pl-5 text-[#5e5d59] dark:text-white/70">
-                    <li>
-                      Set environment variables in PowerShell:
-                      <CodeBlock
-                        language="powershell"
-                        code={`$env:ANTHROPIC_BASE_URL="https://api.code.umans.ai"
-$env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
-                      />
-                    </li>
-                    <li>
-                      Or configure directly in your tool&apos;s settings using the manual
-                      configuration values above
-                    </li>
-                  </ol>
-                </div>
               </div>
             </section>
 
@@ -1074,6 +983,141 @@ $env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
                 This public endpoint returns up-to-date information about all available models,
                 their capabilities, and current pricing.
               </p>
+            </section>
+
+            {/* Troubleshooting */}
+            <section id="troubleshooting" className="mb-12 scroll-mt-24">
+              <h2 className="text-2xl font-semibold tracking-tight text-[#0b0d10] dark:text-white">
+                Troubleshooting
+              </h2>
+
+              <div className="mt-6 space-y-6">
+                <div>
+                  <h3 className="font-semibold text-[#0b0d10] dark:text-white">CLI Issues</h3>
+                  <div className="mt-4 space-y-4">
+                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
+                      <p className="font-medium text-[#0b0d10] dark:text-white">
+                        &quot;Command not found: umans&quot;
+                      </p>
+                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
+                        <li>
+                          Ensure <InlineCode>~/.local/bin</InlineCode> or{' '}
+                          <InlineCode>/usr/local/bin</InlineCode> is in your PATH
+                        </li>
+                        <li>
+                          Run <InlineCode>source ~/.bashrc</InlineCode> or{' '}
+                          <InlineCode>source ~/.zshrc</InlineCode> after installation
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
+                      <p className="font-medium text-[#0b0d10] dark:text-white">
+                        &quot;Authentication failed&quot;
+                      </p>
+                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
+                        <li>
+                          Run <InlineCode>umans logout</InlineCode> to clear saved credentials
+                        </li>
+                        <li>
+                          Run <InlineCode>umans claude</InlineCode> again to re-authenticate
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
+                      <p className="font-medium text-[#0b0d10] dark:text-white">
+                        Browser does not open
+                      </p>
+                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
+                        <li>Copy the URL shown in the terminal and open it manually</li>
+                        <li>
+                          The CLI displays a localhost callback URL - authentication will complete
+                          when you visit the URL
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-[#0b0d10] dark:text-white">
+                    Connection Issues
+                  </h3>
+                  <div className="mt-4 space-y-4">
+                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
+                      <p className="font-medium text-[#0b0d10] dark:text-white">
+                        &quot;401 Unauthorized&quot;
+                      </p>
+                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
+                        <li>Your API key may be expired or revoked</li>
+                        <li>
+                          Generate a new key in the{' '}
+                          <a
+                            href="https://app.umans.ai/billing"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[#d97757] underline-offset-2 hover:underline"
+                          >
+                            Dashboard
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
+                      <p className="font-medium text-[#0b0d10] dark:text-white">
+                        &quot;Rate limit exceeded&quot;
+                      </p>
+                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
+                        <li>You have hit your plan&apos;s usage limits</li>
+                        <li>
+                          Check your usage in the{' '}
+                          <a
+                            href="https://app.umans.ai/billing"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[#d97757] underline-offset-2 hover:underline"
+                          >
+                            Dashboard
+                          </a>{' '}
+                          or upgrade your plan
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="rounded-lg border border-black/10 p-4 dark:border-white/10">
+                      <p className="font-medium text-[#0b0d10] dark:text-white">
+                        Streaming interruptions
+                      </p>
+                      <ul className="mt-2 list-disc pl-5 text-sm text-[#5e5d59] dark:text-white/70">
+                        <li>
+                          For long-running sessions, some networks may drop idle connections
+                        </li>
+                        <li>Check your network stability or try a wired connection</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-[#0b0d10] dark:text-white">Windows-Specific</h3>
+                  <p className="mt-4 text-[#5e5d59] dark:text-white/70">
+                    The Umans CLI is not yet available for Windows. Use the manual configuration
+                    method with your preferred tool:
+                  </p>
+                  <ol className="mt-4 list-decimal space-y-2 pl-5 text-[#5e5d59] dark:text-white/70">
+                    <li>
+                      Set environment variables in PowerShell:
+                      <CodeBlock
+                        language="powershell"
+                        code={`$env:ANTHROPIC_BASE_URL="https://api.code.umans.ai"
+$env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
+                      />
+                    </li>
+                    <li>
+                      Or configure directly in your tool&apos;s settings using the manual
+                      configuration values above
+                    </li>
+                  </ol>
+                </div>
+              </div>
             </section>
 
             {/* FAQ */}
