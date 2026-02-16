@@ -119,6 +119,7 @@ interface BenchmarkData {
   name: string;
   description: string;
   maxScore: number;
+  date: string;
   models: { name: string; score: number; color: string }[];
 }
 
@@ -127,6 +128,7 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
     name: 'OmniDocBench',
     description: 'Document understanding and OCR benchmark. Higher is better.',
     maxScore: 95,
+    date: 'January 2026',
     models: [
       { name: 'Kimi K2.5 (umans-coder)', score: 88.8, color: '#d97757' },
       { name: 'Gemini 3 Pro', score: 88.5, color: '#4285f4' },
@@ -139,6 +141,7 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
     name: 'MMMU Pro',
     description: 'Multimodal understanding across college-level disciplines.',
     maxScore: 85,
+    date: 'January 2026',
     models: [
       { name: 'Gemini 3 Pro', score: 81.0, color: '#4285f4' },
       { name: 'Kimi K2.5 (umans-coder)', score: 78.5, color: '#d97757' },
@@ -151,6 +154,7 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
     name: 'SWE-Bench Verified',
     description: 'Real-world software engineering task resolution.',
     maxScore: 85,
+    date: 'February 2026',
     models: [
       { name: 'Claude Opus 4.5', score: 80.9, color: '#cc785c' },
       { name: 'Claude Opus 4.6', score: 80.8, color: '#b86b52' },
@@ -163,6 +167,7 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
     name: 'MathVision',
     description: 'Mathematical reasoning with visual understanding.',
     maxScore: 90,
+    date: 'January 2026',
     models: [
       { name: 'Kimi K2.5 (umans-coder)', score: 84.2, color: '#d97757' },
       { name: 'Gemini 3 Pro', score: 86.1, color: '#4285f4' },
@@ -196,8 +201,11 @@ function BenchmarkChart() {
         ))}
       </div>
 
-      {/* Description */}
-      <p className="mb-4 text-sm text-[#5e5d59] dark:text-white/60">{data.description}</p>
+      {/* Description with date */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-[#5e5d59] dark:text-white/60">{data.description}</p>
+        <span className="text-xs text-[#5e5d59]/60 dark:text-white/40">{data.date}</span>
+      </div>
 
       {/* Chart */}
       <div className="space-y-3">
@@ -968,22 +976,41 @@ $env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
 
               <BenchmarkChart />
 
-              <div className="mt-6 rounded-xl border border-[#d97757]/20 bg-[#d97757]/5 p-4 dark:border-[#d97757]/30 dark:bg-[#d97757]/10">
-                <p className="text-sm text-[#5e5d59] dark:text-white/70">
-                  <strong className="text-[#0b0d10] dark:text-white">🏆 State of the Art:</strong>{' '}
-                  On{' '}
-                  <a
-                    href="https://github.com/opendatalab/OmniDocBench"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[#d97757] underline-offset-2 hover:underline"
-                  >
-                    OmniDocBench
-                  </a>
-                  , Kimi K2.5 achieves <strong>88.8%</strong> — outperforming Gemini 3 Pro
-                  (88.5%), Claude Opus 4.5 (87.7%), and GPT-5.2 (85.7%) on document
-                  understanding and OCR tasks.
-                </p>
+              <div className="mt-6 space-y-3">
+                <div className="rounded-xl border border-[#d97757]/20 bg-[#d97757]/5 p-4 dark:border-[#d97757]/30 dark:bg-[#d97757]/10">
+                  <p className="text-sm text-[#5e5d59] dark:text-white/70">
+                    <strong className="text-[#0b0d10] dark:text-white">🏆 State of the Art:</strong>{' '}
+                    On{' '}
+                    <a
+                      href="https://github.com/opendatalab/OmniDocBench"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#d97757] underline-offset-2 hover:underline"
+                    >
+                      OmniDocBench
+                    </a>
+                    , Kimi K2.5 achieves <strong>88.8%</strong> — outperforming Gemini 3 Pro
+                    (88.5%), Claude Opus 4.5 (87.7%), and GPT-5.2 (85.7%) on document
+                    understanding and OCR tasks.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-[#d97757]/20 bg-[#d97757]/5 p-4 dark:border-[#d97757]/30 dark:bg-[#d97757]/10">
+                  <p className="text-sm text-[#5e5d59] dark:text-white/70">
+                    <strong className="text-[#0b0d10] dark:text-white">🚀 Best in Class Coding:</strong>{' '}
+                    MiniMax M2.5 achieves <strong>80.2%</strong> on{' '}
+                    <a
+                      href="https://www.swebench.com/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[#d97757] underline-offset-2 hover:underline"
+                    >
+                      SWE-Bench Verified
+                    </a>
+                    — competitive with Claude Opus 4.5 (80.9%) and ahead of Claude Sonnet 4.5
+                    (77.2%). Use <InlineCode>umans-minimax-m2.5</InlineCode> for demanding
+                    software engineering tasks.
+                  </p>
+                </div>
               </div>
 
               <div className="mt-4 text-xs text-[#5e5d59] dark:text-white/60">
