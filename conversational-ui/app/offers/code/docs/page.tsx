@@ -180,8 +180,8 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
       { name: 'Claude Opus 4.6', score: 80.8, color: MODEL_COLORS['Claude Opus 4.6'] },
       { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 80.2, color: MODEL_COLORS['MiniMax M2.5 (umans-minimax-m2.5)'] },
       { name: 'GPT-5.2', score: 80.0, color: MODEL_COLORS['GPT-5.2'] },
-      { name: 'Gemini 3 Pro', score: 78.0, color: MODEL_COLORS['Gemini 3 Pro'] },
       { name: 'Kimi K2.5 (umans-coder)', score: 76.8, color: MODEL_COLORS['Kimi K2.5 (umans-coder)'] },
+      { name: 'Gemini 3 Pro', score: 76.2, color: MODEL_COLORS['Gemini 3 Pro'] },
     ],
   },
   mathvision: {
@@ -983,12 +983,12 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
                   </a>
                   ,{' '}
                   <a
-                    href="https://www.vellum.ai/blog/claude-opus-4-6-benchmarks"
+                    href="https://www.marc0.dev/en/leaderboard"
                     target="_blank"
                     rel="noreferrer"
                     className="text-[#d97757] underline-offset-2 hover:underline"
                   >
-                    Vellum AI
+                    SWE-Bench Leaderboard
                   </a>
                   ,{' '}
                   <a
