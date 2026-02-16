@@ -144,6 +144,18 @@ variable "stripe_billing_portal_url" {
   default     = ""
 }
 
+variable "google_ads_id" {
+  description = "Google Ads ID (AW-...) used for purchase conversion tracking"
+  type        = string
+  default     = ""
+}
+
+variable "google_ads_purchase_label" {
+  description = "Google Ads conversion label for successful pledge checkouts"
+  type        = string
+  default     = ""
+}
+
 variable "code_gateway_url" {
   description = "Base URL for the Umans Code gateway (llm-gateway)"
   type        = string

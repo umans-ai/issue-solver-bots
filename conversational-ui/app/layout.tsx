@@ -46,11 +46,22 @@ const THEME_COLOR_SCRIPT = `\
   updateThemeColor();
 })();`;
 
+const createGoogleAdsBootstrapScript = (googleAdsId: string) => `
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.gtag = window.gtag || gtag;
+gtag('js', new Date());
+gtag('config', ${JSON.stringify(googleAdsId)});
+`;
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const googleAdsId = process.env.GOOGLE_ADS_ID?.trim() ?? '';
+  const googleAdsPurchaseLabel = process.env.GOOGLE_ADS_PURCHASE_LABEL?.trim() ?? '';
+
   return (
     <html
       lang="en"
@@ -66,6 +77,19 @@ export default async function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
+        {googleAdsId ? (
+          <script
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(googleAdsId)}`}
+          />
+        ) : null}
+        {googleAdsId ? (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: createGoogleAdsBootstrapScript(googleAdsId),
+            }}
+          />
+        ) : null}
         <script
           // Inject runtime config for client-side analytics at request time
           dangerouslySetInnerHTML={{
@@ -73,7 +97,9 @@ export default async function RootLayout({
               window.__RUNTIME_CONFIG__ = {
                 POSTHOG_KEY: ${JSON.stringify(process.env.POSTHOG_KEY ?? '')},
                 STRIPE_BILLING_PORTAL_URL: ${JSON.stringify(process.env.STRIPE_BILLING_PORTAL_URL ?? '')},
-                UMANS_BILLING_SUPPORT_EMAIL: ${JSON.stringify(process.env.UMANS_BILLING_SUPPORT_EMAIL ?? '')}
+                UMANS_BILLING_SUPPORT_EMAIL: ${JSON.stringify(process.env.UMANS_BILLING_SUPPORT_EMAIL ?? '')},
+                GOOGLE_ADS_ID: ${JSON.stringify(googleAdsId)},
+                GOOGLE_ADS_PURCHASE_LABEL: ${JSON.stringify(googleAdsPurchaseLabel)}
               };
             `,
           }}

@@ -94,7 +94,7 @@ export async function POST(req: Request) {
     payment_method_collection: 'always',
     customer: stripeCustomerId || undefined,
     customer_email: stripeCustomerId ? undefined : email || undefined,
-    success_url: `${baseUrl}/billing?pledge=success`,
+    success_url: `${baseUrl}/billing?pledge=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/billing?pledge=cancelled`,
     client_reference_id: userId || undefined,
     metadata,

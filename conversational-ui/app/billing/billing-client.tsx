@@ -59,6 +59,11 @@ type ApiKeysResponse = {
   keys: Array<ApiKeySummary>;
 };
 
+type RuntimeConfig = {
+  GOOGLE_ADS_ID?: string;
+  GOOGLE_ADS_PURCHASE_LABEL?: string;
+};
+
 const planOptions = {
   code_pro: {
     label: 'Pro',
@@ -91,6 +96,58 @@ const planPriceLine = (plan: PledgePlanKey, cycle: BillingCycle) => {
     ? (plan === 'code_pro' ? '$200 per year' : '$500 per year')
     : (plan === 'code_pro' ? '$20 per month' : '$50 per month');
   return `${price}, ${billingLabel(cycle)}`;
+};
+
+const GOOGLE_ADS_CONVERSION_STORAGE_PREFIX =
+  'umans-code-pledge-conversion:';
+
+const getRuntimeConfig = (): RuntimeConfig => {
+  if (typeof window === 'undefined') return {};
+  const runtimeGlobal = globalThis as typeof globalThis & {
+    __RUNTIME_CONFIG__?: RuntimeConfig;
+  };
+  return runtimeGlobal.__RUNTIME_CONFIG__ || {};
+};
+
+const trackVerifiedPledgeConversion = async (checkoutSessionId: string) => {
+  if (typeof window === 'undefined') return;
+  const sessionId = checkoutSessionId.trim();
+  if (!sessionId) return;
+
+  const runtimeConfig = getRuntimeConfig();
+  const googleAdsId = runtimeConfig.GOOGLE_ADS_ID?.trim();
+  const conversionLabel = runtimeConfig.GOOGLE_ADS_PURCHASE_LABEL?.trim();
+
+  if (!googleAdsId || !conversionLabel) return;
+
+  const storageKey = `${GOOGLE_ADS_CONVERSION_STORAGE_PREFIX}${sessionId}`;
+  if (window.localStorage.getItem(storageKey) === 'sent') return;
+
+  try {
+    const verifyRes = await fetch('/api/billing/pledge/conversion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId }),
+    });
+
+    if (!verifyRes.ok) return;
+
+    const verification = await verifyRes.json();
+    if (!verification?.eligible) return;
+
+    const runtimeWindow = window as typeof window & {
+      gtag?: (...args: unknown[]) => void;
+    };
+    if (typeof runtimeWindow.gtag !== 'function') return;
+
+    runtimeWindow.gtag('event', 'conversion', {
+      send_to: `${googleAdsId}/${conversionLabel}`,
+      transaction_id: sessionId,
+    });
+    window.localStorage.setItem(storageKey, 'sent');
+  } catch (error) {
+    console.error('Failed to track pledge conversion', error);
+  }
 };
 
 export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
@@ -153,11 +210,24 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   useEffect(() => {
     const outcome = searchParams?.get('pledge');
     if (outcome !== 'success' && outcome !== 'cancelled') return;
-    // Clean the URL so refreshing doesn't retrigger pledge state.
-    const params = new URLSearchParams(searchParams?.toString() ?? '');
-    params.delete('pledge');
-    const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : (pathname ?? '/'), { scroll: false });
+
+    const handlePledgeOutcome = async () => {
+      if (outcome === 'success') {
+        const checkoutSessionId = searchParams?.get('session_id');
+        if (checkoutSessionId) {
+          await trackVerifiedPledgeConversion(checkoutSessionId);
+        }
+      }
+
+      // Clean the URL so refreshing doesn't retrigger pledge state.
+      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      params.delete('pledge');
+      params.delete('session_id');
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : (pathname ?? '/'), { scroll: false });
+    };
+
+    void handlePledgeOutcome();
   }, [pathname, router, searchParams]);
 
   useEffect(() => {
