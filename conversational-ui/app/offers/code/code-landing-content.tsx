@@ -904,14 +904,22 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                   we run and tune for reliability. We update the model when
                   something clearly better appears.
                 </p>
-                <Link
-                  href="https://blog.umans.ai/blog"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex text-sm font-medium text-[#5e5d59] underline-offset-4 hover:underline dark:text-white/60"
-                >
-                  Read more on our blog →
-                </Link>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                  <Link
+                    href="https://blog.umans.ai/blog"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex text-sm font-medium text-[#5e5d59] underline-offset-4 hover:underline dark:text-white/60"
+                  >
+                    Read more on our blog →
+                  </Link>
+                  <Link
+                    href="/offers/code/docs#models"
+                    className="inline-flex text-sm font-medium text-[#5e5d59] underline-offset-4 hover:underline dark:text-white/60"
+                  >
+                    See how our models compare →
+                  </Link>
+                </div>
             </div>
             <div className="mt-12">
               <div className="mt-6">

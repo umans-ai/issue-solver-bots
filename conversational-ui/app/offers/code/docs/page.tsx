@@ -130,6 +130,7 @@ const MODEL_COLORS: Record<string, string> = {
   'Claude Opus 4.5': '#cc785c',
   'Claude Opus 4.6': '#b86b52',
   'Claude Sonnet 4.5': '#a85d48',
+  'Claude Sonnet 4.6': '#d4775b',
   'Gemini 3 Pro': '#4285f4',
   'GPT-5.2': '#10a37f',
 };
@@ -180,6 +181,7 @@ const benchmarkData: Record<BenchmarkKey, BenchmarkData> = {
       { name: 'Claude Opus 4.6', score: 80.8, color: MODEL_COLORS['Claude Opus 4.6'] },
       { name: 'MiniMax M2.5 (umans-minimax-m2.5)', score: 80.2, color: MODEL_COLORS['MiniMax M2.5 (umans-minimax-m2.5)'] },
       { name: 'GPT-5.2', score: 80.0, color: MODEL_COLORS['GPT-5.2'] },
+      { name: 'Claude Sonnet 4.6', score: 79.6, color: MODEL_COLORS['Claude Sonnet 4.6'] },
       { name: 'Kimi K2.5 (umans-coder)', score: 76.8, color: MODEL_COLORS['Kimi K2.5 (umans-coder)'] },
       { name: 'Gemini 3 Pro', score: 76.2, color: MODEL_COLORS['Gemini 3 Pro'] },
     ],
@@ -912,11 +914,11 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
                 Available Models
               </h3>
               <Table
-                headers={['Model', 'Provider', 'Best For', 'Trade-off']}
+                headers={['Model', 'Base', 'Best For', 'Trade-off']}
                 rows={[
                   ['umans-coder', 'Kimi K2.5*', 'Default — we choose the best for you', 'Routes to our top pick (may change over time)'],
                   ['umans-kimi-k2.5', 'Kimi K2.5', 'When you specifically want Kimi', 'Zero overhead, native multimodal'],
-                  ['umans-minimax-m2.5', 'MiniMax M2.5', 'When you specifically want MiniMax', 'Fast text + smart handoffs (~100-200ms overhead)'],
+                  ['umans-minimax-m2.5', 'MiniMax M2.5', 'When you specifically want MiniMax', 'Text model with Umans vision layer'],
                 ]}
               />
               <p className="mt-2 text-xs text-[#5e5d59] dark:text-white/60">
@@ -942,12 +944,10 @@ umans opencode --model umans-kimi-k2.5  # Use native Kimi K2.5`} />
                   We continuously evaluate and select what works best for most coding tasks. Today this is Kimi K2.5.
                 </li>
                 <li>
-                  Use <InlineCode>umans-minimax-m2.5</InlineCode> when you specifically want MiniMax M2.5 —
-                  ideal for multi-language coding and when you need the best SWE-Bench Multilingual performance.
+                  Use <InlineCode>umans-kimi-k2.5</InlineCode> when you specifically want native Kimi K2.5. Overall best experience. It leads benchmarks on vision-heavy workflows and document understanding tasks.
                 </li>
                 <li>
-                  Use <InlineCode>umans-kimi-k2.5</InlineCode> when you specifically want native Kimi K2.5 —
-                  for vision-heavy workflows and document understanding tasks where it leads benchmarks.
+                  Use <InlineCode>umans-minimax-m2.5</InlineCode> when you specifically want MiniMax M2.5. Ideal for multi-language coding. It leads SWE-Bench Multilingual performance.
                 </li>
               </ul>
 
