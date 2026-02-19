@@ -1433,7 +1433,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
         <section className="py-12">
           <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 text-sm text-black/50 md:flex-row md:items-center md:justify-between dark:text-white/60">
             <p>Umans · code. Built for serious agentic work.</p>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <Link
                 href="https://blog.umans.ai"
                 target="_blank"
@@ -1441,6 +1441,24 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 className="hover:text-black dark:hover:text-white"
               >
                 Blog
+              </Link>
+              <Link
+                href="/offers/code/legal/terms-of-use"
+                className="hover:text-black dark:hover:text-white"
+              >
+                Terms
+              </Link>
+              <Link
+                href="/offers/code/legal/privacy-policy"
+                className="hover:text-black dark:hover:text-white"
+              >
+                Privacy
+              </Link>
+              <Link
+                href="/offers/code/legal/legal-notice"
+                className="hover:text-black dark:hover:text-white"
+              >
+                Legal Notice
               </Link>
               <Link
                 href="mailto:contact@umans.ai"

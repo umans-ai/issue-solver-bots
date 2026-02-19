@@ -1357,7 +1357,7 @@ $env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
                 <p className="text-sm text-black/40 dark:text-white/40">
                   Umans · code. Built for serious agentic work.
                 </p>
-                <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                   <Link
                     href="https://blog.umans.ai"
                     target="_blank"
@@ -1365,6 +1365,24 @@ $env:ANTHROPIC_AUTH_TOKEN="sk-your-umans-api-key"`}
                     className="text-sm text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white"
                   >
                     Blog
+                  </Link>
+                  <Link
+                    href="/offers/code/legal/terms-of-use"
+                    className="text-sm text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white"
+                  >
+                    Terms
+                  </Link>
+                  <Link
+                    href="/offers/code/legal/privacy-policy"
+                    className="text-sm text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white"
+                  >
+                    Privacy
+                  </Link>
+                  <Link
+                    href="/offers/code/legal/legal-notice"
+                    className="text-sm text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white"
+                  >
+                    Legal Notice
                   </Link>
                   <Link
                     href="mailto:contact@umans.ai"
