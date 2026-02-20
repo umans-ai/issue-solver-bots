@@ -146,35 +146,56 @@ export default function LandingPage() {
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center">
               <IconUmansLogo className="h-8 w-auto" />
-              <span className="font-medium text-lg tracking-tight">umans</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-6 text-sm text-foreground/80">
+              <div className="relative group">
+                <button className="hover:text-foreground transition-colors flex items-center gap-1">
+                  Products
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-48 py-2 bg-background/95 backdrop-blur-lg border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <Link
+                    href="/offers/code"
+                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                  >
+                    <span className="font-medium">Code</span>
+                    <span className="block text-xs text-muted-foreground">LLM endpoint</span>
+                  </Link>
+                  <Link
+                    href="/offers/wiki"
+                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                  >
+                    <span className="font-medium">Wiki</span>
+                    <span className="block text-xs text-muted-foreground">Auto-generated docs</span>
+                  </Link>
+                  <Link
+                    href="/offers/workspace"
+                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                  >
+                    <span className="font-medium">Workspace</span>
+                    <span className="block text-xs text-muted-foreground">Chat and tasks</span>
+                  </Link>
+                  <Link
+                    href="/offers/envs"
+                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                  >
+                    <span className="font-medium">Envs</span>
+                    <span className="block text-xs text-muted-foreground">Repo sandboxes</span>
+                  </Link>
+                </div>
+              </div>
               <Link
-                href="/offers/code"
+                href="https://blog.umans.ai"
+                target="_blank"
+                rel="noreferrer"
                 className="hover:text-foreground transition-colors"
               >
-                Code
-              </Link>
-              <Link
-                href="/offers/wiki"
-                className="hover:text-foreground transition-colors"
-              >
-                Wiki
-              </Link>
-              <Link
-                href="/offers/workspace"
-                className="hover:text-foreground transition-colors"
-              >
-                Workspace
-              </Link>
-              <Link
-                href="/offers/envs"
-                className="hover:text-foreground transition-colors"
-              >
-                Envs
+                Blog
               </Link>
             </div>
 
@@ -235,7 +256,7 @@ export default function LandingPage() {
               <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
                 From LLM endpoints to repo-oriented sandboxes, we build the
                 infrastructure that keeps agents productive, secure, and on
-                task — so humans can focus on what matters.
+                task so humans can focus on what matters.
               </p>
             </motion.div>
           </div>
@@ -244,22 +265,65 @@ export default function LandingPage() {
         {/* Product Cards Section */}
         <section className="px-6 pb-24">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {products.map((product, index) => (
+            {/* Featured: Code Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="mb-6"
+            >
+              <Link href="/offers/code" className="block h-full group">
+                <Card className="h-full transition-all duration-300 hover:shadow-2xl border-primary/30 ring-1 ring-primary/10 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm overflow-hidden relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-indigo-500/5" />
+                  <div className="relative grid md:grid-cols-2 gap-6">
+                    <div className="p-8">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-indigo-500/10 text-indigo-500">
+                          <Terminal className="w-7 h-7" />
+                        </div>
+                        <span className="text-xs font-medium text-primary-foreground bg-primary px-3 py-1 rounded-full">
+                          Featured
+                        </span>
+                      </div>
+                      <CardTitle className="text-3xl mb-3">Code</CardTitle>
+                      <CardDescription className="text-lg mb-4">
+                        LLM endpoint for Claude Code, OpenCode, Cursor, and more
+                      </CardDescription>
+                      <p className="text-xl text-foreground font-medium mb-6">
+                        &ldquo;Drop-in for Claude Code. Without the limits.&rdquo;
+                      </p>
+                      <div className="flex items-center text-sm font-medium text-primary group-hover:underline">
+                        Get started
+                        <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </div>
+                    <div className="hidden md:flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10">
+                      <div className="text-center space-y-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background/80 border border-border/50">
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-sm font-medium">Available now</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Works with Claude Code, OpenCode, Cursor, and more
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            </motion.div>
+
+            {/* Other Products Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {products.slice(1).map((product, index) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  transition={{ duration: 0.6, delay: (index + 1) * 0.1 }}
                 >
                   <Link href={product.href} className="block h-full group">
-                    <Card
-                      className={cn(
-                        'h-full transition-all duration-300 hover:shadow-xl hover:border-primary/20 bg-card/50 backdrop-blur-sm',
-                        product.featured &&
-                          'border-primary/30 ring-1 ring-primary/10'
-                      )}
-                    >
+                    <Card className="h-full transition-all duration-300 hover:shadow-xl hover:border-primary/20 bg-card/50 backdrop-blur-sm">
                       <CardHeader>
                         <div className="flex items-start justify-between mb-4">
                           <div
@@ -276,21 +340,16 @@ export default function LandingPage() {
                               Coming Soon
                             </span>
                           )}
-                          {product.featured && (
-                            <span className="text-xs font-medium text-primary-foreground bg-primary px-2 py-1 rounded-full">
-                              Featured
-                            </span>
-                          )}
                         </div>
-                        <CardTitle className="text-2xl mb-2">
+                        <CardTitle className="text-xl mb-2">
                           {product.name}
                         </CardTitle>
-                        <CardDescription className="text-base">
+                        <CardDescription className="text-sm">
                           {product.description}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <p className="text-foreground font-medium">
+                        <p className="text-foreground font-medium text-sm">
                           &ldquo;{product.shortDescription}&rdquo;
                         </p>
                         <div className="flex items-center text-sm font-medium text-primary group-hover:underline">
@@ -394,7 +453,7 @@ export default function LandingPage() {
               <Button asChild size="lg" className={primaryButtonClasses}>
                 <Link href="/offers/code">Start with Code</Link>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button asChild size="lg" variant="outline" className="rounded-full px-8">
                 <Link href="/offers/workspace">Explore Workspace</Link>
               </Button>
             </div>
