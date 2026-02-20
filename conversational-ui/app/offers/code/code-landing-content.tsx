@@ -1300,7 +1300,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 </h2>
                 <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
                   Limits are enforced at the account level. Enterprise does not
-                  count toward Founding 250.
+                  count toward Founding seats.
                 </p>
               </div>
               <div className="flex w-fit items-center rounded-full border border-black/10 bg-black/5 p-1 text-sm dark:border-white/10 dark:bg-white/5">
