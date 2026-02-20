@@ -159,34 +159,34 @@ export default function LandingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <div className="absolute top-full left-0 mt-2 w-72 py-2 bg-background/95 backdrop-blur-lg border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="absolute top-full left-0 mt-2 w-80 py-2 bg-background/95 backdrop-blur-lg border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <Link
                     href="/offers/code"
-                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
                   >
                     <span className="font-medium">Code</span>
-                    <span className="block text-xs text-muted-foreground whitespace-nowrap">LLM endpoint</span>
+                    <span className="text-xs text-muted-foreground"> — LLM endpoint</span>
                   </Link>
                   <Link
                     href="/offers/wiki"
-                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
                   >
                     <span className="font-medium">Wiki</span>
-                    <span className="block text-xs text-muted-foreground whitespace-nowrap">Auto docs</span>
+                    <span className="text-xs text-muted-foreground"> — Auto docs</span>
                   </Link>
                   <Link
                     href="/offers/workspace"
-                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
                   >
                     <span className="font-medium">Workspace</span>
-                    <span className="block text-xs text-muted-foreground whitespace-nowrap">Chat and tasks</span>
+                    <span className="text-xs text-muted-foreground"> — Chat and tasks</span>
                   </Link>
                   <Link
                     href="/offers/envs"
-                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
                   >
                     <span className="font-medium">Envs</span>
-                    <span className="block text-xs text-muted-foreground whitespace-nowrap">Repo sandboxes</span>
+                    <span className="text-xs text-muted-foreground"> — Repo sandboxes</span>
                   </Link>
                 </div>
               </div>
@@ -249,14 +249,15 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
             >
               <h1 className="text-5xl sm:text-7xl font-bold tracking-tight mb-8 text-foreground text-balance">
-                Claude Code,{' '}
+                Your coding agent infrastructure.{' '}
                 <span className="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
-                  without the limits.
+                  All in one place.
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-                Drop-in LLM endpoint for Claude Code, Cursor, OpenCode, and any
-                OpenAI/Anthropic-compatible tool. Code without interruptions.
+                From LLM endpoints to repo-oriented sandboxes, we build the
+                infrastructure that keeps agents productive, secure, and on
+                task so humans can focus on what matters.
               </p>
             </motion.div>
           </div>
