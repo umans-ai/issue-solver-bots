@@ -1,13 +1,25 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Umans – AI coding agents for teams that ship on complex systems',
+  title: 'Umans Code – Claude Code Without Limits | Drop-in LLM Endpoint',
   description:
-    'Umans is an AI coding agent platform that helps software teams understand large codebases faster, offload repetitive fixes to remote agents that open PRs, and keep docs and architecture diagrams in sync with the code, with a self hosted model option for enterprises.',
+    'Replace Claude Code limits with unlimited AI coding. Drop-in LLM endpoint for Claude Code, Cursor, OpenCode, and any OpenAI/Anthropic-compatible tool. Start coding without rate limits.',
+  keywords: [
+    'Claude Code alternative',
+    'Claude Code without limits',
+    'AI coding endpoint',
+    'LLM endpoint for coding',
+    'Claude Code unlimited',
+    'Cursor AI alternative',
+    'OpenAI compatible endpoint',
+    'Anthropic API alternative',
+    'AI coding agent infrastructure',
+    'Claude Code API',
+  ],
   openGraph: {
-    title: 'Umans – AI coding agents for teams that ship on complex systems',
+    title: 'Umans Code – Claude Code Without Limits',
     description:
-      'Umans is an AI coding agent platform that helps software teams understand large codebases faster, offload repetitive fixes to remote agents that open PRs, and keep docs and architecture diagrams in sync with the code.',
+      'Drop-in LLM endpoint for Claude Code, Cursor, and OpenCode. Remove rate limits and code without interruptions.',
     url: 'https://umans.ai',
     siteName: 'Umans AI',
     images: [
@@ -15,7 +27,7 @@ export const metadata: Metadata = {
         url: 'https://app.umans.ai/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Umans AI Platform',
+        alt: 'Umans Code - Claude Code Without Limits',
       },
     ],
     locale: 'en_US',
@@ -23,11 +35,25 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Umans – AI coding agents for teams that ship on complex systems',
+    title: 'Umans Code – Claude Code Without Limits',
     description:
-      'Umans is an AI coding agent platform that helps software teams understand large codebases faster, offload repetitive fixes to remote agents that open PRs, and keep docs and architecture diagrams in sync with the code.',
+      'Drop-in LLM endpoint for Claude Code, Cursor, and OpenCode. Remove rate limits and code without interruptions.',
     images: ['https://app.umans.ai/og-image.png'],
     creator: '@umans_ai',
+  },
+  alternates: {
+    canonical: 'https://umans.ai',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 };
 
