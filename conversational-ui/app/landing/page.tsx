@@ -22,6 +22,7 @@ import {
   Zap,
   Users,
   Shield,
+  Brain,
 } from 'lucide-react';
 import { FaDiscord, FaXTwitter, FaLinkedinIn } from 'react-icons/fa6';
 import { cn } from '@/lib/utils';
@@ -158,31 +159,31 @@ export default function LandingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <div className="absolute top-full left-0 mt-2 w-48 py-2 bg-background/95 backdrop-blur-lg border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="absolute top-full left-0 mt-2 w-56 py-2 bg-background/95 backdrop-blur-lg border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <Link
                     href="/offers/code"
-                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
                   >
                     <span className="font-medium">Code</span>
                     <span className="block text-xs text-muted-foreground">LLM endpoint</span>
                   </Link>
                   <Link
                     href="/offers/wiki"
-                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
                   >
                     <span className="font-medium">Wiki</span>
-                    <span className="block text-xs text-muted-foreground">Auto-generated docs</span>
+                    <span className="block text-xs text-muted-foreground">Auto docs</span>
                   </Link>
                   <Link
                     href="/offers/workspace"
-                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
                   >
                     <span className="font-medium">Workspace</span>
                     <span className="block text-xs text-muted-foreground">Chat and tasks</span>
                   </Link>
                   <Link
                     href="/offers/envs"
-                    className="block px-4 py-2 hover:bg-muted transition-colors"
+                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
                   >
                     <span className="font-medium">Envs</span>
                     <span className="block text-xs text-muted-foreground">Repo sandboxes</span>
@@ -281,9 +282,6 @@ export default function LandingPage() {
                         <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-indigo-500/10 text-indigo-500">
                           <Terminal className="w-7 h-7" />
                         </div>
-                        <span className="text-xs font-medium text-primary-foreground bg-primary px-3 py-1 rounded-full">
-                          Featured
-                        </span>
                       </div>
                       <CardTitle className="text-3xl mb-3">Code</CardTitle>
                       <CardDescription className="text-lg mb-4">
@@ -297,16 +295,55 @@ export default function LandingPage() {
                         <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                       </div>
                     </div>
-                    <div className="hidden md:flex items-center justify-center p-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10">
-                      <div className="text-center space-y-4">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background/80 border border-border/50">
-                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-sm font-medium">Available now</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Works with Claude Code, OpenCode, Cursor, and more
-                        </p>
+                    <div className="hidden md:flex flex-col items-center justify-center p-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 gap-6">
+                      {/* Brain icon */}
+                      <div className="w-20 h-20 rounded-2xl bg-indigo-500/20 flex items-center justify-center">
+                        <Brain className="w-10 h-10 text-indigo-500" />
                       </div>
+
+                      {/* Tool logos marquee */}
+                      <div className="relative overflow-hidden w-full max-w-xs">
+                        <div className="flex animate-marquee gap-3">
+                          {/* First set */}
+                          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
+                            <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/claude-ai-icon.svg" alt="Claude Code" className="h-5 w-5" />
+                            <span className="whitespace-nowrap text-xs font-medium">Claude Code</span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
+                            <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/cursor-ai-code-icon.svg" alt="Cursor" className="h-5 w-5" />
+                            <span className="whitespace-nowrap text-xs font-medium">Cursor</span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
+                            <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/opencode.svg" alt="OpenCode" className="h-5 w-5 rounded bg-white p-0.5" />
+                            <span className="whitespace-nowrap text-xs font-medium">OpenCode</span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
+                            <img src="https://kilo.ai/favicon/favicon.svg" alt="Kilo Code" className="h-5 w-5" />
+                            <span className="whitespace-nowrap text-xs font-medium">Kilo Code</span>
+                          </div>
+                          {/* Duplicate set for seamless loop */}
+                          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
+                            <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/claude-ai-icon.svg" alt="Claude Code" className="h-5 w-5" />
+                            <span className="whitespace-nowrap text-xs font-medium">Claude Code</span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
+                            <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/cursor-ai-code-icon.svg" alt="Cursor" className="h-5 w-5" />
+                            <span className="whitespace-nowrap text-xs font-medium">Cursor</span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
+                            <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/opencode.svg" alt="OpenCode" className="h-5 w-5 rounded bg-white p-0.5" />
+                            <span className="whitespace-nowrap text-xs font-medium">OpenCode</span>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
+                            <img src="https://kilo.ai/favicon/favicon.svg" alt="Kilo Code" className="h-5 w-5" />
+                            <span className="whitespace-nowrap text-xs font-medium">Kilo Code</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground text-center">
+                        Works with your favorite tools
+                      </p>
                     </div>
                   </div>
                 </Card>
@@ -460,14 +497,27 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* Marquee Animation Styles */}
+        <style jsx>{`
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-marquee {
+            animation: marquee 15s linear infinite;
+          }
+          .animate-marquee:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+
         {/* Footer */}
         <footer className="py-12 border-t border-border/40 bg-muted/20">
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center">
                 <IconUmansLogo className="h-6 w-auto" />
-                <span className="font-medium">umans</span>
-              </div>
+              </Link>
               <p className="text-sm text-muted-foreground">
                 © {new Date().getFullYear()} Umans AI. All rights reserved.
               </p>
