@@ -483,8 +483,7 @@ export default function LandingPage() {
               Ready to get started?
             </h2>
             <p className="text-muted-foreground text-lg mb-8">
-              Join thousands of developers using Umans to ship faster with AI
-              agents.
+              Start shipping faster with AI agents today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className={primaryButtonClasses}>
