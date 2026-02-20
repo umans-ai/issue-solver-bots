@@ -249,15 +249,14 @@ export default function LandingPage() {
               transition={{ duration: 0.8 }}
             >
               <h1 className="text-5xl sm:text-7xl font-bold tracking-tight mb-8 text-foreground text-balance">
-                Your coding agent infrastructure.{' '}
+                Claude Code,{' '}
                 <span className="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">
-                  All in one place.
+                  without the limits.
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-                From LLM endpoints to repo-oriented sandboxes, we build the
-                infrastructure that keeps agents productive, secure, and on
-                task so humans can focus on what matters.
+                Drop-in LLM endpoint for Claude Code, Cursor, OpenCode, and any
+                OpenAI/Anthropic-compatible tool. Code without interruptions.
               </p>
             </motion.div>
           </div>
