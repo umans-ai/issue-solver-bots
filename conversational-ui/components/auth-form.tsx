@@ -75,26 +75,21 @@ export function AuthForm({
         </div>
 
         {showTerms && (
-          <p className="text-sm text-gray-600 dark:text-zinc-400">
-            By signing up, you agree to our{' '}
-            <Link
-              href="/terms"
-              className="font-semibold text-primary hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Terms of Use
-            </Link>{' '}
-            and{' '}
-            <Link
-              href="/privacy"
-              className="font-semibold text-primary hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Privacy Policy
-            </Link>
-          </p>
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600 dark:text-zinc-400">
+              By signing up, you create a single Umans account that works across all products.
+              Each product has its own{' '}
+              <Link
+                href="/legal"
+                className="font-semibold text-primary hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                terms and pricing
+              </Link>
+              .
+            </p>
+          </div>
         )}
 
         {children}

@@ -7,7 +7,11 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { FaDiscord, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 
-export function LandingNavbar() {
+interface LandingNavbarProps {
+  productName?: string;
+}
+
+export function LandingNavbar({ productName }: LandingNavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -34,8 +38,11 @@ export function LandingNavbar() {
         <div className="flex items-center justify-between h-16">
           {/* Left area: logo + primary nav */}
           <div className="flex items-center gap-10">
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="flex items-center gap-2">
               <IconUmansLogo className="h-8 w-auto" />
+              {productName && (
+                <span className="font-medium text-lg tracking-tight">{productName}</span>
+              )}
             </Link>
             <nav className="landing-nav hidden md:flex items-center gap-6 text-sm">
               <Link

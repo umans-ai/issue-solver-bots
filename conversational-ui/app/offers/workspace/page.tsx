@@ -165,7 +165,7 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Navigation Bar */}
-      <LandingNavbar />
+      <LandingNavbar productName="workspace" />
 
       {/* Dynamic gradient background */}
       <div

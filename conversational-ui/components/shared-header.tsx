@@ -150,7 +150,7 @@ export function SharedHeader({
             </TooltipContent>
           </Tooltip>
           <ThemeToggle />
-          <Link href="/landing">
+          <Link href="/offers/workspace">
             <IconUmansLogo className="h-16 w-16" />
           </Link>
         </div>
