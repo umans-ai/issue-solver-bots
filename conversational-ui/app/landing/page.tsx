@@ -159,31 +159,31 @@ export default function LandingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <div className="absolute top-full left-0 mt-2 w-56 py-2 bg-background/95 backdrop-blur-lg border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="absolute top-full left-0 mt-2 w-64 py-2 bg-background/95 backdrop-blur-lg border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <Link
                     href="/offers/code"
-                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
+                    className="block px-4 py-2 hover:bg-muted transition-colors"
                   >
                     <span className="font-medium">Code</span>
                     <span className="block text-xs text-muted-foreground">LLM endpoint</span>
                   </Link>
                   <Link
                     href="/offers/wiki"
-                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
+                    className="block px-4 py-2 hover:bg-muted transition-colors"
                   >
                     <span className="font-medium">Wiki</span>
                     <span className="block text-xs text-muted-foreground">Auto docs</span>
                   </Link>
                   <Link
                     href="/offers/workspace"
-                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
+                    className="block px-4 py-2 hover:bg-muted transition-colors"
                   >
                     <span className="font-medium">Workspace</span>
                     <span className="block text-xs text-muted-foreground">Chat and tasks</span>
                   </Link>
                   <Link
                     href="/offers/envs"
-                    className="block px-4 py-2 hover:bg-muted transition-colors whitespace-nowrap"
+                    className="block px-4 py-2 hover:bg-muted transition-colors"
                   >
                     <span className="font-medium">Envs</span>
                     <span className="block text-xs text-muted-foreground">Repo sandboxes</span>
@@ -295,48 +295,48 @@ export default function LandingPage() {
                         <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                       </div>
                     </div>
-                    <div className="hidden md:flex flex-col items-center justify-center p-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 gap-6">
+                    <div className="hidden md:flex flex-col items-center justify-center p-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 gap-5">
                       {/* Brain icon */}
-                      <div className="w-20 h-20 rounded-2xl bg-indigo-500/20 flex items-center justify-center">
-                        <Brain className="w-10 h-10 text-indigo-500" />
+                      <div className="w-14 h-14 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+                        <Brain className="w-7 h-7 text-indigo-500" />
                       </div>
 
                       {/* Tool logos marquee */}
-                      <div className="relative overflow-hidden w-full max-w-xs">
-                        <div className="flex animate-marquee gap-3">
+                      <div className="relative overflow-hidden w-full max-w-sm">
+                        <div className="flex animate-marquee gap-4">
                           {/* First set */}
                           <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
                             <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/claude-ai-icon.svg" alt="Claude Code" className="h-5 w-5" />
-                            <span className="whitespace-nowrap text-xs font-medium">Claude Code</span>
+                            <span className="text-xs font-medium">Claude Code</span>
                           </div>
                           <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
                             <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/cursor-ai-code-icon.svg" alt="Cursor" className="h-5 w-5" />
-                            <span className="whitespace-nowrap text-xs font-medium">Cursor</span>
+                            <span className="text-xs font-medium">Cursor</span>
                           </div>
                           <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
                             <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/opencode.svg" alt="OpenCode" className="h-5 w-5 rounded bg-white p-0.5" />
-                            <span className="whitespace-nowrap text-xs font-medium">OpenCode</span>
+                            <span className="text-xs font-medium">OpenCode</span>
                           </div>
                           <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
                             <img src="https://kilo.ai/favicon/favicon.svg" alt="Kilo Code" className="h-5 w-5" />
-                            <span className="whitespace-nowrap text-xs font-medium">Kilo Code</span>
+                            <span className="text-xs font-medium">Kilo Code</span>
                           </div>
                           {/* Duplicate set for seamless loop */}
                           <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
                             <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/claude-ai-icon.svg" alt="Claude Code" className="h-5 w-5" />
-                            <span className="whitespace-nowrap text-xs font-medium">Claude Code</span>
+                            <span className="text-xs font-medium">Claude Code</span>
                           </div>
                           <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
                             <img src="https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/cursor-ai-code-icon.svg" alt="Cursor" className="h-5 w-5" />
-                            <span className="whitespace-nowrap text-xs font-medium">Cursor</span>
+                            <span className="text-xs font-medium">Cursor</span>
                           </div>
                           <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
                             <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/opencode.svg" alt="OpenCode" className="h-5 w-5 rounded bg-white p-0.5" />
-                            <span className="whitespace-nowrap text-xs font-medium">OpenCode</span>
+                            <span className="text-xs font-medium">OpenCode</span>
                           </div>
                           <div className="flex shrink-0 items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-2">
                             <img src="https://kilo.ai/favicon/favicon.svg" alt="Kilo Code" className="h-5 w-5" />
-                            <span className="whitespace-nowrap text-xs font-medium">Kilo Code</span>
+                            <span className="text-xs font-medium">Kilo Code</span>
                           </div>
                         </div>
                       </div>
