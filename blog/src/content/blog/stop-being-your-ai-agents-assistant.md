@@ -9,8 +9,6 @@ seo:
   description: "What we learned from letting AI agents work truly autonomously on a real product with real users."
 ---
 
-# Stop Being Your AI Agent's Assistant
-
 Everyone on Twitter has a fancy AI coding setup. Multi-agent orchestration, custom frameworks, elaborate prompt chains. It looks impressive. It's also exhausting to watch.
 
 When we launched [code.umans.ai](https://code.umans.ai) at the beginning of February, my cofounder Naji and I saw it as an opportunity to challenge ourselves. We had unlimited LLM access now. No more token anxiety. So we asked: what happens if we really let our agents work autonomously? Not in theory. In practice, on a real product, with real users.
@@ -22,6 +20,8 @@ Here's what we learned.
 Our past experiences with AI agents had taught us something: it's incredibly easy to end up working *for* the agent instead of the other way around. We'd seen the pattern. You become a bottleneck because the agent waits for you to validate every step. You run things manually to compensate for what it can't do. You spend too much time reviewing its code. You spend too much time re-reading its code. And everything you didn't catch comes back to bite you later: bugs, tech debt, unmaintainable code.
 
 So going into this experiment, we had one rule: the AI works for us, not the other way around.
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">It’s a trap! If your agent asks for screenshots, it’s outsourcing the boring part to you.<br>Make it set up its own feedback loop (Playwright/tooling) so it can observe, change, verify, repeat.</p>&mdash; Wassel (@wasselovski) <a href="https://twitter.com/wasselovski/status/2024183937350725868?ref_src=twsrc%5Etfw">February 18, 2026</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 ## What Actually Helped
 
@@ -36,6 +36,8 @@ Three things made the biggest difference.
 Not just code. Architecture docs, product vision, backlog, conventions, past conversations, incident reports, runbooks. If a new teammate would need it on day one, the agent needs it too.
 
 We have a `docs/` folder at the root with subfolders for architecture, backlog (todo / in-progress / done), conversations, incidents, product specs, runbooks, and spikes. Plus a `conventions.md` and a `user-guide.md`. One `AGENTS.md` file (symlinked to `CLAUDE.md`) ties it all together.
+
+<img src="/docs-everything-in-the-git-repo.png" alt="Everything in the repo: docs folder structure" style="width: 40%; max-width: 100%; display: block; margin: 0 auto;" />
 
 We didn't start with all of this. Our first commit had a value proposition, a system design, our first conversation, and an initial backlog. The rest grew from there, one piece at a time, as we realized what the agent kept needing. The more context it had, the less we had to explain, repeat, and correct. That alone was a huge shift.
 
@@ -63,6 +65,12 @@ Early on the agent couldn't act on anything outside the code, so we gave it CLIs
 
 Within a few days, what started as "just talk to the model" had organically grown into a setup with real feedback loops: lint and type checks running automatically, unit tests written and executed by the agent, Playwright for visual verification, autonomous deploys, log access for self-debugging. None of this was planned upfront. It just accumulated, one friction point at a time.
 
+<small>_Introspection is the new debug. When your agent can inspect its own state and reasoning, you spend less time debugging and more time steering._</small>
+
+![Agent introspecting its own work](../../assets/images/agent-introspecting.png)
+
+![Introspection - Westworld style](../../assets/images/introspection-westworld.png)
+
 We started with a single coding agent. Alongside it, we had other agents running for different jobs: production monitoring, activity tracking, documentation. But for code, just one. We wanted throughput, not chaos. The ecosystem is full of tools for running parallel coding agents, but spawning five that step on each other or break production every other deploy didn't appeal to us when real users rely on the product every day.
 
 Now, with more experience, we run two or three coding agents in parallel. But only because we have a better understanding now that allowed us to design independent workstreams aligned with our business. We earned that gradually.
@@ -84,3 +92,13 @@ This article is about the principles. In a follow-up, we'll go concrete: how we 
 For now, if you're drowning in AI tooling announcements and Twitter flex posts, maybe try this: one agent, one repo, one loop. Sit back, give it context, and stop doing its job for it. You'll be surprised how fast things compound.
 
 We'll also share repos to practice on and packaged skills soon. Stay tuned.
+
+## Related
+
+### External perspectives
+
+* Steve Yegge on AI Agents and the future of software engineering (_we think we're now at level 5_)
+  https://newsletter.pragmaticengineer.com/p/steve-yegge-on-ai-agents-and-the
+
+* OpenAI, *Harness Engineering*
+  https://openai.com/index/harness-engineering/
