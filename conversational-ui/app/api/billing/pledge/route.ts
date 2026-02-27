@@ -8,6 +8,10 @@ import {
   PLEDGE_DEADLINE_LABEL,
 } from '@/lib/pledge';
 
+// Stripe requires trial_end to be at least 2 days in the future
+const MIN_TRIAL_DAYS = 2;
+const MIN_TRIAL_SECONDS = MIN_TRIAL_DAYS * 24 * 60 * 60;
+
 type PledgePlanKey = 'code_pro' | 'code_max';
 
 export async function POST(req: Request) {
@@ -105,7 +109,11 @@ export async function POST(req: Request) {
       },
     ],
     subscription_data: {
-      trial_end: PLEDGE_CHARGE_START_TIMESTAMP,
+      // Ensure trial_end is at least 2 days in the future (Stripe requirement)
+      trial_end: Math.max(
+        PLEDGE_CHARGE_START_TIMESTAMP,
+        Math.floor(Date.now() / 1000) + MIN_TRIAL_SECONDS,
+      ),
       metadata,
     },
     custom_text: {
