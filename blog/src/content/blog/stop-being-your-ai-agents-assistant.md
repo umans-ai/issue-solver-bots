@@ -61,6 +61,8 @@ Tell it to do. Tell it to verify. Tell it to learn. That's the whole thing.
 
 Here's what surprised us: we started with almost nothing. One agent, a terminal, and a conversation. But because step 3 keeps feeding improvements back into the system, things grow fast.
 
+The foundation: everything can run locally. The system, the individual components in isolation, and the full check chain (lints, type checks, unit tests, integration, e2e, smoke). During development, the agent starts what it needs, checks what it needs, and iterates on its own, with minimal dependency on CI, on cloud infrastructure, or on us.
+
 Early on the agent couldn't act on anything outside the code, so we gave it CLIs: `gh` for GitHub, `aws cli` for infra, `just` for repetitive tasks. Then it couldn't test anything visually, so we added Playwright. Then it needed safe feedback on infrastructure and environment changes, so we put all our infra as code in Terraform and gave it the ability to spawn an isolated production-like environment when needed. Then it kept making the same mistakes on infra, so we wrote conventions and runbooks. Each time it needed us for something it should have handled alone, we fixed the gap.
 
 Within a few days, what started as "just talk to the model" had organically grown into a setup with real feedback loops: lint and type checks running automatically, unit tests written and executed by the agent, Playwright for visual verification, autonomous deploys, log access for self-debugging. None of this was planned upfront. It just accumulated, one friction point at a time.
