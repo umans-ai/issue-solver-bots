@@ -43,7 +43,7 @@ We didn't start with all of this. Our first commit had a value proposition, a sy
 
 ### Just talk to the model
 
-No elaborate prompt engineering. No system. You have a conversation, you iterate, you ask it what it understood, you correct. That's it.
+No elaborate prompt engineering. No system. You have a conversation, you iterate, you ask it what it understood, you correct.
 
 The mindset that changed everything for us: sit back. Every time the agent tries to get you to do work for it, it's a scam. It wants you to run something? Push back. It wants a screenshot of what happened? Push back. It wants you to check if the tests pass? That's its job. Tell it to figure it out. It usually can.
 
@@ -53,7 +53,7 @@ Our entire workflow boils down to this:
 
 1. **Tell it to do the work.** Hold firm when it tries to hand micro-tasks back to you.
 2. **Tell it to verify its own work.** Tests, types, deploy, logs. Not you.
-3. **Ask: "What was painful and how do we avoid it next time?"** The answer goes into the docs, the AGENTS.md, the justfile. Next time, that friction is gone.
+3. **Ask: "What was painful and how do we avoid it next time?"** The answer goes into the docs, the [AGENTS.md](https://agents.md), the [justfile](https://github.com/casey/just) (a simple command runner, where you can automate useful commands). Next time, that friction is gone.
 
 Tell it to do. Tell it to verify. Tell it to learn. That's the whole thing.
 
@@ -84,6 +84,43 @@ With this setup, each of us ships about two meaningful increments per day. These
 Less than 10% of the code gets reviewed by a human. That sounds scary, but it works because we invested in the process around it: the feedback loops, the context, the tooling. We focus on the delivery system rather than manually inspecting every output.
 
 Some of these principles we'd already been applying on other products we develop. But launching umans code in February gave us a reason to push further, on a fresh repo where everything lives together: frontend, backend, infra as code, and all the documentation the agent needs.
+
+## What Was Hard
+
+We've painted the picture of what worked. Here's what didn't, or at least, what still takes effort.
+
+### Instruction following is still unreliable
+
+It's better than it was six months ago. It keeps improving. But every model we've used still has misses. Rules in the AGENTS.md that get ignored this time. 
+A skill file it loaded yesterday but skips today. And it gets worse after compaction: when the session gets long, the context gets summarized, and that's when instructions start falling off. 
+Things that were crystal clear at the start of the session quietly disappear. You have to stay alert, and you have to design your process assuming the agent *will* occasionally drop instructions. 
+
+### The agent doesn't know what it doesn't know
+
+Sometimes the agent doesn't realize it has blind spots. It won't tell you it's missing context. It'll just make something up or take a suboptimal path. 
+So we stay attentive. We watch for gaps and keep adjusting the activable context we put at its disposal: docs, conventions, runbooks, skills. This evolves fast. 
+What worked last week might not be enough this week because the product moved.
+
+### Tests matter more than the code
+
+As the product evolves (and it evolves fast) our testing strategy has to evolve with it. 
+The types of tests change. 
+Our role, more often than not, was to guide that evolution through conversation: asking the agent to update the architecture docs, the decisions we take and he documents, the conventions, and the test rules that go with them. 
+We care more about the test suite being right than the implementation being right. If the tests are solid, the implementation can always be fixed.
+
+### Deciding what to build
+
+The agent can build anything you ask. That's exactly the problem. It won't tell you you're building the wrong thing. 
+Product decisions (what to prioritize, what to cut, what to validate first) are still entirely on us. That's not a limitation of the tooling. It's the job.
+
+### Sizing the increments
+
+We are explicit about what makes a good increment. Each one must be shippable (can be deployed independently), valuable (delivers real user or business value), testable (has clear verification criteria), simple (small enough to complete in one session), and validating (has explicit assumptions to confirm). 
+
+### Simplest thing that might work
+
+The agent's first implementation is not always the simplest. Sometimes it over-engineers, adds abstractions too early, or picks a more complex approach when a straightforward one exists. 
+This matters more than it sounds. Every bit of unjustified complexity weighs on the next context window. Heavier context means slower reasoning, more mistakes, worse execution. We've learned to push back early: *is this the simplest thing that could work?* If not, simplify before moving on.
 
 ## What's Next
 
