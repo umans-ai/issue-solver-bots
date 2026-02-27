@@ -11,7 +11,7 @@ seo:
 
 Everyone on Twitter has a fancy AI coding setup. Multi-agent orchestration, custom frameworks, elaborate prompt chains. It looks impressive. It's also exhausting to watch.
 
-When we launched [code.umans.ai](https://code.umans.ai) at the beginning of February, my cofounder Naji and I saw it as an opportunity to challenge ourselves. We had unlimited LLM access now. No more token anxiety. So we asked: what happens if we really let our agents work autonomously? Not in theory. In practice, on a real product, with real users.
+When we kicked off [code.umans.ai](https://code.umans.ai) at the beginning of February, my cofounder Naji and I saw it as an opportunity to challenge ourselves. We had unlimited LLM access now. No more token anxiety. So we asked: what happens if we really let our agents work autonomously? Not in theory. In practice, on a real product, with real users.
 
 Here's what we learned.
 
@@ -97,7 +97,7 @@ We'll also share repos to practice on and packaged skills soon. Stay tuned.
 
 ### External perspectives
 
-* Steve Yegge on AI Agents and the future of software engineering (_we think we're now at level 5_)
+* Steve Yegge on AI Agents and the future of software engineering (_the practices in this article map to Yegge's level 5_)
   https://newsletter.pragmaticengineer.com/p/steve-yegge-on-ai-agents-and-the
 
 * OpenAI, *Harness Engineering*
