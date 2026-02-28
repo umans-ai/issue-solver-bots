@@ -4,10 +4,16 @@ import {
   getUserByVerificationToken,
   verifyUserEmail,
 } from '@/lib/db/queries';
+import {
+  isCodeIntentRedirect,
+  sanitizeInternalRedirect,
+} from '@/lib/redirect-intent';
 
 export async function POST(request: Request) {
   try {
-    const { token } = await request.json();
+    const body = await request.json();
+    const token = typeof body?.token === 'string' ? body.token : '';
+    const next = sanitizeInternalRedirect(body?.next);
 
     if (!token) {
       return NextResponse.json(
@@ -34,7 +40,7 @@ export async function POST(request: Request) {
     }
 
     // Verify the user's email
-    await verifyUserEmail(user.id);
+    await verifyUserEmail(user.id, { codeIntent: isCodeIntentRedirect(next) });
 
     // Create default space for the newly verified user
     try {

@@ -1,5 +1,9 @@
 import { Resend } from 'resend';
 import { getUser } from '@/lib/db/queries';
+import {
+  getCodeOfferUrl,
+  sanitizeInternalRedirect,
+} from '@/lib/redirect-intent';
 
 if (!process.env.EMAIL_API_KEY) {
   throw new Error('EMAIL_API_KEY environment variable is required');
@@ -151,15 +155,24 @@ const createInfoBox = (
 export async function sendVerificationEmail(
   to: string,
   verificationToken: string,
+  next?: string | null,
 ): Promise<void> {
-  const verificationUrl = `${getBaseUrl()}/verify-email?token=${verificationToken}`;
+  const verificationUrl = new URL('/verify-email', getBaseUrl());
+  verificationUrl.searchParams.set('token', verificationToken);
+
+  const safeNext = sanitizeInternalRedirect(next);
+  if (safeNext) {
+    verificationUrl.searchParams.set('next', safeNext);
+  }
+
+  const verificationUrlString = verificationUrl.toString();
 
   const content = `
     <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
       Welcome to Umans! To complete your account setup and start collaborating, please verify your email address.
     </p>
     
-    ${createButton(verificationUrl, 'Verify Email Address', 'primary')}
+    ${createButton(verificationUrlString, 'Verify Email Address', 'primary')}
     
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
         <tr>
@@ -168,8 +181,8 @@ export async function sendVerificationEmail(
                     If the button doesn't work, copy and paste this link:
                 </p>
                 <p style="margin: 0; font-size: 14px; text-align: center;">
-                    <a href="${verificationUrl}" style="color: #3b82f6; text-decoration: none; word-break: break-all;">
-                        ${verificationUrl}
+                    <a href="${verificationUrlString}" style="color: #3b82f6; text-decoration: none; word-break: break-all;">
+                        ${verificationUrlString}
                     </a>
                 </p>
             </td>
@@ -200,19 +213,35 @@ export async function sendVerificationEmail(
   }
 }
 
-export async function sendWelcomeEmail(to: string): Promise<void> {
+export async function sendWelcomeEmail(
+  to: string,
+  options?: { codeIntent?: boolean },
+): Promise<void> {
+  const isCodeWelcome = options?.codeIntent === true;
+  const startUrl = isCodeWelcome ? getCodeOfferUrl(getBaseUrl()) : getBaseUrl();
+  const title = isCodeWelcome ? 'Welcome to Umans Code!' : 'Welcome to Umans!';
+  const subject = isCodeWelcome
+    ? 'Welcome to Umans Code! 🎉'
+    : 'Welcome to Umans! 🎉';
+  const welcomeLine = isCodeWelcome
+    ? '🎉 Your email has been successfully verified. You can now access Umans Code.'
+    : '🎉 Your email has been successfully verified! Welcome to Umans - your new collaborative workspace.';
+  const supportLine = isCodeWelcome
+    ? 'Need help getting started with Umans Code? Our support team is here to assist you every step of the way.'
+    : 'Need help getting started? Our support team is here to assist you every step of the way.';
+
   const content = `
     <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
-      🎉 Your email has been successfully verified! Welcome to Umans - your new collaborative workspace.
+      ${welcomeLine}
     </p>
     
-    ${createButton(getBaseUrl(), 'Start Exploring', 'success')}
+    ${createButton(startUrl, 'Start Exploring', 'success')}
     
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
         <tr>
             <td style="padding: 24px 0 0 0;">
                 <p style="margin: 0; font-size: 16px; color: #475569; text-align: center; line-height: 1.5;">
-                  Need help getting started? Our support team is here to assist you every step of the way.
+                  ${supportLine}
                 </p>
             </td>
         </tr>
@@ -223,8 +252,8 @@ export async function sendWelcomeEmail(to: string): Promise<void> {
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to,
-      subject: 'Welcome to Umans! 🎉',
-      html: createEmailTemplate('Welcome to Umans!', content),
+      subject,
+      html: createEmailTemplate(title, content),
     });
   } catch (error) {
     console.error('Failed to send welcome email:', error);

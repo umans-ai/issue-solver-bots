@@ -12,6 +12,7 @@ function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
+  const next = searchParams?.get('next');
 
   const [status, setStatus] = useState<
     'verifying' | 'success' | 'error' | 'pending'
@@ -23,16 +24,27 @@ function VerifyEmailContent() {
       setStatus('verifying');
       verifyEmail(token);
     }
-  }, [token]);
+  }, [token, next]);
+
+  const getPendingRedirect = () => {
+    if (next) {
+      return next;
+    }
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    return localStorage.getItem('pendingRedirectTo');
+  };
 
   const verifyEmail = async (verificationToken: string) => {
     try {
+      const pendingRedirect = getPendingRedirect();
       const response = await fetch('/api/auth/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token: verificationToken }),
+        body: JSON.stringify({ token: verificationToken, next: pendingRedirect }),
       });
 
       if (response.ok) {
@@ -40,12 +52,11 @@ function VerifyEmailContent() {
         toast.success('Email verified successfully!');
         // Get redirect destination and clear stored data
         let redirectTo = '/login';
+        if (pendingRedirect) {
+          redirectTo = `/login?next=${encodeURIComponent(pendingRedirect)}`;
+        }
         if (typeof window !== 'undefined') {
-          const pendingRedirect = localStorage.getItem('pendingRedirectTo');
-          if (pendingRedirect) {
-            redirectTo = `/login?next=${encodeURIComponent(pendingRedirect)}`;
-            localStorage.removeItem('pendingRedirectTo');
-          }
+          localStorage.removeItem('pendingRedirectTo');
           localStorage.removeItem('pendingVerificationEmail');
         }
         // Redirect to login after 3 seconds
@@ -72,13 +83,14 @@ function VerifyEmailContent() {
         typeof window !== 'undefined'
           ? localStorage.getItem('pendingVerificationEmail')
           : null;
+      const pendingRedirect = getPendingRedirect();
 
       const response = await fetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, next: pendingRedirect }),
       });
 
       if (response.ok) {
@@ -147,11 +159,9 @@ function VerifyEmailContent() {
               <div className="mt-6">
                 <Button onClick={() => {
                   let redirectTo = '/login';
-                  if (typeof window !== 'undefined') {
-                    const pendingRedirect = localStorage.getItem('pendingRedirectTo');
-                    if (pendingRedirect) {
-                      redirectTo = `/login?next=${encodeURIComponent(pendingRedirect)}`;
-                    }
+                  const pendingRedirect = getPendingRedirect();
+                  if (pendingRedirect) {
+                    redirectTo = `/login?next=${encodeURIComponent(pendingRedirect)}`;
                   }
                   router.push(redirectTo);
                 }}>

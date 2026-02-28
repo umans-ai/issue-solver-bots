@@ -143,7 +143,10 @@ export async function getUserByVerificationToken(
   }
 }
 
-export async function verifyUserEmail(userId: string) {
+export async function verifyUserEmail(
+  userId: string,
+  options?: { codeIntent?: boolean },
+) {
   try {
     const result = await db
       .update(user)
@@ -158,7 +161,9 @@ export async function verifyUserEmail(userId: string) {
     if (result.length > 0) {
       try {
         const { sendWelcomeEmail } = await import('../email');
-        await sendWelcomeEmail(result[0].email);
+        await sendWelcomeEmail(result[0].email, {
+          codeIntent: options?.codeIntent,
+        });
         console.log('📧 Welcome email sent to verified user:', result[0].email);
       } catch (emailError) {
         console.error('❌ Error sending welcome email:', emailError);

@@ -57,12 +57,18 @@ function RegisterContent() {
           localStorage.setItem('pendingRedirectTo', next);
         }
       }
-      router.push('/verify-email');
+      const verifyUrl = next
+        ? `/verify-email?next=${encodeURIComponent(next)}`
+        : '/verify-email';
+      router.push(verifyUrl);
     }
   }, [state, router, email, next]);
 
   const handleSubmit = (formData: FormData) => {
     setEmail(formData.get('email') as string);
+    if (next) {
+      formData.set('next', next);
+    }
     formAction(formData);
   };
 
