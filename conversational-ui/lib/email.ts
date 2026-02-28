@@ -217,13 +217,22 @@ export async function sendWelcomeEmail(
   to: string,
   options?: { codeIntent?: boolean },
 ): Promise<void> {
-  const startUrl = options?.codeIntent
-    ? getCodeOfferUrl(getBaseUrl())
-    : getBaseUrl();
+  const isCodeWelcome = options?.codeIntent === true;
+  const startUrl = isCodeWelcome ? getCodeOfferUrl(getBaseUrl()) : getBaseUrl();
+  const title = isCodeWelcome ? 'Welcome to Umans Code!' : 'Welcome to Umans!';
+  const subject = isCodeWelcome
+    ? 'Welcome to Umans Code! 🎉'
+    : 'Welcome to Umans! 🎉';
+  const welcomeLine = isCodeWelcome
+    ? '🎉 Your email has been successfully verified. You can now access Umans Code.'
+    : '🎉 Your email has been successfully verified! Welcome to Umans - your new collaborative workspace.';
+  const supportLine = isCodeWelcome
+    ? 'Need help getting started with Umans Code? Our support team is here to assist you every step of the way.'
+    : 'Need help getting started? Our support team is here to assist you every step of the way.';
 
   const content = `
     <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
-      🎉 Your email has been successfully verified! Welcome to Umans - your new collaborative workspace.
+      ${welcomeLine}
     </p>
     
     ${createButton(startUrl, 'Start Exploring', 'success')}
@@ -232,7 +241,7 @@ export async function sendWelcomeEmail(
         <tr>
             <td style="padding: 24px 0 0 0;">
                 <p style="margin: 0; font-size: 16px; color: #475569; text-align: center; line-height: 1.5;">
-                  Need help getting started? Our support team is here to assist you every step of the way.
+                  ${supportLine}
                 </p>
             </td>
         </tr>
@@ -243,8 +252,8 @@ export async function sendWelcomeEmail(
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to,
-      subject: 'Welcome to Umans! 🎉',
-      html: createEmailTemplate('Welcome to Umans!', content),
+      subject,
+      html: createEmailTemplate(title, content),
     });
   } catch (error) {
     console.error('Failed to send welcome email:', error);

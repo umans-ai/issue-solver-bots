@@ -9,12 +9,13 @@ When account creation starts from the Code product flow, send a welcome email wh
 - Pass signup redirect intent (`next`) through verification email links.
 - Forward redirect intent to `/api/auth/verify` and `/api/auth/resend-verification`.
 - Flag welcome-email destination as Code when redirect intent is Code-related (`/billing`, `/offers/code`, `/setup-cli`).
+- Use Code-specific welcome copy/subject for Code-origin verifications.
 - Keep existing default welcome destination for non-Code flows.
 
 ## Out of Scope
 
 - Any billing entitlement or subscription state changes.
-- Copy or visual redesign of email templates.
+- Broad email redesign beyond the scoped Code-vs-default welcome variant.
 - Infrastructure/domain changes.
 
 ## Verification
