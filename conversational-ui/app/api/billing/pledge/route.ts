@@ -2,14 +2,9 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { type BillingCycle, getPriceId, getStripe } from '@/lib/stripe';
 import { getLatestPledgeForUser, getUser } from '@/lib/db/queries';
-import {
-  PLEDGE_CHARGE_START_TIMESTAMP,
-  PLEDGE_CHARGE_START_LABEL,
-} from '@/lib/pledge';
 
-// Stripe requires trial_end to be at least 2 days in the future
+// Stripe requires trial period to be at least 2 days
 const MIN_TRIAL_DAYS = 2;
-const MIN_TRIAL_SECONDS = MIN_TRIAL_DAYS * 24 * 60 * 60;
 
 type PledgePlanKey = 'code_pro' | 'code_max';
 
@@ -108,19 +103,17 @@ export async function POST(req: Request) {
       },
     ],
     subscription_data: {
-      // Ensure trial_end is at least 2 days in the future (Stripe requirement)
-      trial_end: Math.max(
-        PLEDGE_CHARGE_START_TIMESTAMP,
-        Math.floor(Date.now() / 1000) + MIN_TRIAL_SECONDS,
-      ),
+      // 2-day trial to comply with Stripe's minimum trial period requirement
+      trial_period_days: MIN_TRIAL_DAYS,
       metadata,
     },
     custom_text: {
       submit: {
-        message: `Founding membership. No charge today. You'll be billed ${PLEDGE_CHARGE_START_LABEL}.`,
+        message:
+          'Your founding member rate is locked in. Start using immediately.',
       },
       after_submit: {
-        message: 'Start using Umans Code immediately.',
+        message: "You're all set! Start using Umans Code immediately.",
       },
     },
   });

@@ -1257,7 +1257,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 Lock in the founding price.
               </h2>
               <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
-                Join now, start coding immediately, and pay nothing until billing starts.
+                Join now and start building immediately.
                 <br />
                 You&apos;ll also secure the founding member rate.
               </p>

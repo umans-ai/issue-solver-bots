@@ -1,12 +1,3 @@
-// Deprecated: PLEDGE_DEADLINE_* constants removed as service is now open
-// export const PLEDGE_DEADLINE_LABEL = 'February 28, 2026';
-// export const PLEDGE_DEADLINE_TIMESTAMP = ...
-
-export const PLEDGE_CHARGE_START_LABEL = 'March 1, 2026';
-export const PLEDGE_CHARGE_START_TIMESTAMP = Math.floor(
-  new Date('2026-03-01T00:00:00Z').getTime() / 1000,
-);
-
 export const PLEDGE_PLAN_LABELS = {
   code_pro: 'Umans Code Pro',
   code_max: 'Umans Code Max',
