@@ -522,16 +522,10 @@ export default function LandingPage() {
               </p>
               <div className="flex gap-6 text-sm text-muted-foreground">
                 <Link
-                  href="/privacy"
+                  href="/legal"
                   className="hover:text-foreground transition-colors"
                 >
-                  Privacy
-                </Link>
-                <Link
-                  href="/terms"
-                  className="hover:text-foreground transition-colors"
-                >
-                  Terms
+                  Terms & Privacy
                 </Link>
                 <a
                   href="mailto:contact@umans.ai"

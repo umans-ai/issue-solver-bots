@@ -85,9 +85,9 @@ export function AuthForm({
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                terms and pricing
-              </Link>
-              .
+                terms
+              </Link>{' '}
+              and pricing.
             </p>
           </div>
         )}
