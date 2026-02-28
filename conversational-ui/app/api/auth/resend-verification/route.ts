@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { user } from '@/lib/db/schema';
+import { sanitizeInternalRedirect } from '@/lib/redirect-intent';
 
 // biome-ignore lint: Forbidden non-null assertion.
 const client = postgres(process.env.POSTGRES_URL!);
@@ -14,15 +15,18 @@ const db = drizzle(client);
 export async function POST(request: Request) {
   try {
     let email: string;
+    let next: string | null = null;
 
     // Try to get email from request body, fallback to URL search params
     try {
       const body = await request.json();
       email = body.email;
+      next = sanitizeInternalRedirect(body?.next);
     } catch {
       // If no JSON body, try to get from URL search params
       const url = new URL(request.url);
       email = url.searchParams.get('email') || '';
+      next = sanitizeInternalRedirect(url.searchParams.get('next'));
     }
 
     if (!email) {
@@ -53,7 +57,7 @@ export async function POST(request: Request) {
       .where(eq(user.id, existingUser.id));
 
     // Send verification email
-    await sendVerificationEmail(existingUser.email, newVerificationToken);
+    await sendVerificationEmail(existingUser.email, newVerificationToken, next);
 
     return NextResponse.json(
       { message: 'Verification email sent successfully' },

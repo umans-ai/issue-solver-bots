@@ -20,6 +20,7 @@ import {
 } from './status';
 
 import { signIn } from './auth';
+import { sanitizeInternalRedirect } from '@/lib/redirect-intent';
 
 // Reuse existing database connection pattern
 import { eq } from 'drizzle-orm';
@@ -127,6 +128,7 @@ export const register = async (
     });
 
     const [user] = await getUser(validatedData.email);
+    const next = sanitizeInternalRedirect(formData.get('next'));
 
     if (user) {
       // Don't reveal whether it's OAuth or password user for security
@@ -148,7 +150,7 @@ export const register = async (
 
     // Send verification email
     try {
-      await sendVerificationEmail(validatedData.email, verificationToken);
+      await sendVerificationEmail(validatedData.email, verificationToken, next);
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError);
       return REGISTRATION_FAILED_RESPONSE;
