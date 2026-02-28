@@ -18,7 +18,7 @@ const jsonLd = {
           name: 'Pro',
           price: '20',
           priceCurrency: 'USD',
-          description: '200 Claude Code prompts per five-hour window',
+          description: 'Up to 200 messages per five-hour window',
           url: 'https://app.umans.ai/offers/code#plans',
         },
         {
@@ -26,7 +26,7 @@ const jsonLd = {
           name: 'Max',
           price: '50',
           priceCurrency: 'USD',
-          description: 'Unlimited prompts with 4 guaranteed parallel sessions',
+          description: 'Unlimited prompts with up to 4 guaranteed parallel agents sessions',
           url: 'https://app.umans.ai/offers/code#plans',
         },
       ],
@@ -49,7 +49,7 @@ const jsonLd = {
           name: 'What are the usage limits for code by Umans?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Pro plan offers 200 Claude Code prompts per five-hour rolling window. Max plan offers unlimited prompts with 4 guaranteed parallel sessions and extra burst capacity when available.',
+            text: 'Pro plan offers up to 200 messages per five-hour rolling window with no weekly limits. Max plan offers unlimited prompts with up to 4 guaranteed parallel agents sessions and extra burst capacity when available.',
           },
         },
         {

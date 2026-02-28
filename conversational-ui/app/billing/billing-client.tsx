@@ -67,8 +67,9 @@ const planOptions = {
     label: 'Pro',
     description: PLEDGE_PLAN_DETAILS.code_pro,
     bullets: [
-      '200 Claude Code prompts per five-hour window.',
+      'Up to 200 messages per five-hour window.',
       'Limits reset every five hours (rolling window).',
+      'No weekly limits.',
     ],
     monthlyPrice: '$20',
     yearlyPrice: '$17',
@@ -78,7 +79,7 @@ const planOptions = {
     description: PLEDGE_PLAN_DETAILS.code_max,
     bullets: [
       'Unlimited prompts.',
-      '4 guaranteed parallel Claude Code sessions.',
+      'Up to 4 guaranteed parallel agents sessions.',
       'Extra burst capacity when available.',
     ],
     monthlyPrice: '$50',

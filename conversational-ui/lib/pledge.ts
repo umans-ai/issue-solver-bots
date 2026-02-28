@@ -4,8 +4,8 @@ export const PLEDGE_PLAN_LABELS = {
 } as const;
 
 export const PLEDGE_PLAN_DETAILS = {
-  code_pro: '200 prompts per 5 hours.',
-  code_max: 'Unlimited prompts and 4 guaranteed parallel sessions.',
+  code_pro: 'Up to 200 messages per five-hour window. No weekly limits.',
+  code_max: 'Unlimited prompts and up to 4 guaranteed parallel agents sessions.',
 } as const;
 
 export const PLEDGE_PRICE_LABELS = {

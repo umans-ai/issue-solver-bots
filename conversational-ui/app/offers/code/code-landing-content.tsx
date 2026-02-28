@@ -32,7 +32,7 @@ const plans = {
   monthly: {
     max: {
       price: '$20',
-      subline: '200 Claude Code prompts per five-hour window.',
+      subline: 'Up to 200 messages per five-hour window.',
     },
     unlimited: {
       price: '$50',
@@ -42,7 +42,7 @@ const plans = {
   yearly: {
     max: {
       price: '$17',
-      subline: '200 Claude Code prompts per five-hour window.',
+      subline: 'Up to 200 messages per five-hour window.',
     },
     unlimited: {
       price: '$42',
@@ -1352,8 +1352,9 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                   Claude Max ($100)-equivalent limits.
                 </p>
                 <ul className="mt-6 space-y-3 text-sm text-black/70 dark:text-white/70">
-                  <li>200 Claude Code prompts per five-hour window.</li>
+                  <li>Up to 200 messages per five-hour window.</li>
                   <li>Limits reset every five hours (rolling window).</li>
+                  <li>No weekly limits.</li>
                 </ul>
                 <div className="mt-auto pt-6">
                   <Button
@@ -1388,7 +1389,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 </p>
                 <ul className="mt-6 space-y-3 text-sm text-black/70 dark:text-white/70">
                   <li>No prompt window.</li>
-                  <li>4 guaranteed parallel Claude Code sessions.</li>
+                  <li>Up to 4 guaranteed parallel agents sessions.</li>
                   <li>Extra burst capacity when available.</li>
                 </ul>
                 <div className="mt-auto pt-6">
