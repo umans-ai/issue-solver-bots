@@ -509,8 +509,8 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
               </div>
             ) : (
               <div className="space-y-4 text-base text-[#0b0d10]/70 dark:text-white/70">
-                <p>Your pledge is no longer active.</p>
-                <p>If you still want a Founding seat, choose a plan below.</p>
+                <p>Your subscription is no longer active.</p>
+                <p>If you still want a founding membership, choose a plan below.</p>
                 <Button
                   className={pillOutlineButton}
                   onClick={() => {
@@ -553,7 +553,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
 
             {!activePledge ? (
               <div className="rounded-2xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 p-5 text-[#0b0d10]/70 dark:text-white/70">
-                <p className="text-sm">You need an active pledge to create keys.</p>
+                <p className="text-sm">You need an active subscription to create keys.</p>
                 <Button
                   className={cn('mt-4', pillOutlineButton)}
                   onClick={() => {
