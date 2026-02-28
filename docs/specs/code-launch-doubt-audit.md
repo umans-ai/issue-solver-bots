@@ -13,203 +13,122 @@
 1. Retirer tout message qui suggère que le service pourrait ne pas être lancé
 2. Remplacer "pledge" par "membership"/"subscription" dans tous les textes utilisateur
 3. Supprimer les références à une date d'activation ou de lancement
+4. **Supprimer toutes les constantes de date obsolètes (PLEDGE_CHARGE_START_*, PLEDGE_DEADLINE_*)**
 
 ---
 
-## Plan de modification détaillé
+## Modifications complémentaires (dernier passage)
 
-### 1. Changements de wording (user-facing uniquement)
+### Landing page - phrase principale
 
-| Terme actuel | Nouveau terme | Contexte |
-|--------------|---------------|----------|
-| "Founding pledge" | "Founding membership" | Emails, UI |
-| "Your pledge is confirmed" | "Your subscription is confirmed" | Emails |
-| "Manage your pledge" | "Get started" / "Manage subscription" | Boutons |
-| "No active pledge" | "No active subscription" | État vide |
-| "Pledge plan" | "Plan" | Labels |
-| "seats left at founding price" | "founding spots remaining" | Compteur |
-| "Activates March 1" | "Founding rate secured" | Landing |
-| "Activation starts..." | "Secure the founding member rate" | Landing |
+**Actuel :** "Join now, start coding immediately, and pay nothing until billing starts."
 
-### 2. Suppressions de messages conditionnels
+**Nouveau :** "Join now and start building immediately."
 
-| Fichier | Texte à supprimer |
-|---------|-------------------|
-| `billing-client.tsx` | "If we do not launch by {date}, you will not be charged" |
-| `email.ts` | "The launch window closes February 28, 2026" |
-| `email.ts` | "Billing starts March 1, 2026" (dans le corps principal) |
-| `code-landing-content.tsx` | "Activates March 1" |
+*Note : On retire la mention du paiement différé car elle n'est plus pertinente post-launch.*
 
-### 3. Ajouts pour renforcer l'accès immédiat
+### Stripe checkout custom text
 
-| Fichier | Nouveau texte |
-|---------|---------------|
-| `email.ts` | "You can start using Umans Code immediately" |
-| `email.ts` | "Your founding member rate is locked in" |
+**Actuel :** `Founding membership. No charge today. You'll be billed ${PLEDGE_CHARGE_START_LABEL}.`
+
+**Nouveau :** `"Your founding member rate is locked in. Start using immediately."`
+
+### Suppression des constantes de date
+
+**Fichier :** `lib/pledge.ts`
+
+**À supprimer :**
+- `PLEDGE_DEADLINE_LABEL` (déjà commenté, à supprimer définitivement)
+- `PLEDGE_DEADLINE_TIMESTAMP` (déjà commenté, à supprimer définitivement)
+- `PLEDGE_CHARGE_START_LABEL` (date hardcodée, plus pertinente)
+- `PLEDGE_CHARGE_START_TIMESTAMP` (timestamp hardcodé, plus pertinent)
+
+**Vérification d'usage avant suppression :**
+- [ ] Vérifier si `PLEDGE_CHARGE_START_TIMESTAMP` est utilisé dans `app/api/billing/pledge/route.ts` pour `trial_end`
 
 ---
 
-## Modifications par fichier
-
-### 🔴 `conversational-ui/lib/email.ts`
-
-#### Fonction `sendPledgeConfirmationEmail`
-
-**Sujet actuel :** `Your Founding pledge is confirmed`
-**Nouveau sujet :** `Your Founding membership is confirmed`
-
-**Contenu actuel :**
-```tsx
-const content = `
-  <p style="...">
-    Your Founding pledge is confirmed. We've saved your plan details.
-  </p>
-  ...
-  <p style="...">
-    Billing starts March 1, 2026. The launch window closes February 28, 2026.
-    You can cancel anytime before then from your billing dashboard.
-  </p>
-  ${createButton(billingUrl, 'Manage your pledge', 'primary')}
-`;
-```
-
-**Nouveau contenu :**
-```tsx
-const content = `
-  <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
-    Your Founding membership is confirmed at the exclusive founding member rate.
-  </p>
-
-  ${createInfoBox(
-    `
-      <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">Plan</p>
-      <p style="margin: 0; font-size: 14px;">${planLabel} · ${billingCycleLabel}</p>
-      <p style="margin: 8px 0 0 0; font-size: 14px;">${priceLabel}</p>
-    `,
-    'info',
-  )}
-
-  <p style="margin: 24px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
-    You can start using Umans Code immediately. Your founding member rate is locked in.
-  </p>
-
-  ${createButton(billingUrl, 'Get started', 'primary')}
-`;
-```
-
-**Titre email :** `Founding pledge confirmed` → `Founding membership confirmed`
-
----
-
-### 🔴 `conversational-ui/app/billing/billing-client.tsx`
-
-#### Section "Get Started" (lignes ~720-724)
-
-**Actuel :**
-```tsx
-<p className="mt-4 text-sm text-[#0b0d10]/60 dark:text-white/60">
-  Billing starts {PLEDGE_CHARGE_START_LABEL}. If we do
-  not launch by {PLEDGE_DEADLINE_LABEL}, you will not be
-  charged.
-</p>
-```
-
-**Nouveau :**
-```tsx
-<p className="mt-4 text-sm text-[#0b0d10]/60 dark:text-white/60">
-  Billing starts {PLEDGE_CHARGE_START_LABEL}.
-</p>
-```
-
-#### Section "No active pledge" (lignes ~727-734)
-
-**Actuel :**
-```tsx
-<h2 className="text-2xl font-semibold text-[#0b0d10] dark:text-white">
-  No active pledge
-</h2>
-<p className="mt-2 text-sm text-[#0b0d10]/60 dark:text-white/60">
-  Choose a plan to reserve your Founding seat.
-</p>
-```
-
-**Nouveau :**
-```tsx
-<h2 className="text-2xl font-semibold text-[#0b0d10] dark:text-white">
-  No active subscription
-</h2>
-<p className="mt-2 text-sm text-[#0b0d10]/60 dark:text-white/60">
-  Choose a plan to become a founding member.
-</p>
-```
-
----
+## Modifications par fichier (final)
 
 ### 🔴 `conversational-ui/app/offers/code/code-landing-content.tsx`
 
-#### Constantes et variables (lignes ~17-18)
-
-**Actuel :**
+**Ligne ~1260 :**
 ```tsx
-const ACTIVATION_DATE_LABEL = 'March 1';
+// AVANT :
+<p className="text-base text-black/70 leading-relaxed dark:text-white/70">
+  Join now, start coding immediately, and pay nothing until billing starts.
+  <br />
+  You'll also secure the founding member rate.
+</p>
+
+// APRÈS :
+<p className="text-base text-black/70 leading-relaxed dark:text-white/70">
+  Join now and start building immediately.
+  <br />
+  You'll also secure the founding member rate.
+</p>
 ```
 
-**Action :** Variable à supprimer si non utilisée ailleurs, ou garder uniquement pour référence interne.
+### 🔴 `conversational-ui/app/api/billing/pledge/route.ts`
 
-#### Section Founding Members (lignes ~1270-1283)
-
-**Actuel :**
+**Lignes ~118-124 :**
 ```tsx
-<p className="text-sm text-black/60 dark:text-white/60">
-  Activation starts {ACTIVATION_DATE_LABEL}. No charge until then.
-</p>
-...
-<div className="mt-4 text-xs text-black/50 dark:text-white/50">
-  <span>Activates {ACTIVATION_DATE_LABEL}</span>
-</div>
+// AVANT :
+custom_text: {
+  submit: {
+    message: `Founding membership. No charge today. You'll be billed ${PLEDGE_CHARGE_START_LABEL}.`,
+  },
+  after_submit: {
+    message: 'Start using Umans Code immediately.',
+  },
+},
+
+// APRÈS :
+custom_text: {
+  submit: {
+    message: 'Your founding member rate is locked in. Start using immediately.',
+  },
+},
 ```
 
-**Nouveau :**
-```tsx
-<p className="text-sm text-black/60 dark:text-white/60">
-  Secure the founding member rate. Limited spots available.
-</p>
-...
-<div className="mt-4 text-xs text-black/50 dark:text-white/50">
-  <span>Founding rate secured</span>
-</div>
+**Import à nettoyer :**
+- Retirer `PLEDGE_CHARGE_START_TIMESTAMP` et `PLEDGE_CHARGE_START_LABEL` des imports
+- Remplacer `trial_end` par une logique sans date hardcodée (ex: `trial_period_days` ou calcul dynamique)
+
+### 🔴 `conversational-ui/lib/pledge.ts`
+
+**Suppression complète des constantes obsolètes :**
+```ts
+// SUPPRIMER TOUT :
+// Deprecated: PLEDGE_DEADLINE_* constants removed as service is now open
+// export const PLEDGE_DEADLINE_LABEL = 'February 28, 2026';
+// export const PLEDGE_DEADLINE_TIMESTAMP = ...
+
+export const PLEDGE_CHARGE_START_LABEL = 'March 1, 2026';
+export const PLEDGE_CHARGE_START_TIMESTAMP = Math.floor(
+  new Date('2026-03-01T00:00:00Z').getTime() / 1000,
+);
 ```
 
 ---
 
-### 🟡 `conversational-ui/lib/pledge.ts`
-
-**Vérifications à faire :**
-- `PLEDGE_DEADLINE_LABEL` : Supprimer si non utilisé ailleurs
-- `PLEDGE_DEADLINE_TIMESTAMP` : Supprimer si non utilisé
-- Garder `PLEDGE_CHARGE_START_LABEL` (encore pertinent pour la facturation)
-
----
-
-## Checklist d'implémentation
+## Checklist d'implémentation (dernier passage)
 
 ### Phase 1 : Préparation
 - [x] Mettre à jour la spec
 - [ ] Commit la spec
 
 ### Phase 2 : Modifications code
-- [ ] `lib/email.ts` - Renommer "pledge" → "membership", nouveau contenu email
-- [ ] `app/billing/billing-client.tsx` - Supprimer conditionnel, renommer labels
-- [ ] `app/offers/code/code-landing-content.tsx` - Remplacer "Activates" par "Founding rate secured"
-- [ ] `lib/pledge.ts` - Nettoyer constantes obsolètes si besoin
+- [ ] `app/offers/code/code-landing-content.tsx` - Nouvelle phrase landing
+- [ ] `app/api/billing/pledge/route.ts` - Nouveau texte Stripe + gestion trial sans date
+- [ ] `lib/pledge.ts` - Suppression constantes obsolètes
 
 ### Phase 3 : Vérification
 - [ ] Build Next.js (`just build`)
-- [ ] Tests si existants
+- [ ] Tests (`just test` ou `pnpm test`)
 - [ ] Vérification visuelle en local (`just dev`)
-  - [ ] Page billing (avec et sans subscription)
-  - [ ] Landing page /offers/code (section Founding)
-  - [ ] Preview email (si possible)
+  - [ ] Landing page /offers/code (nouvelle phrase)
+  - [ ] Process de checkout Stripe (texte submit)
 
 ### Phase 4 : Validation
 - [ ] Review avec utilisateur
@@ -217,23 +136,13 @@ const ACTIVATION_DATE_LABEL = 'March 1';
 
 ---
 
-## Notes de mise en œuvre
+## Notes importantes
 
-### Dates hardcodées
-Les dates sont dans `lib/pledge.ts` :
-- `PLEDGE_DEADLINE_LABEL = 'February 28, 2026'`
-- `PLEDGE_CHARGE_START_LABEL = 'March 1, 2026'`
+### Gestion du trial Stripe sans date hardcodée
 
-On est le 28 février 2026. La mention "Billing begins March 1" est encore techniquement valide mais on la retire du corps de l'email pour simplifier.
+Si `PLEDGE_CHARGE_START_TIMESTAMP` est utilisé pour `trial_end`, il faut remplacer par :
+- Option A : `trial_period_days: 2` (essai technique de 2 jours)
+- Option B : Calcul dynamique basé sur la date actuelle
+- Option C : Supprimer le trial complètement
 
-### Pourquoi supprimer "Cancel anytime"
-Cette mention dans l'email de bienvenue donne une excuse cognitive de sortie immédiate. On garde l'option dans le dashboard (c'est important), mais on ne la met pas en avant dans le premier contact.
-
-### Terminologie retenue
-- **Membership** : Pour le statut Founding (privilège, appartenance)
-- **Subscription** : Pour l'état facturation (actif/inactif)
-- **Plan** : Pour les offres (Pro/Max)
-
-Cette distinction :
-- "Membership" = valeur émotionnelle (founding member)
-- "Subscription" = valeur transactionnelle (état du compte)
+**À vérifier dans `app/api/billing/pledge/route.ts`**
