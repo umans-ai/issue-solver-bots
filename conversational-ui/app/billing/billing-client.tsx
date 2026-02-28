@@ -28,8 +28,6 @@ import {
 } from '@/components/ui/dialog';
 import { cn, fetcher, pillOutlineButton } from '@/lib/utils';
 import {
-  PLEDGE_CHARGE_START_LABEL,
-  PLEDGE_DEADLINE_LABEL,
   PLEDGE_PLAN_DETAILS,
   PLEDGE_PLAN_LABELS,
 } from '@/lib/pledge';
@@ -716,19 +714,14 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                         <p className="mt-2 text-sm text-[#0b0d10]/70 dark:text-white/70">
                           {PLEDGE_PLAN_DETAILS[activePledge.plan]}
                         </p>
-                        <p className="mt-4 text-sm text-[#0b0d10]/60 dark:text-white/60">
-                          Billing starts {PLEDGE_CHARGE_START_LABEL}. If we do
-                          not launch by {PLEDGE_DEADLINE_LABEL}, you will not be
-                          charged.
-                        </p>
                       </>
                     ) : (
                       <>
                         <h2 className="text-2xl font-semibold text-[#0b0d10] dark:text-white">
-                          No active pledge
+                          No active subscription
                         </h2>
                         <p className="mt-2 text-sm text-[#0b0d10]/60 dark:text-white/60">
-                          Choose a plan to reserve your Founding seat.
+                          Choose a plan to become a founding member.
                         </p>
                       </>
                     )}

@@ -15,7 +15,6 @@ import { ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import { FaDiscord, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 
 const FOUNDING_TARGET = 250;
-const ACTIVATION_DATE_LABEL = 'March 1';
 
 const pledgeCountRaw = Number(process.env.NEXT_PUBLIC_FOUNDING_PLEDGES);
 const pledgeCountFallback = Number.isFinite(pledgeCountRaw)
@@ -1258,7 +1257,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 Lock in the founding price.
               </h2>
               <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
-                Join now, start coding immediately, and pay nothing until March 1st.
+                Join now, start coding immediately, and pay nothing until billing starts.
                 <br />
                 You&apos;ll also secure the founding member rate.
               </p>
@@ -1268,7 +1267,7 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 </Button>
               </div>
               <p className="text-sm text-black/60 dark:text-white/60">
-                Activation starts {ACTIVATION_DATE_LABEL}. No charge until then.
+                Secure the founding member rate. Limited spots available.
               </p>
             </div>
             <div className="w-full rounded-3xl border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
@@ -1276,10 +1275,10 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                 {seatsRemainingDisplay}
               </div>
               <p className="mt-2 text-sm text-black/60 dark:text-white/60">
-                seats left at founding price
+                founding spots remaining
               </p>
               <div className="mt-4 text-xs text-black/50 dark:text-white/50">
-                <span>Activates {ACTIVATION_DATE_LABEL}</span>
+                <span>Founding rate secured</span>
               </div>
             </div>
           </div>

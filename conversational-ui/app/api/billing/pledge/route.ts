@@ -5,7 +5,6 @@ import { getLatestPledgeForUser, getUser } from '@/lib/db/queries';
 import {
   PLEDGE_CHARGE_START_TIMESTAMP,
   PLEDGE_CHARGE_START_LABEL,
-  PLEDGE_DEADLINE_LABEL,
 } from '@/lib/pledge';
 
 // Stripe requires trial_end to be at least 2 days in the future
@@ -118,11 +117,10 @@ export async function POST(req: Request) {
     },
     custom_text: {
       submit: {
-        message:
-          `Founding pledge. No charge today. You’ll be billed ${PLEDGE_CHARGE_START_LABEL} only if we launch by ${PLEDGE_DEADLINE_LABEL}.`,
+        message: `Founding membership. No charge today. You'll be billed ${PLEDGE_CHARGE_START_LABEL}.`,
       },
       after_submit: {
-        message: 'Founding access rolls out progressively as capacity opens.',
+        message: 'Start using Umans Code immediately.',
       },
     },
   });

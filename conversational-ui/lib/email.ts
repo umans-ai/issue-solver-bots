@@ -248,7 +248,7 @@ export async function sendPledgeConfirmationEmail(
 
   const content = `
     <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
-      Your Founding pledge is confirmed. We’ve saved your plan details.
+      Your Founding membership is confirmed at the exclusive founding member rate.
     </p>
 
     ${createInfoBox(
@@ -257,23 +257,22 @@ export async function sendPledgeConfirmationEmail(
         <p style="margin: 0; font-size: 14px;">${planLabel} · ${billingCycleLabel}</p>
         <p style="margin: 8px 0 0 0; font-size: 14px;">${priceLabel}</p>
       `,
-      'info',
+      `info`,
     )}
 
-    <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
-      Billing starts March 1, 2026. The launch window closes February 28, 2026.
-      You can cancel anytime before then from your billing dashboard.
+    <p style="margin: 24px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
+      You can start using Umans Code immediately. Your founding member rate is locked in.
     </p>
 
-    ${createButton(billingUrl, 'Manage your pledge', 'primary')}
+    ${createButton(billingUrl, 'Get started', 'primary')}
   `;
 
   try {
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to,
-      subject: 'Your Founding pledge is confirmed',
-      html: createEmailTemplate('Founding pledge confirmed', content),
+      subject: 'Your Founding membership is confirmed',
+      html: createEmailTemplate('Founding membership confirmed', content),
     });
   } catch (error) {
     console.error('Failed to send pledge confirmation email:', error);
