@@ -6,6 +6,8 @@ import { pledge } from '@/lib/db/schema';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { eq } from 'drizzle-orm';
+import { asCodePledgePlan } from '@/lib/code-gateway/key-access';
+import { syncGatewayKeyAccessForUser } from '@/lib/code-gateway/key-access-sync';
 
 export async function POST() {
   const session = await auth();
@@ -30,6 +32,19 @@ export async function POST() {
     .update(pledge)
     .set({ status: 'canceled', updatedAt: new Date() })
     .where(eq(pledge.id, pledgeRecord.id));
+
+  const codePlan = asCodePledgePlan(pledgeRecord.plan);
+  if (codePlan) {
+    try {
+      await syncGatewayKeyAccessForUser({
+        userId: session.user.id,
+        plan: codePlan,
+        pledgeStatus: 'canceled',
+      });
+    } catch (keySyncError) {
+      console.error('Failed to sync gateway key access on pledge cancel:', keySyncError);
+    }
+  }
 
   return NextResponse.json({ ok: true });
 }

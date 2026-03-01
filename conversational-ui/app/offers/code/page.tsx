@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { auth } from '@/app/(auth)/auth';
 import { getLatestPledgeForUser } from '@/lib/db/queries';
+import { isPledgeStatusWithKeyAccess } from '@/lib/code-gateway/key-access';
 import { CodeLandingPageContent } from './code-landing-content';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,7 @@ async function CodeLandingPage() {
   let plan: 'code_pro' | 'code_max' | null = null;
   if (user?.id) {
     const pledge = await getLatestPledgeForUser(user.id);
-    if (pledge && pledge.status !== 'canceled' && pledge.status !== 'expired') {
+    if (pledge && isPledgeStatusWithKeyAccess(pledge.status)) {
       plan = pledge.plan as 'code_pro' | 'code_max';
     }
   }

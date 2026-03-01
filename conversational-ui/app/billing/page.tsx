@@ -6,6 +6,7 @@ import { auth } from '@/app/(auth)/auth';
 import { getLatestPledgeForUser } from '@/lib/db/queries';
 import { CodeUserNav } from '@/components/code-user-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { isPledgeStatusWithKeyAccess } from '@/lib/code-gateway/key-access';
 import { BillingClient } from './billing-client';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,7 @@ export default async function BillingPage() {
       }
     : null;
 
-  const activePlan = pledge && pledge.status !== 'canceled' && pledge.status !== 'expired'
+  const activePlan = pledge && isPledgeStatusWithKeyAccess(pledge.status)
     ? pledge.plan
     : null;
 

@@ -32,6 +32,7 @@ import {
   PLEDGE_PLAN_LABELS,
 } from '@/lib/pledge';
 import type { BillingCycle } from '@/lib/stripe';
+import { isPledgeStatusWithKeyAccess } from '@/lib/code-gateway/key-access';
 
 type PledgePlanKey = 'code_pro' | 'code_max';
 
@@ -169,7 +170,7 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
   >('get-started');
 
   const isActive = Boolean(
-    pledge && pledge.status !== 'canceled' && pledge.status !== 'expired',
+    pledge && isPledgeStatusWithKeyAccess(pledge.status),
   );
 
   const activePledge = isActive && pledge ? pledge : null;

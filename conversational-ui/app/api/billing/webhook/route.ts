@@ -6,6 +6,8 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { pledge, user } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { asCodePledgePlan } from '@/lib/code-gateway/key-access';
+import { syncGatewayKeyAccessForUser } from '@/lib/code-gateway/key-access-sync';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 export async function POST(req: Request) {
@@ -32,6 +34,7 @@ export async function POST(req: Request) {
       const plan = s.metadata?.plan as string | undefined;
 
       if (plan?.startsWith('code_')) {
+        const codePlan = asCodePledgePlan(plan);
         const rawUserId: string | undefined =
           s.client_reference_id || s.metadata?.userId;
         const userId =
@@ -68,6 +71,7 @@ export async function POST(req: Request) {
               ? defaultPaymentMethod
               : defaultPaymentMethod?.id;
         }
+        const pledgeStatus = subscriptionStatus || (mode === 'subscription' ? 'trialing' : 'verified');
 
         let isNewPledge = false;
         if (plan && billingCycle) {
@@ -85,7 +89,7 @@ export async function POST(req: Request) {
               plan,
               billingCycle,
               priceId: priceId ?? undefined,
-              status: subscriptionStatus || (mode === 'subscription' ? 'trialing' : 'verified'),
+              status: pledgeStatus,
               stripeCustomerId: stripeCustomerId ?? undefined,
               paymentMethodId,
               stripeSubscriptionId: subscriptionId ?? undefined,
@@ -100,7 +104,7 @@ export async function POST(req: Request) {
                 plan,
                 billingCycle,
                 priceId: priceId ?? undefined,
-                status: subscriptionStatus || (mode === 'subscription' ? 'trialing' : 'verified'),
+                status: pledgeStatus,
                 stripeCustomerId: stripeCustomerId ?? undefined,
                 paymentMethodId,
                 stripeSubscriptionId: subscriptionId ?? undefined,
@@ -130,6 +134,18 @@ export async function POST(req: Request) {
             }
           }
         }
+
+        if (userId && codePlan) {
+          try {
+            await syncGatewayKeyAccessForUser({
+              userId,
+              plan: codePlan,
+              pledgeStatus,
+            });
+          } catch (keySyncError) {
+            console.error('Failed to sync gateway key access on checkout completion:', keySyncError);
+          }
+        }
         break;
       }
 
@@ -155,10 +171,33 @@ export async function POST(req: Request) {
       const sub = event.data.object as any;
       const plan = sub.metadata?.plan as string | undefined;
       if (plan?.startsWith('code_')) {
+        const status = sub.status as string;
+        const [existingCodePledge] = await db
+          .select({
+            userId: pledge.userId,
+            plan: pledge.plan,
+          })
+          .from(pledge)
+          .where(eq(pledge.stripeSubscriptionId, sub.id))
+          .limit(1);
+
         await db
           .update(pledge)
-          .set({ status: sub.status as string, updatedAt: new Date() })
+          .set({ status, updatedAt: new Date() })
           .where(eq(pledge.stripeSubscriptionId, sub.id));
+
+        const codePlan = asCodePledgePlan(existingCodePledge?.plan ?? plan);
+        if (existingCodePledge?.userId && codePlan) {
+          try {
+            await syncGatewayKeyAccessForUser({
+              userId: existingCodePledge.userId,
+              plan: codePlan,
+              pledgeStatus: status,
+            });
+          } catch (keySyncError) {
+            console.error('Failed to sync gateway key access on subscription update:', keySyncError);
+          }
+        }
         break;
       }
       const stripeCustomerId = sub.customer as string;
@@ -174,10 +213,32 @@ export async function POST(req: Request) {
       const sub = event.data.object as any;
       const plan = sub.metadata?.plan as string | undefined;
       if (plan?.startsWith('code_')) {
+        const [existingCodePledge] = await db
+          .select({
+            userId: pledge.userId,
+            plan: pledge.plan,
+          })
+          .from(pledge)
+          .where(eq(pledge.stripeSubscriptionId, sub.id))
+          .limit(1);
+
         await db
           .update(pledge)
           .set({ status: 'canceled', updatedAt: new Date() })
           .where(eq(pledge.stripeSubscriptionId, sub.id));
+
+        const codePlan = asCodePledgePlan(existingCodePledge?.plan ?? plan);
+        if (existingCodePledge?.userId && codePlan) {
+          try {
+            await syncGatewayKeyAccessForUser({
+              userId: existingCodePledge.userId,
+              plan: codePlan,
+              pledgeStatus: 'canceled',
+            });
+          } catch (keySyncError) {
+            console.error('Failed to sync gateway key access on subscription deletion:', keySyncError);
+          }
+        }
         break;
       }
       const stripeCustomerId = sub.customer as string;

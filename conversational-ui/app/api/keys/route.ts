@@ -7,6 +7,7 @@ import {
   getLatestPledgeForUser,
   listUserGatewayApiKeys,
 } from '@/lib/code-gateway/api-keys-db';
+import { isPledgeStatusWithKeyAccess } from '@/lib/code-gateway/key-access';
 
 const gatewayCreateKeyResponseSchema = z.object({
   id: z.string().uuid(),
@@ -26,10 +27,6 @@ function getGatewayConfig(): { baseUrl: string; adminToken: string } | null {
     baseUrl: baseUrlRaw.replace(/\/+$/, ''),
     adminToken,
   };
-}
-
-function isPledgeActive(status?: string | null) {
-  return Boolean(status && status !== 'canceled' && status !== 'expired');
 }
 
 async function readJsonOrText(response: Response) {
@@ -67,7 +64,7 @@ export async function POST() {
   }
 
   const pledge = await getLatestPledgeForUser(userId);
-  if (!isPledgeActive(pledge?.status)) {
+  if (!isPledgeStatusWithKeyAccess(pledge?.status)) {
     return NextResponse.json(
       { error: 'subscription_required' },
       { status: 403 },

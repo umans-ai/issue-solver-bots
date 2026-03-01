@@ -5,11 +5,13 @@ const {
   listUserGatewayApiKeysMock,
   createUserGatewayApiKeyMetadataMock,
   getLatestPledgeForUserMock,
+  isPledgeStatusWithKeyAccessMock,
 } = vi.hoisted(() => ({
   authMock: vi.fn(),
   listUserGatewayApiKeysMock: vi.fn(),
   createUserGatewayApiKeyMetadataMock: vi.fn(),
   getLatestPledgeForUserMock: vi.fn(),
+  isPledgeStatusWithKeyAccessMock: vi.fn(),
 }));
 
 vi.mock('@/app/(auth)/auth', () => ({
@@ -22,6 +24,10 @@ vi.mock('@/lib/code-gateway/api-keys-db', () => ({
   getLatestPledgeForUser: getLatestPledgeForUserMock,
 }));
 
+vi.mock('@/lib/code-gateway/key-access', () => ({
+  isPledgeStatusWithKeyAccess: isPledgeStatusWithKeyAccessMock,
+}));
+
 import { GET, POST } from './route';
 
 describe('/api/keys', () => {
@@ -30,6 +36,9 @@ describe('/api/keys', () => {
     vi.resetAllMocks();
     process.env.CODE_GATEWAY_URL = 'https://gateway.example';
     process.env.CODE_GATEWAY_ADMIN_TOKEN = 'admin-token';
+    isPledgeStatusWithKeyAccessMock.mockImplementation(
+      (status?: string | null) => status === 'active' || status === 'trialing',
+    );
   });
 
   it('rejects unauthenticated calls', async () => {
@@ -77,6 +86,22 @@ describe('/api/keys', () => {
     // Given an authenticated user without an active pledge
     authMock.mockResolvedValue({ user: { id: 'user-123' } });
     getLatestPledgeForUserMock.mockResolvedValue(null);
+
+    // When creating a key
+    const res = await POST();
+
+    // Then it rejects
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'subscription_required' });
+  });
+
+  it('rejects key creation when pledge is past due', async () => {
+    // Given an authenticated user with a delinquent pledge
+    authMock.mockResolvedValue({ user: { id: 'user-123' } });
+    getLatestPledgeForUserMock.mockResolvedValue({
+      status: 'past_due',
+      plan: 'code_pro',
+    });
 
     // When creating a key
     const res = await POST();

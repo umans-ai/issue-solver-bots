@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { type BillingCycle, getPriceId, getStripe } from '@/lib/stripe';
 import { getLatestPledgeForUser, getUser } from '@/lib/db/queries';
+import { isPledgeStatusWithKeyAccess } from '@/lib/code-gateway/key-access';
 
 // Stripe requires trial period to be at least 2 days
 const MIN_TRIAL_DAYS = 2;
@@ -57,10 +58,9 @@ export async function POST(req: Request) {
   const effectiveSource = source === 'billing' ? 'billing' : 'landing';
   if (userId && effectiveSource === 'landing') {
     const existing = await getLatestPledgeForUser(userId);
-    const hasActivePledge =
-      existing &&
-      existing.status !== 'canceled' &&
-      existing.status !== 'expired';
+    const hasActivePledge = Boolean(
+      existing && isPledgeStatusWithKeyAccess(existing.status),
+    );
     if (hasActivePledge) {
       return NextResponse.json({
         alreadyPledged: true,

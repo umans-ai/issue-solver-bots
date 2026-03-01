@@ -39,7 +39,7 @@ Plaintext `key` is never persisted.
 
 - `POST /api/keys`
   - Auth required.
-  - Requires an "active" pledge (status is not `canceled` or `expired`).
+  - Requires a key-enabled pledge status (`trialing` or `active`).
   - Calls gateway: `POST {CODE_GATEWAY_URL}/admin/keys` with body `{ owner_user_id, policy }`.
   - Returns `{ id, key, key_prefix }` (plaintext `key` shown once).
 
@@ -48,6 +48,18 @@ Plaintext `key` is never persisted.
   - Ownership enforced via `GatewayApiKey.userId`.
   - Calls gateway: `DELETE {CODE_GATEWAY_URL}/admin/keys/{gatewayKeyId}`.
   - Marks the dashboard record revoked.
+
+### Subscription status -> key access sync
+
+- Stripe webhook events (`checkout.session.completed`, `customer.subscription.updated|created|deleted`)
+  trigger a best-effort sync to gateway key policy via:
+  - `POST {CODE_GATEWAY_URL}/admin/keys/bulk-update`
+  - filter: `{ owner_user_id }`
+- Status mapping:
+  - Resume key access: `active`, `trialing`
+  - Pause key access: `past_due`, `unpaid`, `incomplete`, `incomplete_expired`, `canceled`, `expired`
+- Current implementation applies a reversible "paused policy" update (`plan_slug: code_paused`, zero limits)
+  without deleting keys.
 
 ## Configuration
 

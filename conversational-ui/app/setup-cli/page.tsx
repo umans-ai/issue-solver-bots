@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/app/(auth)/auth';
 import { createUserGatewayApiKeyMetadata, getLatestPledgeForUser } from '@/lib/code-gateway/api-keys-db';
+import { isPledgeStatusWithKeyAccess } from '@/lib/code-gateway/key-access';
 import { SetupCliClient } from './client';
 
 interface SetupCliPageProps {
@@ -25,10 +26,6 @@ function getGatewayConfig(): { baseUrl: string; adminToken: string } | null {
     baseUrl: baseUrlRaw.replace(/\/+$/, ''),
     adminToken,
   };
-}
-
-function isPledgeActive(status?: string | null): boolean {
-  return Boolean(status && status !== 'canceled' && status !== 'expired');
 }
 
 export default async function SetupCliPage({ searchParams }: SetupCliPageProps) {
@@ -93,7 +90,7 @@ export default async function SetupCliPage({ searchParams }: SetupCliPageProps) 
 
   // Check subscription
   const pledge = await getLatestPledgeForUser(userId);
-  if (!isPledgeActive(pledge?.status)) {
+  if (!isPledgeStatusWithKeyAccess(pledge?.status)) {
     return (
       <SetupCliClient
         error="Active subscription required. Please subscribe to use the CLI."
