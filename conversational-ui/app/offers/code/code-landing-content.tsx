@@ -14,12 +14,6 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import { FaDiscord, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 
-const FOUNDING_TARGET = 250;
-
-const pledgeCountRaw = Number(process.env.NEXT_PUBLIC_FOUNDING_PLEDGES);
-const pledgeCountFallback = Number.isFinite(pledgeCountRaw)
-  ? pledgeCountRaw
-  : 0;
 
 const primaryButtonClasses =
   'rounded-full bg-[#0b0d10] text-white hover:bg-black/90 shadow-sm dark:bg-white dark:text-[#0b0d10] dark:hover:bg-white/90';
@@ -81,14 +75,10 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
       // Fallback: do nothing
     }
   };
-  const [pledgeCount, setPledgeCount] = useState<number>(pledgeCountFallback);
   const demosRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const currentPlans = plans[billingCycle];
-
-  const seatsRemaining = FOUNDING_TARGET - pledgeCount;
-  const seatsRemainingDisplay = seatsRemaining.toLocaleString('en-US');
 
   const startPledge = async (
     plan: 'code_pro' | 'code_max',
@@ -151,29 +141,6 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
     router.replace(cleanedUrl);
     startPledge(planParam, normalizedCycle);
   }, [searchParams, router]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadCount = async () => {
-      try {
-        const res = await fetch('/api/billing/pledge/count', {
-          method: 'GET',
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!isMounted) return;
-        if (Number.isFinite(data?.count)) {
-          setPledgeCount(Number(data.count));
-        }
-      } catch (err) {
-        console.error('Failed to load pledge count', err);
-      }
-    };
-    loadCount();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const parityTabs = [
     {
@@ -1245,46 +1212,6 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
         </section>
 
         <section
-          id="founding"
-          className="relative before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-black/20 before:to-transparent dark:before:via-white/20"
-        >
-          <div className="mx-auto grid max-w-6xl gap-10 px-6 py-20 lg:grid-cols-[1.1fr,0.9fr] lg:items-center">
-            <div className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.32em] text-black/40 dark:text-white/50">
-                Founding members
-              </p>
-              <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                Lock in the founding price.
-              </h2>
-              <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
-                Join now and start building immediately.
-                <br />
-                You&apos;ll also secure the founding member rate.
-              </p>
-              <div>
-                <Button asChild size="lg" className={primaryButtonClasses}>
-                  <Link href="#plans">Try it now</Link>
-                </Button>
-              </div>
-              <p className="text-sm text-black/60 dark:text-white/60">
-                Secure the founding member rate. Limited spots available.
-              </p>
-            </div>
-            <div className="w-full rounded-3xl border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
-              <div className="text-4xl font-semibold" aria-live="polite">
-                {seatsRemainingDisplay}
-              </div>
-              <p className="mt-2 text-sm text-black/60 dark:text-white/60">
-                founding spots remaining
-              </p>
-              <div className="mt-4 text-xs text-black/50 dark:text-white/50">
-                <span>Founding rate secured</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
           id="plans"
           className="relative before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-black/20 before:to-transparent dark:before:via-white/20"
         >
@@ -1295,11 +1222,16 @@ function CodeLandingPageContent({ user, plan }: CodeLandingPageContentProps) {
                   Plans
                 </p>
                 <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                  Choose your usage envelope.
+                  Lock in the founding price.
                 </h2>
                 <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
-                  Limits are enforced at the account level. Enterprise does not
-                  count toward Founding seats.
+                  Join now and start building immediately.
+                </p>
+                <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
+                  You&apos;ll also secure the founding member rate. Limited spots available.
+                </p>
+                <p className="text-base text-black/70 leading-relaxed dark:text-white/70">
+                  Limits are enforced at the account level. Enterprise does not count toward Founding seats.
                 </p>
               </div>
               <div className="flex w-fit items-center rounded-full border border-black/10 bg-black/5 p-1 text-sm dark:border-white/10 dark:bg-white/5">
