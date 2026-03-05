@@ -358,6 +358,86 @@ export async function sendSpaceInviteNotificationEmail(
   }
 }
 
+export async function sendPaymentFailedEmail(
+  to: string,
+  options: {
+    billingUrl: string;
+    retryDate?: Date;
+  },
+): Promise<void> {
+  const content = `
+    <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
+      We were unable to process your payment for Umans Code. Your API access has been temporarily suspended.
+    </p>
+
+    ${createInfoBox(
+      `
+        <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+          Don't worry - your data and settings are safe. Update your payment method to restore access immediately.
+        </p>
+      `,
+      'warning',
+    )}
+
+    <p style="margin: 24px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
+      ${options.retryDate ? `We will automatically retry on <strong>${options.retryDate.toLocaleDateString()}</strong>.` : 'Please update your payment method as soon as possible.'}
+    </p>
+
+    ${createButton(options.billingUrl, 'Update Payment Method', 'primary')}
+  `;
+
+  try {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to,
+      subject: 'Action required: Update your payment method',
+      html: createEmailTemplate('Payment Failed', content),
+    });
+  } catch (error) {
+    console.error('Failed to send payment failed email:', error);
+  }
+}
+
+export async function sendSubscriptionEndedEmail(
+  to: string,
+  options: {
+    billingUrl: string;
+    reactivateUrl?: string;
+  },
+): Promise<void> {
+  const content = `
+    <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
+      Your Umans Code subscription has ended. Your API access has been suspended.
+    </p>
+
+    ${createInfoBox(
+      `
+        <p style="margin: 0; font-size: 14px; line-height: 1.5;">
+          We have saved your data and settings. Reactivate your subscription at any time to resume where you left off.
+        </p>
+      `,
+      'info',
+    )}
+
+    <p style="margin: 24px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
+      We'd love to have you back. Reactivate now to continue enjoying Umans Code.
+    </p>
+
+    ${createButton(options.reactivateUrl ?? options.billingUrl, 'Reactivate Subscription', 'success')}
+  `;
+
+  try {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to,
+      subject: 'Your subscription has ended',
+      html: createEmailTemplate('Subscription Ended', content),
+    });
+  } catch (error) {
+    console.error('Failed to send subscription ended email:', error);
+  }
+}
+
 export async function sendPasswordResetEmail(
   to: string,
   resetToken: string,

@@ -6,6 +6,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { pledge, user } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { notifyGatewayForPledge } from '@/lib/code-gateway/account-status';
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 export async function POST(req: Request) {
@@ -174,10 +175,38 @@ export async function POST(req: Request) {
       const sub = event.data.object as any;
       const plan = sub.metadata?.plan as string | undefined;
       if (plan?.startsWith('code_')) {
-        await db
-          .update(pledge)
-          .set({ status: 'canceled', updatedAt: new Date() })
-          .where(eq(pledge.stripeSubscriptionId, sub.id));
+        const [p] = await db
+          .select()
+          .from(pledge)
+          .where(eq(pledge.stripeSubscriptionId, sub.id))
+          .limit(1);
+
+        if (p) {
+          await db
+            .update(pledge)
+            .set({ status: 'canceled', updatedAt: new Date() })
+            .where(eq(pledge.stripeSubscriptionId, sub.id));
+
+          // Notify gateway of suspension
+          await notifyGatewayForPledge(
+            p,
+            'suspended',
+            'cancellation_effective',
+          );
+
+          // Notify user
+          if (p.email) {
+            try {
+              const { sendSubscriptionEndedEmail } = await import('@/lib/email');
+              await sendSubscriptionEndedEmail(p.email, {
+                billingUrl: `${process.env.NEXTAUTH_URL || 'https://app.umans.ai'}/billing`,
+                reactivateUrl: `${process.env.NEXTAUTH_URL || 'https://app.umans.ai'}/billing?action=reactivate`,
+              });
+            } catch (emailError) {
+              console.error('Failed to send subscription ended email:', emailError);
+            }
+          }
+        }
         break;
       }
       const stripeCustomerId = sub.customer as string;
@@ -185,6 +214,67 @@ export async function POST(req: Request) {
         .update(user)
         .set({ plan: 'free', subscriptionStatus: 'canceled' })
         .where(eq(user.stripeCustomerId, stripeCustomerId));
+      break;
+    }
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as any;
+      const subscriptionId = invoice.subscription;
+      if (!subscriptionId) break;
+
+      const [p] = await db
+        .select()
+        .from(pledge)
+        .where(eq(pledge.stripeSubscriptionId, subscriptionId as string))
+        .limit(1);
+
+      if (p) {
+        // Update local DB
+        await db
+          .update(pledge)
+          .set({ status: 'past_due', updatedAt: new Date() })
+          .where(eq(pledge.stripeSubscriptionId, subscriptionId as string));
+
+        // Notify gateway of suspension
+        await notifyGatewayForPledge(p, 'suspended', 'payment_failed');
+
+        // Notify user
+        if (p.email) {
+          try {
+            const { sendPaymentFailedEmail } = await import('@/lib/email');
+            await sendPaymentFailedEmail(p.email, {
+              billingUrl: `${process.env.NEXTAUTH_URL || 'https://app.umans.ai'}/billing`,
+            });
+          } catch (emailError) {
+            console.error('Failed to send payment failed email:', emailError);
+          }
+        }
+      }
+      break;
+    }
+    case 'invoice.payment_succeeded': {
+      const invoice = event.data.object as any;
+      // Only reactivate if it's a recovery (subscription_cycle), not first payment
+      if (invoice.billing_reason !== 'subscription_cycle') break;
+
+      const subscriptionId = invoice.subscription;
+      if (!subscriptionId) break;
+
+      const [p] = await db
+        .select()
+        .from(pledge)
+        .where(eq(pledge.stripeSubscriptionId, subscriptionId as string))
+        .limit(1);
+
+      if (p) {
+        // Update local DB
+        await db
+          .update(pledge)
+          .set({ status: 'active', updatedAt: new Date() })
+          .where(eq(pledge.stripeSubscriptionId, subscriptionId as string));
+
+        // Notify gateway of reactivation
+        await notifyGatewayForPledge(p, 'active', null);
+      }
       break;
     }
     default:

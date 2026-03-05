@@ -169,3 +169,10 @@ variable "code_gateway_admin_token" {
   default     = ""
 }
 
+variable "code_gateway_webhook_secret" {
+  description = "Webhook secret for llm-gateway account status authentication"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
