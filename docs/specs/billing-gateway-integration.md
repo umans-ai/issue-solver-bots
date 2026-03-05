@@ -6,7 +6,7 @@ Integration between the conversational-ui billing system and the llm-gateway for
 
 - Gateway enforces billing decisions (suspend/allow inference)
 - Billing notifies gateway of status changes via webhook
-- Grace period for payment failures before suspension
+- No custom grace period (leverages Stripe Smart Retries)
 - Support future orgs/teams (multi-seat) model
 
 ## Non-goals
@@ -19,37 +19,37 @@ Integration between the conversational-ui billing system and the llm-gateway for
 
 ### Payment Failure & Smart Retries
 
-Stripe gère les échecs de paiement via **Smart Retries** (AI-driven, configurable dans Dashboard → Subscriptions → Dunning):
+Stripe handles payment failures via **Smart Retries** (AI-driven, configurable in Dashboard → Subscriptions → Dunning):
 
-- **8 tentatives en 2 semaines** (recommandé par Stripe)
-- Timing optimisé par AI selon le fuseau horaire du client
-- Configurable de 1 semaine à 2 mois
+- **8 attempts over 2 weeks** (recommended by Stripe)
+- Timing optimized by AI based on customer's timezone
+- Configurable from 1 week to 2 months
 
-**Lifecycle d'un échec:**
+**Failure lifecycle:**
 ```
 Payment fails
     ↓
 invoice.payment_failed (attempt 1) → Subscription: active (still)
     ↓
-Smart Retries: jours 1, 3, 5, 7, 14...
+Smart Retries: days 1, 3, 5, 7, 14...
     ↓
 Subscription status: past_due (after first retry)
     ↓
-Échec final → unpaid OU canceled (selon settings Stripe)
+Final failure → unpaid OR canceled (depending on Stripe settings)
 ```
 
-**Events clés:**
-- `invoice.payment_failed` → À chaque échec (suspendre immédiatement)
-- `invoice.payment_succeeded` (billing_reason = "subscription_cycle") → Réactiver
+**Key events:**
+- `invoice.payment_failed` → On each failure (suspend immediately)
+- `invoice.payment_succeeded` (billing_reason = "subscription_cycle") → Reactivate
 - `customer.subscription.deleted` → Cancellation effective
 
-**Decision:** Pas de grace period custom. On réagit aux événements Stripe immédiatement.
+**Decision:** No custom grace period. React to Stripe events immediately.
 
-### Deux Modèles: Particuliers vs Organisations
+### Two Models: Individuals vs Organizations
 
-#### A. Particuliers (aujourd'hui)
+#### A. Individuals (today)
 
-Un utilisateur individuel avec un abonnement personnel.
+A single user with a personal subscription.
 
 ```javascript
 // Stripe
@@ -60,7 +60,7 @@ const customer = await stripe.customers.create({
 
 const subscription = await stripe.subscriptions.create({
   customer: customer.id,
-  items: [{ price: "price_code_pro" }],  // Pas de quantity = 1 seat
+  items: [{ price: "price_code_pro" }],  // No quantity = 1 seat
   metadata: { user_id: "user-alice-uuid" }
 });
 ```
@@ -75,14 +75,14 @@ const subscription = await stripe.subscriptions.create({
 }
 ```
 
-| Champ | Valeur particulier |
-|-------|-------------------|
-| `principal_id` | `user.id` (l'utilisateur qui fait les API calls) |
-| `account_id` | `stripe_customer_id` (même que principal_id logiquement) |
+| Field | Individual value |
+|-------|------------------|
+| `principal_id` | `user.id` (the user making API calls) |
+| `account_id` | `stripe_customer_id` (same as principal_id logically) |
 
-#### B. Organisations (futur)
+#### B. Organizations (future)
 
-Une entreprise avec 20 employés sur un même abonnement.
+A company with 20 employees on a single subscription.
 
 ```javascript
 // Stripe - One customer, multiple seats via quantity
@@ -96,41 +96,41 @@ const subscription = await stripe.subscriptions.create({
   customer: customer.id,
   items: [{
     price: "price_code_team",  // Per-seat pricing
-    quantity: 20               // 20 employés
+    quantity: 20               // 20 employees
   }],
   metadata: { org_id: "org-acme-uuid" }
 });
 ```
 
-**Notre DB:**
+**Our DB:**
 ```sql
--- L'organisation
+-- Organization
 org:
   id: "org-acme-uuid"
   name: "Acme Corp"
   stripe_customer_id: "cus_xyz789"
 
--- Les membres (juste la liaison, pas de données Stripe ici)
+-- Members (just the link, no Stripe data here)
 org_membership:
   user_id: "user-bob-uuid"    → org_id: "org-acme-uuid", role: "member"
   user_id: "user-carol-uuid"  → org_id: "org-acme-uuid", role: "member"
   user_id: "user-dave-uuid"   → org_id: "org-acme-uuid", role: "admin"
 
--- L'abonnement (stripe_subscription_id est ici!)
+-- Subscription (stripe_subscription_id lives here!)
 pledge:
   org_id: "org-acme-uuid"
-  user_id: null              -- null car c'est un abo org
+  user_id: null              -- null because it's an org subscription
   stripe_subscription_id: "sub_team_abc123"
   stripe_customer_id: "cus_xyz789"
   quantity: 20
   status: "active"
 ```
 
-**Important:** `stripe_subscription_id` est dans `pledge`, pas dans `org` ni `org_membership`. Quand un webhook Stripe arrive pour `sub_team_abc123`, on cherche le pledge correspondant, puis on trouve les membres via `org_membership.org_id`.
+**Important:** `stripe_subscription_id` is in `pledge`, not in `org` nor `org_membership`. When a Stripe webhook arrives for `sub_team_abc123`, we look up the pledge, then find members via `org_membership.org_id`.
 
-**Webhooks envoyés (N calls pour N employés):**
+**Webhooks sent (N calls for N employees):**
 ```json
-// Bob essaie d'utiliser l'API
+// Bob tries to use the API
 {
   "principal_id": "user-bob-uuid",
   "account_id": "org-acme-uuid",
@@ -138,7 +138,7 @@ pledge:
   "reason": "payment_failed"
 }
 
-// Carol aussi
+// Carol too
 {
   "principal_id": "user-carol-uuid",
   "account_id": "org-acme-uuid",
@@ -147,21 +147,21 @@ pledge:
 }
 ```
 
-| Champ | Valeur org |
-|-------|-----------|
-| `principal_id` | `user.id` de l'employé qui fait l'API call |
-| `account_id` | `org.id` (l'entité qui paie) |
+| Field | Organization value |
+|-------|-------------------|
+| `principal_id` | `user.id` of the employee making the API call |
+| `account_id` | `org.id` (the entity paying) |
 
-**Pourquoi séparer ?** Le gateway ne connaît pas la structure org. Il reçoit juste "est-ce que Bob peut utiliser l'API ?" et vérifie le cache pour `principal_id = user-bob-uuid`.
+**Why separate?** The gateway doesn't know about org structure. It just receives "can Bob use the API?" and checks cache for `principal_id = user-bob-uuid`.
 
-### Mapping Récap
+### Mapping Summary
 
-| Cas | principal_id | account_id | Stripe Customer |
-|-----|--------------|------------|-----------------|
-| Particulier aujourd'hui | `user.id` | `stripe_customer_id` | 1 customer = 1 user |
-| Orga futur | `user.id` (employé) | `org.id` | 1 customer = N users |
+| Case | principal_id | account_id | Stripe Customer |
+|------|--------------|------------|-----------------|
+| Individual today | `user.id` | `stripe_customer_id` | 1 customer = 1 user |
+| Organization future | `user.id` (employee) | `org.id` | 1 customer = N users |
 
-Le `account_id` sert principalement pour le debugging et les logs côté gateway.
+`account_id` is mainly used for debugging and logging on the gateway side.
 
 ## Architecture
 
@@ -189,20 +189,20 @@ Billing Webhook (/api/billing/webhook)
 #### conversational-ui DB
 
 ```sql
--- Organisation (future)
+-- Organization (future)
 CREATE TABLE org (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
-    slug VARCHAR(255) UNIQUE NOT NULL,        -- acme-corp
+    slug VARCHAR(255) UNIQUE NOT NULL,        -- e.g. acme-corp
     billing_email VARCHAR(255),
-    stripe_customer_id VARCHAR(255),          -- customer Stripe de l'org
+    stripe_customer_id VARCHAR(255),          -- Stripe customer for the org
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Org membership (future) - qui fait partie de quelle org
+-- Org membership (future) - who belongs to which org
 CREATE TABLE org_membership (
-    user_id UUID REFERENCES user(id),
+    user_id UUID REFERENCES "User"(id),
     org_id UUID REFERENCES org(id),
     role VARCHAR(32) NOT NULL DEFAULT 'member',  -- member, admin, owner
     created_at TIMESTAMP DEFAULT NOW(),
@@ -210,20 +210,20 @@ CREATE TABLE org_membership (
 );
 
 -- Pledge table (exists + future org support)
--- Un pledge = un abonnement (individuel ou org)
+-- A pledge = a subscription (individual or org)
 CREATE TABLE pledge (
     id UUID PRIMARY KEY,
-    user_id UUID REFERENCES user(id),          -- CAS A: particulier (non null, org_id null)
-    org_id UUID REFERENCES org(id),            -- CAS B: organisation (non null, user_id null)
-    stripe_customer_id VARCHAR(255),           -- Stripe customer (user ou org)
-    stripe_subscription_id VARCHAR(255),       -- L'abo Stripe (individuel ou org)
+    user_id UUID REFERENCES "User"(id),        -- CASE A: individual (not null, org_id null)
+    org_id UUID REFERENCES org(id),            -- CASE B: organization (not null, user_id null)
+    stripe_customer_id VARCHAR(255),           -- Stripe customer (user or org)
+    stripe_subscription_id VARCHAR(255),       -- Stripe subscription (individual or org)
     status VARCHAR(32),                        -- active, past_due, canceled, etc.
     plan VARCHAR(32),                          -- code_pro, code_max, code_team...
-    quantity INTEGER DEFAULT 1,                -- 1 pour individuel, N pour org
+    quantity INTEGER DEFAULT 1,                -- 1 for individual, N for org
     -- ...
 );
 
--- Index utiles
+-- Useful indexes
 CREATE INDEX idx_pledge_org_id ON pledge(org_id);
 CREATE INDEX idx_pledge_stripe_subscription ON pledge(stripe_subscription_id);
 CREATE INDEX idx_org_membership_org_id ON org_membership(org_id);
@@ -252,16 +252,16 @@ Value: JSON `{"status": "suspended", "reason": "payment_failed"}`
 
 ```typescript
 interface AccountStatusWebhook {
-  principal_id: string;   // user.id (qui fait l'API call)
-  account_id: string;     // stripe_customer_id (individu) ou org.id (orga)
+  principal_id: string;   // user.id (who makes the API call)
+  account_id: string;     // stripe_customer_id (individual) or org.id (organization)
   status: "active" | "suspended" | "banned";
   reason: "payment_failed" | "cancellation_effective" | "terms_of_service" | null;
 }
 ```
 
-**Exemples concrets:**
+**Concrete examples:**
 
-Alice (particulier, Code Pro mensuel) a un échec de paiement :
+Alice (individual, monthly Code Pro) has a payment failure:
 ```json
 {
   "principal_id": "user-alice-uuid",
@@ -271,9 +271,9 @@ Alice (particulier, Code Pro mensuel) a un échec de paiement :
 }
 ```
 
-Acme Corp (org, 20 sièges) a un échec de paiement → on envoie 20 webhooks :
+Acme Corp (org, 20 seats) has a payment failure → send 20 webhooks:
 ```json
-// Bob (employé)
+// Bob (employee)
 {
   "principal_id": "user-bob-uuid",
   "account_id": "org-acme-uuid",
@@ -281,14 +281,14 @@ Acme Corp (org, 20 sièges) a un échec de paiement → on envoie 20 webhooks :
   "reason": "payment_failed"
 }
 
-// Carol (employée)
+// Carol (employee)
 {
   "principal_id": "user-carol-uuid",
   "account_id": "org-acme-uuid",
   "status": "suspended",
   "reason": "payment_failed"
 }
-// ... etc pour les 20 employés
+// ... etc for all 20 employees
 ```
 
 ## Implementation
@@ -363,35 +363,35 @@ export async function notifyGateway(payload: Payload, attempt = 1): Promise<void
 Update `app/api/billing/webhook/route.ts`:
 
 ```typescript
-// Helper: déterminer où envoyer selon le type de pledge
+// Helper: determine where to send based on pledge type
 async function notifyGatewayForPledge(pledge: Pledge, status: 'active' | 'suspended', reason: string | null) {
-  // CAS A: Particulier (user_id présent, org_id null)
-  // Ex: Alice a son propre abo Code Pro
+  // CASE A: Individual (user_id present, org_id null)
+  // Ex: Alice has her own Code Pro subscription
   if (pledge.userId && !pledge.orgId) {
     await notifyGateway({
       principal_id: pledge.userId,
-      account_id: pledge.stripeCustomerId,  // ou pledge.userId
+      account_id: pledge.stripeCustomerId,  // or pledge.userId
       status,
       reason,
     });
     return;
   }
 
-  // CAS B: Organisation (org_id présent, user_id null)
-  // Ex: Acme Corp a un abo Code Team pour 20 employés
+  // CASE B: Organization (org_id present, user_id null)
+  // Ex: Acme Corp has a Code Team subscription for 20 employees
   if (pledge.orgId) {
-    // Récupérer tous les membres de l'org
+    // Get all org members
     const members = await db
       .select({ userId: orgMembership.userId })
       .from(orgMembership)
       .where(eq(orgMembership.orgId, pledge.orgId));
 
-    // Envoyer un webhook par employé
-    // Le gateway bloque/allow par principal_id (chaque employé)
+    // Send one webhook per employee
+    // Gateway blocks/allows by principal_id (each employee)
     for (const member of members) {
       await notifyGateway({
-        principal_id: member.userId,    // L'employé qui fait l'API call
-        account_id: pledge.orgId,       // L'org qui paie (pour logs/debug)
+        principal_id: member.userId,    // Employee making the API call
+        account_id: pledge.orgId,       // Org paying (for logs/debug)
         status,
         reason,
       });
@@ -417,7 +417,7 @@ case 'invoice.payment_failed': {
 
 case 'invoice.payment_succeeded': {
   const invoice = event.data.object;
-  // Réactiver seulement si c'est un recovery (pas la première invoice)
+  // Only reactivate if it's a recovery (not the first invoice)
   if (invoice.billing_reason !== 'subscription_cycle') break;
 
   const subscriptionId = invoice.subscription;
@@ -533,32 +533,32 @@ for (const row of toSuspend) {
 4. Enable webhook notifications in Stripe handler
 5. Monitor for 48h before enabling enforcement (fail-open mode in gateway)
 
-## Décisions
+## Decisions
 
-1. **Particuliers vs Orgs**:
-   - Aujourd'hui: `principal_id = user.id`, `account_id = stripe_customer_id`
-   - Futur orgs: `principal_id = user.id`, `account_id = org.id`
-   - Le gateway ne sait pas si c'est un individu ou un employé, il bloque par `principal_id`
+1. **Individuals vs Orgs**:
+   - Today: `principal_id = user.id`, `account_id = stripe_customer_id`
+   - Future orgs: `principal_id = user.id`, `account_id = org.id`
+   - Gateway doesn't know if it's an individual or employee, it blocks by `principal_id`
 
 2. **Org mapping**:
-   - **Decision**: N webhooks pour N employés
-   - Pourquoi: Le gateway n'a pas accès à la DB orgs, il ne peut pas résoudre "org → membres"
+   - **Decision**: N webhooks for N employees
+   - Why: Gateway has no access to org DB, cannot resolve "org → members"
 
 3. **Banning (ToS violations)**:
-   - Admin action manuelle:
+   - Manual admin action:
    ```typescript
    await notifyGateway({
      principal_id: userId,
-     account_id: userId,  // ou org.id si toute l'org est bannie
+     account_id: userId,  // or org.id if entire org is banned
      status: 'banned',
      reason: 'terms_of_service',
    });
    ```
 
-4. **Pas de grace period custom**:
-   - On réagit immédiatement à `invoice.payment_failed`
-   - Stripe Smart Retries gère déjà le timing optimal
+4. **No custom grace period**:
+   - React immediately to `invoice.payment_failed`
+   - Stripe Smart Retries already handles optimal timing
 
-5. **Retry simple**:
-   - DB queue légère + cron Vercel
-   - Pas de Bull/Redis externe
+5. **Simple retry**:
+   - Lightweight DB queue + Vercel Cron
+   - No Bull/external Redis
