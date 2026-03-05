@@ -373,15 +373,11 @@ export async function sendPaymentFailedEmail(
     ${createInfoBox(
       `
         <p style="margin: 0; font-size: 14px; line-height: 1.5;">
-          Don't worry - your data and settings are safe. Update your payment method to restore access immediately.
+          Update your payment method to restore access immediately.
         </p>
       `,
       'warning',
     )}
-
-    <p style="margin: 24px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
-      ${options.retryDate ? `We will automatically retry on <strong>${options.retryDate.toLocaleDateString()}</strong>.` : 'Please update your payment method as soon as possible.'}
-    </p>
 
     ${createButton(options.billingUrl, 'Update Payment Method', 'primary')}
   `;
@@ -406,21 +402,13 @@ export async function sendSubscriptionEndedEmail(
   },
 ): Promise<void> {
   const content = `
-    <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
-      Your Umans Code subscription has ended. Your API access has been suspended.
+    <p style="margin: 0 0 16px 0; font-size: 18px; line-height: 1.5; color: #1a1a1a; text-align: center; font-weight: 600;">
+      Thanks for being part of Umans Code! 👋
     </p>
 
-    ${createInfoBox(
-      `
-        <p style="margin: 0; font-size: 14px; line-height: 1.5;">
-          We have saved your data and settings. Reactivate your subscription at any time to resume where you left off.
-        </p>
-      `,
-      'info',
-    )}
-
-    <p style="margin: 24px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
-      We'd love to have you back. Reactivate now to continue enjoying Umans Code.
+    <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
+      Your subscription has ended. Your API keys have been deactivated, but your account settings remain intact.
+      We'd love to welcome you back whenever you're ready!
     </p>
 
     ${createButton(options.reactivateUrl ?? options.billingUrl, 'Reactivate Subscription', 'success')}
@@ -430,8 +418,8 @@ export async function sendSubscriptionEndedEmail(
     await resend.emails.send({
       from: process.env.EMAIL_FROM!,
       to,
-      subject: 'Your subscription has ended',
-      html: createEmailTemplate('Subscription Ended', content),
+      subject: "You're always welcome back at Umans Code",
+      html: createEmailTemplate('See You Soon!', content),
     });
   } catch (error) {
     console.error('Failed to send subscription ended email:', error);
