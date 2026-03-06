@@ -29,8 +29,30 @@
 ## Post-Execution Checklist
 
 - [x] `results.json` committed to this directory
+- [x] `email-results.json` committed (anonymized)
+- [x] Pre-suspension emails sent to 23 users
 - [ ] Gateway Redis verified: `KEYS "account_status:*"`
 - [ ] Phase 3 (consistency check) completed
+
+## Phase 2b: Pre-Suspension Email Notifications
+
+**Date:** 2026-03-06
+**Status:** ✅ Completed
+
+Emails sent to all 23 users before API suspension:
+- `past_due` → "Action required: Update your payment method"
+- `canceled` → "You're always welcome back at Umans Code"
+
+### Email Results
+
+| Metric | Value |
+|--------|-------|
+| Total | 23 |
+| Success | 23 ✅ |
+| Failed | 0 ❌ |
+| Duration | ~21s |
+
+**Note:** Full email results with PII stored in private repo.
 
 ## Context
 
@@ -66,7 +88,8 @@ Check `results.json` was created and contains expected data.
 | File | Description |
 |------|-------------|
 | `backfill.ts` | Script used for the operation |
-| `results.json` | Execution results (generated) |
+| `results.json` | Execution results (anonymized) |
+| `email-results.json` | Email notification results (anonymized) |
 
 ## Post-Execution Checklist
 
