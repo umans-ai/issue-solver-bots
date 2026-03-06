@@ -162,31 +162,26 @@ export async function POST(req: Request) {
           .where(eq(pledge.stripeSubscriptionId, sub.id))
           .limit(1);
 
-        if (p) {
-          const newStatus = sub.status as string;
+        if (!p) {
+          return new NextResponse(`Pledge not found for subscription ${sub.id}`, { status: 404 });
+        }
 
-          // Update local DB
-          await db
-            .update(pledge)
-            .set({ status: newStatus, updatedAt: new Date() })
-            .where(eq(pledge.stripeSubscriptionId, sub.id));
+        const newStatus = sub.status as string;
 
-          // When a subscription becomes active from past_due/canceled (e.g., payment via
-          // Stripe Customer Portal), reactivate the account in the gateway to restore
-          // API access. This handles cases where invoice.payment_succeeded is not sent.
-          // Note: Use previous_attributes from webhook to check previous status,
-          // as DB may already be updated if webhook is replayed
-          const previousStatus = event.data?.previous_attributes?.status as string | undefined;
-          const wasSuspended = previousStatus === 'past_due' || previousStatus === 'canceled' || p.status === 'past_due' || p.status === 'canceled';
-          if (newStatus === 'active' && wasSuspended) {
-            await notifyGatewayForPledge(p, 'active', null);
-          }
+        await db
+          .update(pledge)
+          .set({ status: newStatus, updatedAt: new Date() })
+          .where(eq(pledge.stripeSubscriptionId, sub.id));
+
+        const previousStatus = event.data?.previous_attributes?.status as string | undefined;
+        const wasSuspended = previousStatus === 'past_due' || previousStatus === 'canceled' || p.status === 'past_due' || p.status === 'canceled';
+        if (newStatus === 'active' && wasSuspended) {
+          await notifyGatewayForPledge(p, 'active', null);
         }
         break;
       }
       const stripeCustomerId = sub.customer as string;
       const status = sub.status as string;
-      // We need to locate user by customer id
       await db
         .update(user)
         .set({ subscriptionStatus: status })
@@ -203,30 +198,30 @@ export async function POST(req: Request) {
           .where(eq(pledge.stripeSubscriptionId, sub.id))
           .limit(1);
 
-        if (p) {
-          await db
-            .update(pledge)
-            .set({ status: 'canceled', updatedAt: new Date() })
-            .where(eq(pledge.stripeSubscriptionId, sub.id));
+        if (!p) {
+          return new NextResponse(`Pledge not found for subscription ${sub.id}`, { status: 404 });
+        }
 
-          // Notify gateway of suspension
-          await notifyGatewayForPledge(
-            p,
-            'suspended',
-            'cancellation_effective',
-          );
+        await db
+          .update(pledge)
+          .set({ status: 'canceled', updatedAt: new Date() })
+          .where(eq(pledge.stripeSubscriptionId, sub.id));
 
-          // Notify user
-          if (p.email) {
-            try {
-              const { sendSubscriptionEndedEmail } = await import('@/lib/email');
-              await sendSubscriptionEndedEmail(p.email, {
-                billingUrl: `${process.env.NEXTAUTH_URL || 'https://app.umans.ai'}/billing`,
-                reactivateUrl: `${process.env.NEXTAUTH_URL || 'https://app.umans.ai'}/billing?action=reactivate`,
-              });
-            } catch (emailError) {
-              console.error('Failed to send subscription ended email:', emailError);
-            }
+        await notifyGatewayForPledge(
+          p,
+          'suspended',
+          'cancellation_effective',
+        );
+
+        if (p.email) {
+          try {
+            const { sendSubscriptionEndedEmail } = await import('@/lib/email');
+            await sendSubscriptionEndedEmail(p.email, {
+              billingUrl: `${process.env.NEXTAUTH_URL || 'https://app.umans.ai'}/billing`,
+              reactivateUrl: `${process.env.NEXTAUTH_URL || 'https://app.umans.ai'}/billing?action=reactivate`,
+            });
+          } catch (emailError) {
+            console.error('Failed to send subscription ended email:', emailError);
           }
         }
         break;
@@ -249,33 +244,31 @@ export async function POST(req: Request) {
         .where(eq(pledge.stripeSubscriptionId, subscriptionId as string))
         .limit(1);
 
-      if (p) {
-        // Update local DB
-        await db
-          .update(pledge)
-          .set({ status: 'past_due', updatedAt: new Date() })
-          .where(eq(pledge.stripeSubscriptionId, subscriptionId as string));
+      if (!p) {
+        return new NextResponse(`Pledge not found for subscription ${subscriptionId}`, { status: 404 });
+      }
 
-        // Notify gateway of suspension
-        await notifyGatewayForPledge(p, 'suspended', 'payment_failed');
+      await db
+        .update(pledge)
+        .set({ status: 'past_due', updatedAt: new Date() })
+        .where(eq(pledge.stripeSubscriptionId, subscriptionId as string));
 
-        // Notify user
-        if (p.email) {
-          try {
-            const { sendPaymentFailedEmail } = await import('@/lib/email');
-            await sendPaymentFailedEmail(p.email, {
-              billingUrl: `${process.env.NEXTAUTH_URL || 'https://app.umans.ai'}/billing`,
-            });
-          } catch (emailError) {
-            console.error('Failed to send payment failed email:', emailError);
-          }
+      await notifyGatewayForPledge(p, 'suspended', 'payment_failed');
+
+      if (p.email) {
+        try {
+          const { sendPaymentFailedEmail } = await import('@/lib/email');
+          await sendPaymentFailedEmail(p.email, {
+            billingUrl: `${process.env.NEXTAUTH_URL || 'https://app.umans.ai'}/billing`,
+          });
+        } catch (emailError) {
+          console.error('Failed to send payment failed email:', emailError);
         }
       }
       break;
     }
     case 'invoice.payment_succeeded': {
       const invoice = event.data.object as any;
-      // Only reactivate if it's a recovery (subscription_cycle), not first payment
       if (invoice.billing_reason !== 'subscription_cycle') break;
 
       const subscriptionId = invoice.subscription;
@@ -287,20 +280,19 @@ export async function POST(req: Request) {
         .where(eq(pledge.stripeSubscriptionId, subscriptionId as string))
         .limit(1);
 
-      if (p) {
-        // Update local DB
-        await db
-          .update(pledge)
-          .set({ status: 'active', updatedAt: new Date() })
-          .where(eq(pledge.stripeSubscriptionId, subscriptionId as string));
-
-        // Notify gateway of reactivation
-        await notifyGatewayForPledge(p, 'active', null);
+      if (!p) {
+        return new NextResponse(`Pledge not found for subscription ${subscriptionId}`, { status: 404 });
       }
+
+      await db
+        .update(pledge)
+        .set({ status: 'active', updatedAt: new Date() })
+        .where(eq(pledge.stripeSubscriptionId, subscriptionId as string));
+
+      await notifyGatewayForPledge(p, 'active', null);
       break;
     }
     default:
-      // ignore
       break;
   }
 

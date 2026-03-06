@@ -187,7 +187,7 @@ describe('notifyGateway', () => {
   });
 
   describe('Given gateway is not configured', () => {
-    it('silently skips notification when CODE_GATEWAY_URL is missing', async () => {
+    it('throws error when CODE_GATEWAY_URL is missing', async () => {
       // Given missing configuration
       delete process.env.CODE_GATEWAY_URL;
 
@@ -199,13 +199,16 @@ describe('notifyGateway', () => {
       };
 
       // When notifying the gateway
-      await notifyGateway(payload);
+      // Then it throws an error
+      await expect(notifyGateway(payload)).rejects.toThrow(
+        '[Gateway] CODE_GATEWAY_URL or CODE_GATEWAY_WEBHOOK_SECRET not configured'
+      );
 
-      // Then it does not call fetch
+      // And it does not call fetch
       expect(fetchMock).not.toHaveBeenCalled();
     });
 
-    it('silently skips notification when CODE_GATEWAY_WEBHOOK_SECRET is missing', async () => {
+    it('throws error when CODE_GATEWAY_WEBHOOK_SECRET is missing', async () => {
       // Given missing webhook secret
       delete process.env.CODE_GATEWAY_WEBHOOK_SECRET;
 
@@ -217,9 +220,12 @@ describe('notifyGateway', () => {
       };
 
       // When notifying the gateway
-      await notifyGateway(payload);
+      // Then it throws an error
+      await expect(notifyGateway(payload)).rejects.toThrow(
+        '[Gateway] CODE_GATEWAY_URL or CODE_GATEWAY_WEBHOOK_SECRET not configured'
+      );
 
-      // Then it does not call fetch
+      // And it does not call fetch
       expect(fetchMock).not.toHaveBeenCalled();
     });
   });

@@ -33,8 +33,9 @@ export async function notifyGateway(
   const secret = process.env.CODE_GATEWAY_WEBHOOK_SECRET;
 
   if (!baseUrl || !secret) {
-    console.warn('[Gateway] Not configured, skipping notification');
-    return;
+    throw new Error(
+      '[Gateway] CODE_GATEWAY_URL or CODE_GATEWAY_WEBHOOK_SECRET not configured'
+    );
   }
 
   try {
