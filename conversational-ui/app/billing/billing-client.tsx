@@ -866,6 +866,55 @@ export function BillingClient({ pledge, portalUrl }: BillingClientProps) {
                 </Link>
               </Button>
             </div>
+
+            {/* Upgrade section - only for Pro users */}
+            {activePledge?.plan === 'code_pro' && (
+              <div className="flex flex-col gap-4 border-t border-black/10 dark:border-white/10 pt-6">
+                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 dark:border-amber-500/30 dark:bg-amber-500/10">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div className="space-y-2">
+                      <h2 className="text-lg font-semibold text-[#0b0d10] dark:text-white">
+                        Upgrade to Max
+                      </h2>
+                      <p className="text-sm text-[#0b0d10]/70 dark:text-white/70">
+                        Get unlimited prompts and up to 4 guaranteed parallel agent sessions.
+                      </p>
+                      <ul className="mt-2 space-y-1 text-sm text-[#0b0d10]/60 dark:text-white/60">
+                        <li className="flex items-center gap-2">
+                          <span className="text-amber-500">+</span> No message limits
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-amber-500">+</span> 4 parallel sessions
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-amber-500">+</span> Extra burst capacity
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="flex flex-col items-start gap-2 md:items-end">
+                      <div className="text-right">
+                        <span className="text-2xl font-semibold text-[#0b0d10] dark:text-white">
+                          {activePledge.billingCycle === 'yearly' ? '$42' : '$50'}
+                        </span>
+                        <span className="text-sm text-[#0b0d10]/60 dark:text-white/60"> /month</span>
+                      </div>
+                      <p className="text-xs text-[#0b0d10]/50 dark:text-white/50">
+                        {activePledge.billingCycle === 'yearly'
+                          ? '$500/year (save $100)'
+                          : 'Billed monthly'}
+                      </p>
+                      <Button
+                        className={pillOutlineButton}
+                        onClick={() => startPledge('code_max', activePledge.billingCycle)}
+                        disabled={loadingPlan === 'code_max'}
+                      >
+                        {loadingPlan === 'code_max' ? 'Opening Stripe…' : 'Upgrade now'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : null}
       </section>

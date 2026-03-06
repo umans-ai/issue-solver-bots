@@ -3,9 +3,6 @@ import { auth } from '@/app/(auth)/auth';
 import { type BillingCycle, getPriceId, getStripe } from '@/lib/stripe';
 import { getLatestPledgeForUser, getUser } from '@/lib/db/queries';
 
-// Stripe requires trial period to be at least 2 days
-const MIN_TRIAL_DAYS = 2;
-
 type PledgePlanKey = 'code_pro' | 'code_max';
 
 export async function POST(req: Request) {
@@ -89,7 +86,7 @@ export async function POST(req: Request) {
   const checkout = await stripe.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
-    payment_method_collection: 'always',
+    payment_method_collection: 'if_required',
     customer: stripeCustomerId || undefined,
     customer_email: stripeCustomerId ? undefined : email || undefined,
     success_url: `${baseUrl}/billing?pledge=success&session_id={CHECKOUT_SESSION_ID}`,
@@ -103,8 +100,6 @@ export async function POST(req: Request) {
       },
     ],
     subscription_data: {
-      // 2-day trial to comply with Stripe's minimum trial period requirement
-      trial_period_days: MIN_TRIAL_DAYS,
       metadata,
     },
     custom_text: {
