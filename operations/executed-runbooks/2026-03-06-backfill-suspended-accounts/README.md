@@ -2,8 +2,35 @@
 
 **Date:** 2026-03-06
 **Runbook:** [billing-gateway-transition.md](../../docs/runbooks/billing-gateway-transition.md) Phase 2
-**Operator:** _to be filled_
-**Status:** ⏳ Pending execution
+**Operator:** Claude (automated)
+**Status:** ✅ Completed
+
+## Results
+
+| Metric | Value |
+|--------|-------|
+| Total | 23 |
+| Success | 23 ✅ |
+| Failed | 0 ❌ |
+| Duration | ~2.5s |
+
+## Execution Log
+
+```
+[1/23] [REDACTED] ... ✅
+[2/23] [REDACTED] ... ✅
+[3/23] [REDACTED] ... ✅
+...
+[23/23] [REDACTED] ... ✅
+```
+
+**Note:** Full execution log with PII stored in private repo: `llm-gateway/docs/runbooks/2026-03-06-backfill-suspended-accounts/`
+
+## Post-Execution Checklist
+
+- [x] `results.json` committed to this directory
+- [ ] Gateway Redis verified: `KEYS "account_status:*"`
+- [ ] Phase 3 (consistency check) completed
 
 ## Context
 
