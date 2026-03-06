@@ -156,10 +156,28 @@ export async function POST(req: Request) {
       const sub = event.data.object as any;
       const plan = sub.metadata?.plan as string | undefined;
       if (plan?.startsWith('code_')) {
-        await db
-          .update(pledge)
-          .set({ status: sub.status as string, updatedAt: new Date() })
-          .where(eq(pledge.stripeSubscriptionId, sub.id));
+        const [p] = await db
+          .select()
+          .from(pledge)
+          .where(eq(pledge.stripeSubscriptionId, sub.id))
+          .limit(1);
+
+        if (p) {
+          const newStatus = sub.status as string;
+
+          // Update local DB
+          await db
+            .update(pledge)
+            .set({ status: newStatus, updatedAt: new Date() })
+            .where(eq(pledge.stripeSubscriptionId, sub.id));
+
+          // When a subscription becomes active from past_due/canceled (e.g., payment via
+          // Stripe Customer Portal), reactivate the account in the gateway to restore
+          // API access. This handles cases where invoice.payment_succeeded is not sent.
+          if (newStatus === 'active' && (p.status === 'past_due' || p.status === 'canceled')) {
+            await notifyGatewayForPledge(p, 'active', null);
+          }
+        }
         break;
       }
       const stripeCustomerId = sub.customer as string;
