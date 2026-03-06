@@ -174,7 +174,11 @@ export async function POST(req: Request) {
           // When a subscription becomes active from past_due/canceled (e.g., payment via
           // Stripe Customer Portal), reactivate the account in the gateway to restore
           // API access. This handles cases where invoice.payment_succeeded is not sent.
-          if (newStatus === 'active' && (p.status === 'past_due' || p.status === 'canceled')) {
+          // Note: Use previous_attributes from webhook to check previous status,
+          // as DB may already be updated if webhook is replayed
+          const previousStatus = event.data?.previous_attributes?.status as string | undefined;
+          const wasSuspended = previousStatus === 'past_due' || previousStatus === 'canceled' || p.status === 'past_due' || p.status === 'canceled';
+          if (newStatus === 'active' && wasSuspended) {
             await notifyGatewayForPledge(p, 'active', null);
           }
         }
