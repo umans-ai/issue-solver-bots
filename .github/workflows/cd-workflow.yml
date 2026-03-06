@@ -369,6 +369,8 @@ jobs:
           TF_VAR_code_gateway_url: ${{ secrets.TF_VAR_CODE_GATEWAY_URL }}
           TF_VAR_code_gateway_admin_token: ${{ secrets.TF_VAR_CODE_GATEWAY_ADMIN_TOKEN }}
           TF_VAR_code_gateway_webhook_secret: ${{ secrets.TF_VAR_CODE_GATEWAY_WEBHOOK_SECRET }}
+          TF_VAR_admin_reactivation_secret: ${{ secrets.TF_VAR_ADMIN_REACTIVATION_SECRET }}
+          TF_VAR_admin_reactivation_admins: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && vars.TF_VAR_ADMIN_REACTIVATION_ADMINS_PROD || vars.TF_VAR_ADMIN_REACTIVATION_ADMINS_PREVIEW }}
           TF_VAR_token_encryption_key: ${{ secrets.TF_VAR_TOKEN_ENCRYPTION_KEY }}
           TF_VAR_notion_mcp_client_id: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_notion_mcp_client_id_prod || env.TF_VAR_notion_mcp_client_id_preview }}
           TF_VAR_notion_mcp_client_secret: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_notion_mcp_client_secret_prod || env.TF_VAR_notion_mcp_client_secret_preview }}
@@ -513,6 +515,8 @@ jobs:
           TF_VAR_code_gateway_url: ${{ secrets.TF_VAR_CODE_GATEWAY_URL }}
           TF_VAR_code_gateway_admin_token: ${{ secrets.TF_VAR_CODE_GATEWAY_ADMIN_TOKEN }}
           TF_VAR_code_gateway_webhook_secret: ${{ secrets.TF_VAR_CODE_GATEWAY_WEBHOOK_SECRET }}
+          TF_VAR_admin_reactivation_secret: ${{ secrets.TF_VAR_ADMIN_REACTIVATION_SECRET }}
+          TF_VAR_admin_reactivation_admins: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && vars.TF_VAR_ADMIN_REACTIVATION_ADMINS_PROD || vars.TF_VAR_ADMIN_REACTIVATION_ADMINS_PREVIEW }}
           TF_VAR_token_encryption_key: ${{ secrets.TF_VAR_TOKEN_ENCRYPTION_KEY }}
           TF_VAR_notion_mcp_client_id: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_notion_mcp_client_id_prod || env.TF_VAR_notion_mcp_client_id_preview || 'random_dummy_value'}}
           TF_VAR_notion_mcp_client_secret: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && secrets.TF_VAR_notion_mcp_client_secret_prod || env.TF_VAR_notion_mcp_client_secret_preview || 'random_dummy_value'}}

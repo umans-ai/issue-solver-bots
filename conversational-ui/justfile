@@ -105,3 +105,4 @@ docker-compose-down:
 reset-password EMAIL:
     @echo "Resetting password for user: {{EMAIL}}"
     @node scripts/reset-password.js {{EMAIL}}
+

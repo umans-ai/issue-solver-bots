@@ -176,3 +176,17 @@ variable "code_gateway_webhook_secret" {
   default     = ""
 }
 
+variable "admin_reactivation_secret" {
+  description = "Secret for admin account reactivation API (/api/admin/account/reactivate)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "admin_reactivation_admins" {
+  description = "Comma-separated list of admin UUIDs authorized to reactivate accounts"
+  type        = string
+  sensitive   = false
+  default     = ""
+}
+

@@ -426,6 +426,47 @@ export async function sendSubscriptionEndedEmail(
   }
 }
 
+export async function sendAccountReactivatedEmail(
+  to: string,
+  options: {
+    adminName?: string;
+    reason?: string;
+    description?: string;
+  },
+): Promise<void> {
+  const content = `
+    <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
+      Good news! Your Umans Code account has been reactivated and your API access has been restored.
+    </p>
+
+    ${options.reason ? createInfoBox(
+      `
+        <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600;">Reason</p>
+        <p style="margin: 0; font-size: 14px;">${options.reason}</p>
+        ${options.description ? `<p style="margin: 8px 0 0 0; font-size: 14px; color: #64748b;">${options.description}</p>` : ''}
+      `,
+      'success',
+    ) : ''}
+
+    <p style="margin: 24px 0; font-size: 16px; line-height: 1.6; color: #475569; text-align: center;">
+      You can now use your API keys again. If you experience any issues, please contact our support team.
+    </p>
+
+    ${createButton(`${getBaseUrl()}/billing`, 'View Account', 'success')}
+  `;
+
+  try {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to,
+      subject: 'Your Umans Code account has been reactivated',
+      html: createEmailTemplate('Account Reactivated', content),
+    });
+  } catch (error) {
+    console.error('Failed to send account reactivated email:', error);
+  }
+}
+
 export async function sendPasswordResetEmail(
   to: string,
   resetToken: string,

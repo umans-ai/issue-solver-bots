@@ -333,3 +333,34 @@ export const waitlistSignups = pgTable('WaitlistSignups', {
 });
 
 export type WaitlistSignup = InferSelectModel<typeof waitlistSignups>;
+
+export const accountReactivation = pgTable(
+  'AccountReactivation',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    // Who performed the reactivation
+    adminUserId: uuid('adminUserId').references(() => user.id),
+    // The reason/category for reactivation
+    reason: varchar('reason', { length: 64 }).notNull(),
+    // Detailed description/context
+    description: text('description'),
+    // Previous pledge status before reactivation
+    previousStatus: varchar('previousStatus', { length: 32 }).notNull(),
+    // Whether notification was sent to user
+    notificationSent: boolean('notificationSent').notNull().default(false),
+    // Gateway sync status
+    gatewaySynced: boolean('gatewaySynced').notNull().default(false),
+    createdAt: timestamp('createdAt').notNull().defaultNow(),
+  },
+  (table) => {
+    return {
+      userIdx: index('account_reactivation_user_idx').on(table.userId),
+      createdAtIdx: index('account_reactivation_created_at_idx').on(table.createdAt),
+    };
+  },
+);
+
+export type AccountReactivation = InferSelectModel<typeof accountReactivation>;

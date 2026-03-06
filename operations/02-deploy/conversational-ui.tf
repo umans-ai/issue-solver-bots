@@ -97,6 +97,8 @@ resource "aws_apprunner_service" "conversational_ui" {
           CODE_GATEWAY_URL             = var.code_gateway_url
           CODE_GATEWAY_ADMIN_TOKEN     = var.code_gateway_admin_token
           CODE_GATEWAY_WEBHOOK_SECRET  = var.code_gateway_webhook_secret
+          ADMIN_REACTIVATION_SECRET    = var.admin_reactivation_secret
+          ADMIN_REACTIVATION_ADMINS    = var.admin_reactivation_admins
           EMAIL_API_KEY                = var.email_api_key
           EMAIL_FROM                   = var.email_from
           POSTHOG_KEY                  = var.posthog_key

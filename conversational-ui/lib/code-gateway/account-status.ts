@@ -7,7 +7,7 @@ interface NotifyPayload {
   principal_id: string;
   account_id: string;
   status: 'active' | 'suspended' | 'banned';
-  reason: 'payment_failed' | 'cancellation_effective' | 'terms_of_service' | null;
+  reason: 'payment_failed' | 'cancellation_effective' | 'terms_of_service' | 'manual_reactivation' | null;
 }
 
 function sleep(ms: number): Promise<void> {

@@ -155,6 +155,13 @@
       "when": 1770334204963,
       "tag": "0021_wise_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1772759726827,
+      "tag": "0022_worthless_punisher",
+      "breakpoints": true
     }
   ]
 }
